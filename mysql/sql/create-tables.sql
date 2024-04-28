@@ -22,8 +22,6 @@ CREATE TABLE IF NOT EXISTS `groups` (
 CREATE TABLE IF NOT EXISTS user_groups (
     user_uuid BINARY(16),
     group_uuid BINARY(16),
-    user_uuid_text CHAR(36) AS (BIN_TO_UUID(user_uuid)) VIRTUAL,
-    group_uuid_text CHAR(36) AS (BIN_TO_UUID(group_uuid)) VIRTUAL,
     PRIMARY KEY (user_uuid, group_uuid),
     FOREIGN KEY (user_uuid) REFERENCES users(uuid) ON DELETE CASCADE,
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid) ON DELETE CASCADE
