@@ -18,6 +18,8 @@ services:
 
   db:
     build: ./mysql
+    ports:
+      - "3306:3306"
     image: mysql:8.0
     restart: always
     environment:
