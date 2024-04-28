@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
-import com.moneyme.moneymebackend.dto.response.CreateGroupResponse;
+import com.moneyme.moneymebackend.dto.response.CreateOrGetGroupResponse;
 import com.moneyme.moneymebackend.dto.response.GroupResponse;
 import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +27,22 @@ public class GroupService {
     private final UserGroupRepository userGroupRepository;
 
     @Transactional
-    public CreateGroupResponse createGroup(CreateGroupRequest request) {
+    public CreateOrGetGroupResponse getGroupInfo(String groupId) {
+        UUID groupUuid = UUID.fromString(groupId);
+        GroupEntity group = repository.findById(groupUuid).orElseThrow(() -> new IllegalArgumentException("Group not found"));
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupUuid);
+        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        List<UserResponse> userResponses = users.stream().map(UserResponse::from).collect(Collectors.toList());
+
+        GroupResponse groupResponse = GroupResponse.from(group);
+        return CreateOrGetGroupResponse.builder()
+                .userInfo(userResponses)
+                .groupInfo(groupResponse)
+                .build();
+    }
+
+    @Transactional
+    public CreateOrGetGroupResponse createGroup(CreateGroupRequest request) {
         GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
         UserEntity user = userRepository.findByUuid(UUID.fromString(request.getUserUuid()));
         if (user == null) {
@@ -44,7 +60,7 @@ public class GroupService {
         });
 
         List<UserResponse> userResponseList = userEntityList.stream().map(UserResponse::from).toList();
-        CreateGroupResponse response = CreateGroupResponse.builder()
+        CreateOrGetGroupResponse response = CreateOrGetGroupResponse.builder()
                 .userInfo(userResponseList)
                 .groupInfo(GroupResponse.from(savedGroup))
                 .build();
