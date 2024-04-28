@@ -9,7 +9,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_HOST: ${DB_HOST}
+      DB_HOST: db
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -20,13 +20,13 @@ services:
     build: ./mysql
     ports:
       - "3306:3306"
-    image: mysql:8.0
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Tokyo
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:

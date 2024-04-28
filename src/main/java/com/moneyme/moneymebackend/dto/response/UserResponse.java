@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import lombok.Builder;
 
+import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
+
 @Builder
 public class UserResponse {
     @JsonProperty("uuid") String uuid;
@@ -19,8 +21,8 @@ public class UserResponse {
                 .userName(user.getName())
                 .email(user.getEmail())
                 .authUserId(user.getAuthUserId())
-                .createdAt(user.getCreatedAt().toString())
-                .updatedAt(user.getUpdatedAt().toString())
+                .createdAt(convertToTokyoTime(user.getCreatedAt()))
+                .updatedAt(convertToTokyoTime(user.getUpdatedAt()))
                 .build();
     }
 }

@@ -11,7 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -22,8 +21,8 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.getCurrentTimeI
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "users")
-public class UserEntity {
+@Table(name = "`groups`")
+public class GroupEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
@@ -31,11 +30,11 @@ public class UserEntity {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Column(name = "email", unique = true, length = 255)
-    private String email;
+    @Column(name = "join_token", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID joinToken;
 
-    @Column(name = "auth_user_id", length = 128)
-    private String authUserId;
+    @Column(name = "token_expires", nullable = false)
+    private ZonedDateTime tokenExpires;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
@@ -45,7 +44,9 @@ public class UserEntity {
 
     @PrePersist
     protected void onCreate() {
+        // TODO: now + 1
         ZonedDateTime now = ZonedDateTime.now();
+        tokenExpires = now.plusDays(1);
         createdAt = now;
         updatedAt = now;
     }
@@ -54,5 +55,4 @@ public class UserEntity {
     protected void onUpdate() {
         updatedAt = ZonedDateTime.now();
     }
-
 }
