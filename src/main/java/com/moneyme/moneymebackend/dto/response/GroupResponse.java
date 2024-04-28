@@ -5,6 +5,8 @@ import com.moneyme.moneymebackend.entity.GroupEntity;
 import lombok.Builder;
 import lombok.Data;
 
+import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
+
 
 @Builder
 public class GroupResponse {
@@ -21,8 +23,8 @@ public class GroupResponse {
                 .name(group.getName())
                 .joinToken(group.getJoinToken().toString())
                 .tokenExpires(group.getTokenExpires().toString())
-                .createdAt(group.getCreatedAt().toString())
-                .updatedAt(group.getUpdatedAt().toString())
+                .createdAt(convertToTokyoTime(group.getCreatedAt()))
+                .updatedAt(convertToTokyoTime(group.getUpdatedAt()))
                 .build();
     }
 }

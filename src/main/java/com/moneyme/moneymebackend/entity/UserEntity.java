@@ -11,8 +11,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+
+import static com.moneyme.moneymebackend.service.util.TimeHelper.getCurrentTimeInTokyo;
 
 @Entity
 @Data
@@ -34,16 +37,17 @@ public class UserEntity {
     @Column(name = "auth_user_id", length = 128)
     private String authUserId;
 
-    @Column(name = "created_at", columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
-    @Column(name = "updated_at", columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    @Column(name = "updated_at", nullable = false)
     private ZonedDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = ZonedDateTime.now();
-        updatedAt = ZonedDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate

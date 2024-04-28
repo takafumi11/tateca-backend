@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import static com.moneyme.moneymebackend.service.util.TimeHelper.getCurrentTimeInTokyo;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -34,18 +36,19 @@ public class GroupEntity {
     @Column(name = "token_expires", nullable = false)
     private ZonedDateTime tokenExpires;
 
-    @Column(name = "created_at", columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
-    @Column(name = "updated_at", columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    @Column(name = "updated_at", nullable = false)
     private ZonedDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
         // TODO: now + 1
-        tokenExpires = ZonedDateTime.now().plusDays(1);
-        createdAt = ZonedDateTime.now();
-        updatedAt = ZonedDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
+        tokenExpires = now.plusDays(1);
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate
