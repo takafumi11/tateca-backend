@@ -1,8 +1,11 @@
 -- Inserting into users
-INSERT INTO users(uuid, name, email, is_temporary)
+INSERT INTO users(uuid, name, email, auth_user_id)
 VALUES
-(@uuid100 := UUID_TO_BIN(UUID(), 1), '山田太郎', 'taro.yamada@example.com', false),
-(@uuid101 := UUID_TO_BIN(UUID(), 1), '佐藤花子', 'hanako.sato@example.com', false);
+(@uuid100 := UUID_TO_BIN(UUID(), 1), '山田太郎', 'taro.yamada@example.com', "authIdFromFirebase");
+
+INSERT INTO users(uuid, name)
+VALUES
+(@uuid101 := UUID_TO_BIN(UUID(), 1), '佐藤花子');
 
 -- Inserting into groups
 INSERT INTO `groups`(uuid, name)
