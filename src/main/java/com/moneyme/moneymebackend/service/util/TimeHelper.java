@@ -16,4 +16,8 @@ public class TimeHelper {
         return dateTime.withZoneSameInstant(TOKYO_ZONE_ID).format(formatter);
     }
 
+    public static ZonedDateTime convertToTokyoTime(String dateTimeStr) {
+        return ZonedDateTime.parse(dateTimeStr, formatter).withZoneSameInstant(TOKYO_ZONE_ID);
+    }
+
 }

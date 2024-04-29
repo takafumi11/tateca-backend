@@ -1,0 +1,60 @@
+package com.moneyme.moneymebackend.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "`loan_obligations`")
+public class LoanObligationEntity {
+    @Id
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID uuid;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_uuid", nullable = false, updatable = false)
+    private LoanEntity loan;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_uuid", nullable = false, updatable = false)
+    private UserEntity user;
+
+    @Column(name = "amount", nullable = false)
+    private BigDecimal amount;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private ZonedDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private ZonedDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        ZonedDateTime now = ZonedDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = ZonedDateTime.now();
+    }
+}
