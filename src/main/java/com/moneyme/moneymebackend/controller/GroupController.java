@@ -1,7 +1,6 @@
 package com.moneyme.moneymebackend.controller;
 
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
-import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.UserGroupsResponse;
 import com.moneyme.moneymebackend.service.GroupService;
 import lombok.RequiredArgsConstructor;

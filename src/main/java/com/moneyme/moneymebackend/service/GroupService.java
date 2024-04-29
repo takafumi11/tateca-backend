@@ -1,7 +1,6 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
-import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.UserGroupsResponse;
 import com.moneyme.moneymebackend.dto.response.GroupResponse;
 import com.moneyme.moneymebackend.dto.response.UserResponse;
@@ -33,19 +32,6 @@ public class GroupService {
         GroupEntity group = repository.findById(groupUuid).orElseThrow(() -> new IllegalArgumentException("Group not found"));
         return buildGroupResponse(group);
     }
-
-//    @Transactional
-//    public UserGroupsResponse joinGroup(String uuid, JoinGroupRequest request) {
-//        UUID groupUuid = UUID.fromString(uuid);
-//        GroupEntity group = repository.findById(groupUuid)
-//                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
-//
-//        if (!group.getJoinToken().equals(request.getJoinToken())) {
-//            throw new IllegalArgumentException("join token is not valid");
-//        }
-//
-//        return buildGroupResponse(group);
-//    }
 
     @Transactional
     public UserGroupsResponse createGroup(CreateGroupRequest request) {
