@@ -1,7 +1,8 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
-import com.moneyme.moneymebackend.dto.response.CreateOrGetGroupResponse;
+import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
+import com.moneyme.moneymebackend.dto.response.UserGroupsResponse;
 import com.moneyme.moneymebackend.dto.response.GroupResponse;
 import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
@@ -27,22 +28,27 @@ public class GroupService {
     private final UserGroupRepository userGroupRepository;
 
     @Transactional
-    public CreateOrGetGroupResponse getGroupInfo(String groupId) {
+    public UserGroupsResponse getGroupInfo(String groupId) {
         UUID groupUuid = UUID.fromString(groupId);
         GroupEntity group = repository.findById(groupUuid).orElseThrow(() -> new IllegalArgumentException("Group not found"));
-        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupUuid);
-        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        List<UserResponse> userResponses = users.stream().map(UserResponse::from).collect(Collectors.toList());
-
-        GroupResponse groupResponse = GroupResponse.from(group);
-        return CreateOrGetGroupResponse.builder()
-                .userInfo(userResponses)
-                .groupInfo(groupResponse)
-                .build();
+        return buildGroupResponse(group);
     }
 
+//    @Transactional
+//    public UserGroupsResponse joinGroup(String uuid, JoinGroupRequest request) {
+//        UUID groupUuid = UUID.fromString(uuid);
+//        GroupEntity group = repository.findById(groupUuid)
+//                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+//
+//        if (!group.getJoinToken().equals(request.getJoinToken())) {
+//            throw new IllegalArgumentException("join token is not valid");
+//        }
+//
+//        return buildGroupResponse(group);
+//    }
+
     @Transactional
-    public CreateOrGetGroupResponse createGroup(CreateGroupRequest request) {
+    public UserGroupsResponse createGroup(CreateGroupRequest request) {
         GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
         UserEntity user = userRepository.findByUuid(UUID.fromString(request.getUserUuid()));
         if (user == null) {
@@ -60,12 +66,24 @@ public class GroupService {
         });
 
         List<UserResponse> userResponseList = userEntityList.stream().map(UserResponse::from).toList();
-        CreateOrGetGroupResponse response = CreateOrGetGroupResponse.builder()
+        UserGroupsResponse response = UserGroupsResponse.builder()
                 .userInfo(userResponseList)
                 .groupInfo(GroupResponse.from(savedGroup))
                 .build();
 
         return response;
+    }
+
+    private UserGroupsResponse buildGroupResponse(GroupEntity group) {
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(group.getUuid());
+        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        List<UserResponse> userResponses = users.stream().map(UserResponse::from).collect(Collectors.toList());
+
+        GroupResponse groupResponse = GroupResponse.from(group);
+        return UserGroupsResponse.builder()
+                .userInfo(userResponses)
+                .groupInfo(groupResponse)
+                .build();
     }
 
     private GroupEntity createAndSaveGroup(String groupName) {

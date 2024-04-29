@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class CreateOrGetGroupResponse {
+public class UserGroupsResponse {
     @JsonProperty("group_info")
     GroupResponse groupInfo;
 
