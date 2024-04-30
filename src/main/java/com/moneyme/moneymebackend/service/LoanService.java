@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.model.ObligationInfo;
 import com.moneyme.moneymebackend.dto.request.CreateLoanRequest;
+import com.moneyme.moneymebackend.dto.request.CreateLoanRequest.ObligationInfo;
 import com.moneyme.moneymebackend.dto.response.CreateLoanResponse;
 import com.moneyme.moneymebackend.dto.response.LoanResponse;
 import com.moneyme.moneymebackend.dto.response.ObligationResponse;
