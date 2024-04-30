@@ -1,7 +1,6 @@
 package com.moneyme.moneymebackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.moneyme.moneymebackend.entity.LoanEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import lombok.Builder;
 
@@ -13,10 +12,11 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoT
 public class CreateRepaymentResponse {
     @JsonProperty("uuid") String uuid;
     @JsonProperty("title") String title;
-    @JsonProperty("amount")
-    BigDecimal amount;
-    @JsonProperty("payer") UserResponse payer;
-    @JsonProperty("recipient") UserResponse recipient;
+    @JsonProperty("amount") BigDecimal amount;
+    @JsonProperty("payer")
+    UserResponse payer;
+    @JsonProperty("recipient")
+    UserResponse recipient;
     @JsonProperty("detail") String detail;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;

@@ -2,6 +2,7 @@ package com.moneyme.moneymebackend.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,8 +12,8 @@ import java.util.List;
 @Builder
 public class UserGroupsResponse {
     @JsonProperty("group_info")
-    GroupResponse groupInfo;
+    GroupResponseModel groupResponseModel;
 
     @JsonProperty("users_info")
-    List<UserResponse> userInfo;
+    List<UserResponse> userResponses;
 }

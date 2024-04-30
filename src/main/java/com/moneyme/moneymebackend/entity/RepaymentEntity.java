@@ -1,6 +1,5 @@
 package com.moneyme.moneymebackend.entity;
 
-import com.moneyme.moneymebackend.dto.request.CreateLoanRequest;
 import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -74,12 +73,12 @@ public class RepaymentEntity {
     public static RepaymentEntity from(CreateRepaymentRequest request, UserEntity payer, UserEntity recipientUser) {
         return RepaymentEntity.builder()
                 .uuid(UUID.randomUUID())
-                .title(request.getRepaymentInfo().getTitle())
-                .amount(request.getRepaymentInfo().getAmount())
-                .date(convertToTokyoTime(request.getRepaymentInfo().getDate()))
+                .title(request.getRepaymentRequestModel().getTitle())
+                .amount(request.getRepaymentRequestModel().getAmount())
+                .date(convertToTokyoTime(request.getRepaymentRequestModel().getDate()))
                 .payer(payer)
                 .recipientUser(recipientUser)
-                .detail(request.getRepaymentInfo().getDetail())
+                .detail(request.getRepaymentRequestModel().getDetail())
                 .build();
     }
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class CreateOrUpdateUserRequest {
+public class UserRequest {
     @JsonProperty("user_name") String userName;
     @JsonProperty("email") String email;
 }

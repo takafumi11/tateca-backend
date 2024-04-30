@@ -4,7 +4,6 @@ import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
 import com.moneyme.moneymebackend.dto.response.CreateRepaymentResponse;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
-import com.moneyme.moneymebackend.repository.RedisRepository;
 import com.moneyme.moneymebackend.repository.RepaymentRepository;
 import com.moneyme.moneymebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +19,8 @@ public class RepaymentService {
     private final RedisService redisService;
 
     public CreateRepaymentResponse createRepayment(CreateRepaymentRequest request) {
-        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentInfo().getPayerId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
-        UserEntity recipientUser = userRepository.findById(UUID.fromString(request.getRepaymentInfo().getRecipientId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
+        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getPayerId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
+        UserEntity recipientUser = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getRecipientId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
 
         RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipientUser));
 

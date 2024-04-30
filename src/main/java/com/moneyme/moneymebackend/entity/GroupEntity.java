@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static com.moneyme.moneymebackend.service.util.TimeHelper.getCurrentTimeInTokyo;
-
 @Entity
 @Data
 @NoArgsConstructor
