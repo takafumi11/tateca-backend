@@ -26,6 +26,7 @@ public class LoanService {
     private final LoanRepository repository;
     private final LoanObligationRepository loanObligationRepository;
     private final UserRepository userRepository;
+    private final RedisService redisService;
 
     @Transactional
     public CreateLoanResponse createLoan(CreateLoanRequest request) {
@@ -50,6 +51,7 @@ public class LoanService {
 
         List<LoanObligationEntity> savedObligations = loanObligationRepository.saveAll(obligationList);
 
+                redisService.updateBalances(savedLoan.getPayer().getUuid().toString(), obligation.getUser().getUuid().toString(), obligation.getAmount(), request.getGroupId())
         LoanResponse loanResponse = LoanResponse.from(savedLoan);
         List<ObligationResponse> obligationResponses = savedObligations.stream().map(ObligationResponse::from).toList();
 
