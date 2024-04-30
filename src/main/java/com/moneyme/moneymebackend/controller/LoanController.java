@@ -12,15 +12,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.moneyme.moneymebackend.constants.ApiConstants.HEADER_AUTHORIZATION;
+import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_LOANS;
+
 @RestController
-@RequestMapping("/loans")
+@RequestMapping(PATH_LOANS)
 @RequiredArgsConstructor
 public class LoanController {
     private final LoanService service;
 
     @PostMapping
     public ResponseEntity<CreateLoanResponse> creteLoan(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String token,
             @RequestBody CreateLoanRequest request
     ) {
        CreateLoanResponse response = service.createLoan(request);
