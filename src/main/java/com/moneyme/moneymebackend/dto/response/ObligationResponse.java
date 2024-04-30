@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.moneyme.moneymebackend.entity.LoanObligationEntity;
+import com.moneyme.moneymebackend.entity.ObligationEntity;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -16,7 +16,7 @@ public class ObligationResponse {
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static ObligationResponse from(LoanObligationEntity obligation) {
+    public static ObligationResponse from(ObligationEntity obligation) {
         return ObligationResponse.builder()
                 .uuid(obligation.getUuid().toString())
                 .user(UserResponse.from(obligation.getUser()))
