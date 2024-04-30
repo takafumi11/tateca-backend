@@ -11,11 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
-
-import static com.moneyme.moneymebackend.service.util.TimeHelper.getCurrentTimeInTokyo;
 
 @Entity
 @Data

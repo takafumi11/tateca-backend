@@ -12,15 +12,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.moneyme.moneymebackend.constants.ApiConstants.HEADER_AUTHORIZATION;
+import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_REPAYMENTS;
+
 @RestController
-@RequestMapping("/repayments")
+@RequestMapping(PATH_REPAYMENTS)
 @RequiredArgsConstructor
 public class RepaymentController {
     private final RepaymentService service;
 
     @PostMapping
     public ResponseEntity<CreateRepaymentResponse> creteRepayment(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String token,
             @RequestBody CreateRepaymentRequest request
     ) {
         CreateRepaymentResponse response = service.createRepayment(request);

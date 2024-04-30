@@ -69,11 +69,11 @@ public class LoanEntity {
     public static LoanEntity from(CreateLoanRequest request, UserEntity user) {
         return LoanEntity.builder()
                 .uuid(UUID.randomUUID())
-                .title(request.getLoanInfo().getTitle())
-                .amount(request.getLoanInfo().getAmount())
-                .date(convertToTokyoTime(request.getLoanInfo().getDate()))
+                .title(request.getLoanRequestModel().getTitle())
+                .amount(request.getLoanRequestModel().getAmount())
+                .date(convertToTokyoTime(request.getLoanRequestModel().getDate()))
                 .payer(user)
-                .detail(request.getLoanInfo().getDetail())
+                .detail(request.getLoanRequestModel().getDetail())
                 .build();
     }
 }

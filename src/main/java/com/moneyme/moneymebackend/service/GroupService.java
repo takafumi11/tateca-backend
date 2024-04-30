@@ -1,9 +1,9 @@
 package com.moneyme.moneymebackend.service;
 
+import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
+import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
 import com.moneyme.moneymebackend.dto.response.UserGroupsResponse;
-import com.moneyme.moneymebackend.dto.response.GroupResponse;
-import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
@@ -36,10 +36,7 @@ public class GroupService {
     @Transactional
     public UserGroupsResponse createGroup(CreateGroupRequest request) {
         GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
-        UserEntity user = userRepository.findByUuid(UUID.fromString(request.getUserUuid()));
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
+        UserEntity user = userRepository.findById(UUID.fromString(request.getUserUuid())).orElseThrow(() -> new IllegalArgumentException("user not found"));
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(user);
@@ -53,8 +50,8 @@ public class GroupService {
 
         List<UserResponse> userResponseList = userEntityList.stream().map(UserResponse::from).toList();
         UserGroupsResponse response = UserGroupsResponse.builder()
-                .userInfo(userResponseList)
-                .groupInfo(GroupResponse.from(savedGroup))
+                .userResponses(userResponseList)
+                .groupResponseModel(GroupResponseModel.from(savedGroup))
                 .build();
 
         return response;
@@ -65,10 +62,10 @@ public class GroupService {
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         List<UserResponse> userResponses = users.stream().map(UserResponse::from).collect(Collectors.toList());
 
-        GroupResponse groupResponse = GroupResponse.from(group);
+        GroupResponseModel groupResponse = GroupResponseModel.from(group);
         return UserGroupsResponse.builder()
-                .userInfo(userResponses)
-                .groupInfo(groupResponse)
+                .userResponses(userResponses)
+                .groupResponseModel(groupResponse)
                 .build();
     }
 

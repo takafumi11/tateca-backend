@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class ObligationInfo {
+public class ObligationRequestModel {
     @JsonProperty("amount") BigDecimal amount;
     @JsonProperty("user_uuid") String userUuid ;
 }
