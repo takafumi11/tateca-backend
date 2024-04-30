@@ -1,5 +1,6 @@
 package com.moneyme.moneymebackend.entity;
 
+import com.moneyme.moneymebackend.dto.request.CreateLoanRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +18,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+
+import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Entity
 @Data
@@ -61,5 +64,16 @@ public class LoanEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = ZonedDateTime.now();
+    }
+
+    public static LoanEntity from(CreateLoanRequest request, UserEntity user) {
+        return LoanEntity.builder()
+                .uuid(UUID.randomUUID())
+                .title(request.getLoanInfo().getTitle())
+                .amount(request.getLoanInfo().getAmount())
+                .date(convertToTokyoTime(request.getLoanInfo().getDate()))
+                .payer(user)
+                .detail(request.getLoanInfo().getDetail())
+                .build();
     }
 }

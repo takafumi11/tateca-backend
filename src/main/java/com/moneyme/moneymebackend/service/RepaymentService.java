@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
-
 @Service
 @RequiredArgsConstructor
 public class RepaymentService {
@@ -25,20 +23,11 @@ public class RepaymentService {
         UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentInfo().getPayerId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
         UserEntity recipientUser = userRepository.findById(UUID.fromString(request.getRepaymentInfo().getRecipientId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
 
-        RepaymentEntity repayment = RepaymentEntity.builder()
-                .uuid(UUID.randomUUID())
-                .title(request.getRepaymentInfo().getTitle())
-                .amount(request.getRepaymentInfo().getAmount())
-                .date(convertToTokyoTime(request.getRepaymentInfo().getDate()))
-                .payer(payer)
-                .recipientUser(recipientUser)
-                .detail(request.getRepaymentInfo().getDetail())
-                .build();
+        RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipientUser));
 
-        RepaymentEntity savedRepayment = repository.save(repayment);
         redisService.updateBalances(savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), request.getGroupId());
 
         return CreateRepaymentResponse.from(savedRepayment);
-
     }
+
 }

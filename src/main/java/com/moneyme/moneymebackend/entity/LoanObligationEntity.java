@@ -57,4 +57,5 @@ public class LoanObligationEntity {
     protected void onUpdate() {
         updatedAt = ZonedDateTime.now();
     }
+
 }

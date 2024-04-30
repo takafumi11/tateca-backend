@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
-
 @Service
 @RequiredArgsConstructor
 public class LoanService {
@@ -34,24 +32,18 @@ public class LoanService {
         UserEntity user = userRepository.findById(userUuid)
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
 
-        LoanEntity loan = LoanEntity.builder()
-                .uuid(UUID.randomUUID())
-                .title(request.getLoanInfo().getTitle())
-                .amount(request.getLoanInfo().getAmount())
-                .date(convertToTokyoTime(request.getLoanInfo().getDate()))
-                .payer(user)
-                .detail(request.getLoanInfo().getDetail())
-                .build();
+        LoanEntity savedLoan = repository.save(LoanEntity.from(request, user));
 
-        LoanEntity savedLoan = repository.save(loan);
-
-        List<LoanObligationEntity> obligationList = request.getObligationInfoList().stream()
-            .map(obligationInfo -> buildObligationEntity(savedLoan, obligationInfo))
-                .toList();
+        List<LoanObligationEntity> obligationList = request.getObligationInfoList().stream().map(obligationInfo ->
+                buildObligationEntity(savedLoan, obligationInfo)
+        ).toList();
 
         List<LoanObligationEntity> savedObligations = loanObligationRepository.saveAll(obligationList);
 
+        savedObligations.stream().forEach(obligation ->
                 redisService.updateBalances(savedLoan.getPayer().getUuid().toString(), obligation.getUser().getUuid().toString(), obligation.getAmount(), request.getGroupId())
+        );
+
         LoanResponse loanResponse = LoanResponse.from(savedLoan);
         List<ObligationResponse> obligationResponses = savedObligations.stream().map(ObligationResponse::from).toList();
 
