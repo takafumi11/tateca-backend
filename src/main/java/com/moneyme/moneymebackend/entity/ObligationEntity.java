@@ -24,7 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "`loan_obligations`")
-public class LoanObligationEntity {
+public class ObligationEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
@@ -57,4 +57,5 @@ public class LoanObligationEntity {
     protected void onUpdate() {
         updatedAt = ZonedDateTime.now();
     }
+
 }
