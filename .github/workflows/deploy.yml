@@ -39,8 +39,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.KEY_FOR_ELASTIC_COMPUTE_CLOUD }}
           source: "./build/libs/money-me-backend-0.0.1-SNAPSHOT.jar"
-          target: "/home/ec2-user/money-me/build/libs"
-          strip_components: 1
+          target: "/home/ec2-user/money-me/build/libs/"
           overwrite: true
 
       - name: Restart application
