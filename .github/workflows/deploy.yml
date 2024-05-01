@@ -1,0 +1,51 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ec2-18-179-22-17.ap-northeast-1.compute.amazonaws.com
+          username: ec2-user
+          key: ${{ secrets.KEY_FOR_ELASTIC_COMPUTE_CLOUD }}
+          source: "./{mysql,Dockerfile,docker-compose.yml,build/libs/money-me-backend-0.0.1-SNAPSHOT.jar}"
+          target: "/home/ec2-user/money-me"
+          strip_components: 1
+          overwrite: true
+
+      - name: Restart application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ec2-18-179-22-17.ap-northeast-1.compute.amazonaws.com
+          username: ec2-user
+          key: ${{ secrets.KEY_FOR_ELASTIC_COMPUTE_CLOUD }}
+          script: |
+            echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" > /home/ec2-user/money-me/.env
+            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> /home/ec2-user/money-me/.env
+            echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> /home/ec2-user/money-me/.env
+            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> /home/ec2-user/money-me/.env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> /home/ec2-user/money-me/.env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> /home/ec2-user/money-me/.env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> /home/ec2-user/money-me/.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> /home/ec2-user/money-me/.env
+            sudo systemctl start docker
+            docker-compose -f /home/ec2-user/money-me/docker-compose.yml up --build -d --no-deps app
