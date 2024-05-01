@@ -27,7 +27,7 @@ jobs:
           host: ec2-18-179-22-17.ap-northeast-1.compute.amazonaws.com
           username: ec2-user
           key: ${{ secrets.KEY_FOR_ELASTIC_COMPUTE_CLOUD }}
-          source: "./{mysql,Dockerfile,docker-compose.app.yml,docker-compose.db.yml,build/libs/money-me-backend-0.0.1-SNAPSHOT.jar}"
+          source: "./{mysql,Dockerfile,docker-compose.yml,build/libs/money-me-backend-0.0.1-SNAPSHOT.jar}"
           target: "/home/ec2-user/money-me"
           strip_components: 1
           overwrite: true
@@ -48,5 +48,5 @@ jobs:
             echo "DB_USER=${{ secrets.DB_USER }}" >> /home/ec2-user/money-me/.env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> /home/ec2-user/money-me/.env
             sudo systemctl start docker
-            docker-compose -f /home/ec2-user/money-me/docker-compose.db.yml -f /home/ec2-user/money-me/docker-compose.app.yml stop app
-            docker-compose -f /home/ec2-user/money-me/docker-compose.db.yml -f /home/ec2-user/money-me/docker-compose.app.yml up -d app
+            docker-compose -f /home/ec2-user/money-me/docker-compose.yml up --build -d app
+
