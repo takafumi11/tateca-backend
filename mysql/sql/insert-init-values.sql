@@ -19,9 +19,9 @@ VALUES
 (@uuid101, @uuid200);
 
 -- Inserting into loans
-INSERT INTO loans(uuid, title, amount, date, payer_id, detail)
+INSERT INTO loans(uuid, group_uuid, title, amount, date, payer_id, detail)
 VALUES
-(@uuid300 := UUID_TO_BIN(UUID(), 1), 'リゴレット', 3600.00, '2024-01-02 03:12:38', @uuid100, 'リゴレットで夕飯を取りました。カルボナーラとマルゲリータピザを食べました。');
+(@uuid300 := UUID_TO_BIN(UUID(), 1), @uuid200, 'リゴレット', 3600.00, '2024-01-02 03:12:38', @uuid100, 'リゴレットで夕飯を取りました。カルボナーラとマルゲリータピザを食べました。');
 
 -- Inserting into loan_obligations
 INSERT INTO loan_obligations(uuid, loan_uuid, user_uuid, amount)
@@ -29,6 +29,6 @@ VALUES
 (@uuid400 := UUID_TO_BIN(UUID(), 1), @uuid300, @uuid101, 1800.00);
 
 -- Inserting into repayment_history
-INSERT INTO repayment_history(uuid, amount, date, payer_id, recipient_user_id, detail)
+INSERT INTO repayment_history(uuid, group_uuid, title, amount, date, payer_id, recipient_user_id, detail)
 VALUES
-(@uuid500 := UUID_TO_BIN(UUID(), 1), 1000.00, '2024-01-03 03:12:38', @uuid101, @uuid100, '一部返済します。');
+(@uuid500 := UUID_TO_BIN(UUID(), 1), @uuid200, '一部返済', 1000.00, '2024-01-03 03:12:38', @uuid101, @uuid100, '特になし');

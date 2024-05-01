@@ -1,5 +1,6 @@
 package com.moneyme.moneymebackend.entity;
 
+import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
 import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,6 +32,10 @@ public class RepaymentEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_uuid", nullable = false, updatable = false)
+    private GroupEntity group;
 
     @Column(name = "title", length = 50)
     private String title;
@@ -70,9 +75,10 @@ public class RepaymentEntity {
         updatedAt = ZonedDateTime.now();
     }
 
-    public static RepaymentEntity from(CreateRepaymentRequest request, UserEntity payer, UserEntity recipientUser) {
+    public static RepaymentEntity from(CreateRepaymentRequest request, UserEntity payer, UserEntity recipientUser, GroupEntity group) {
         return RepaymentEntity.builder()
                 .uuid(UUID.randomUUID())
+                .group(group)
                 .title(request.getRepaymentRequestModel().getTitle())
                 .amount(request.getRepaymentRequestModel().getAmount())
                 .date(convertToTokyoTime(request.getRepaymentRequestModel().getDate()))

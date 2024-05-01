@@ -32,6 +32,10 @@ public class LoanEntity {
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_uuid", nullable = false, updatable = false)
+    private GroupEntity group;
+
     @Column(name = "title", length = 50)
     private String title;
 
@@ -66,9 +70,10 @@ public class LoanEntity {
         updatedAt = ZonedDateTime.now();
     }
 
-    public static LoanEntity from(CreateLoanRequest request, UserEntity user) {
+    public static LoanEntity from(CreateLoanRequest request, UserEntity user, GroupEntity group) {
         return LoanEntity.builder()
                 .uuid(UUID.randomUUID())
+                .group(group)
                 .title(request.getLoanRequestModel().getTitle())
                 .amount(request.getLoanRequestModel().getAmount())
                 .date(convertToTokyoTime(request.getLoanRequestModel().getDate()))

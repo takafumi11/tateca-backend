@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS user_groups (
 CREATE TABLE IF NOT EXISTS loans (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
+    group_uuid BINARY(16),
     title VARCHAR(50),
     amount DECIMAL(10,2) NOT NULL,
     date DATETIME NOT NULL,
@@ -37,7 +38,8 @@ CREATE TABLE IF NOT EXISTS loans (
     detail VARCHAR(255),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (payer_id) REFERENCES users(uuid)
+    FOREIGN KEY (payer_id) REFERENCES users(uuid),
+    FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS loan_obligations (
@@ -55,6 +57,7 @@ CREATE TABLE IF NOT EXISTS loan_obligations (
 CREATE TABLE IF NOT EXISTS repayment_history (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
+    group_uuid BINARY(16),
     title VARCHAR(50),
     amount DECIMAL(10,2) NOT NULL,
     date DATETIME NOT NULL,
@@ -64,5 +67,6 @@ CREATE TABLE IF NOT EXISTS repayment_history (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (payer_id) REFERENCES users(uuid),
-    FOREIGN KEY (recipient_user_id) REFERENCES users(uuid)
+    FOREIGN KEY (recipient_user_id) REFERENCES users(uuid),
+    FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid)
 );

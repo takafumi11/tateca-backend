@@ -10,4 +10,5 @@ public class ApiConstants {
     public static final String PATH_REPAYMENTS = "/repayments";
     public static final String PATH_GROUPS = "/groups";
     public static final String PATH_UUID = "/{uuid}";
+    public static final String PATH_TRANSACTIONS = "/transactions";
 }
