@@ -1,13 +1,11 @@
 package com.moneyme.moneymebackend.controller;
 
 import com.moneyme.moneymebackend.constants.ApiConstants;
-import com.moneyme.moneymebackend.dto.request.GetTransactionsRequest;
 import com.moneyme.moneymebackend.dto.response.GetTransactionsResponse;
 import com.moneyme.moneymebackend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
