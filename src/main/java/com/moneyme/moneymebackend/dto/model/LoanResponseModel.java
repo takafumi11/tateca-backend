@@ -11,8 +11,8 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoT
 
 @Builder
 public class LoanResponseModel {
-
     @JsonProperty("uuid") String uuid;
+    @JsonProperty("group") GroupResponseModel group;
     @JsonProperty("title") String title;
     @JsonProperty("amount") BigDecimal amount;
     @JsonProperty("payer")
@@ -24,6 +24,7 @@ public class LoanResponseModel {
     public static LoanResponseModel from(LoanEntity loan) {
         return LoanResponseModel.builder()
                 .uuid(loan.getUuid().toString())
+                .group(GroupResponseModel.from(loan.getGroup()))
                 .title(loan.getTitle())
                 .amount(loan.getAmount())
                 .payer(UserResponse.from(loan.getPayer()))

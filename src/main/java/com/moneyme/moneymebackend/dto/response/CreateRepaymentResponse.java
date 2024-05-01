@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import lombok.Builder;
 
@@ -11,6 +12,7 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoT
 @Builder
 public class CreateRepaymentResponse {
     @JsonProperty("uuid") String uuid;
+    @JsonProperty("group") GroupResponseModel group;
     @JsonProperty("title") String title;
     @JsonProperty("amount") BigDecimal amount;
     @JsonProperty("payer")
@@ -24,6 +26,7 @@ public class CreateRepaymentResponse {
     public static CreateRepaymentResponse from(RepaymentEntity repayment) {
         return CreateRepaymentResponse.builder()
                 .uuid(repayment.getUuid().toString())
+                .group(GroupResponseModel.from(repayment.getGroup()))
                 .title(repayment.getTitle())
                 .amount(repayment.getAmount())
                 .payer(UserResponse.from(repayment.getPayer()))
