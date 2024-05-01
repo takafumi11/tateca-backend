@@ -49,3 +49,4 @@ jobs:
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> /home/ec2-user/money-me/.env
             sudo systemctl start docker
             docker-compose -f /home/ec2-user/money-me/docker-compose.yml up --build -d app
+
