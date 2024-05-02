@@ -22,12 +22,12 @@ public class TransactionController {
     private final TransactionService service;
 
     @GetMapping
-    public ResponseEntity<List<GetTransactionsResponse>> getTransactions(
+    public ResponseEntity<GetTransactionsResponse> getTransactions(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
             @RequestParam(defaultValue = "10") int count,
             @RequestParam("group_id") String groupId
     ) {
-        List<GetTransactionsResponse> response = service.getTransactions(count, groupId);
+        GetTransactionsResponse response = service.getTransactions(count, groupId);
      return ResponseEntity.ok(response);
     }
 }
