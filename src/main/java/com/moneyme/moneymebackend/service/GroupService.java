@@ -27,9 +27,8 @@ public class GroupService {
     private final UserGroupRepository userGroupRepository;
 
     @Transactional
-    public UserGroupsResponse getGroupInfo(String groupId) {
-        UUID groupUuid = UUID.fromString(groupId);
-        GroupEntity group = repository.findById(groupUuid).orElseThrow(() -> new IllegalArgumentException("Group not found"));
+    public UserGroupsResponse getGroupInfo(UUID groupId) {
+        GroupEntity group = repository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found"));
         return buildGroupResponse(group);
     }
 

@@ -33,13 +33,12 @@ public class LoanService {
     private final RedisService redisService;
 
     @Transactional
-    public CreateLoanResponse createLoan(CreateLoanRequest request) {
+    public CreateLoanResponse createLoan(CreateLoanRequest request, UUID groupId) {
         UUID userUuid = UUID.fromString(request.getLoanRequestModel().getPayerId());
         UserEntity user = userRepository.findById(userUuid)
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
 
-        UUID groupUuid = UUID.fromString(request.getGroupId());
-        GroupEntity group = groupRepository.findById(groupUuid)
+        GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("group not found"));
 
         LoanEntity savedLoan = repository.save(LoanEntity.from(request, user, group));
@@ -61,7 +60,7 @@ public class LoanService {
         // Subtract the total amount from the payer's balance
         balanceUpdates.put(user.getUuid().toString(), totalAmount.negate());
 
-        redisService.updateBalances(request.getGroupId(), balanceUpdates);
+        redisService.updateBalances(groupId.toString(), balanceUpdates);
 
         LoanResponseModel loanResponse = LoanResponseModel.from(savedLoan);
         List<ObligationResponseModel> obligationResponseModels = savedObligations.stream().map(ObligationResponseModel::from).toList();

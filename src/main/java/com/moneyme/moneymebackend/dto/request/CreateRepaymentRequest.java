@@ -6,6 +6,5 @@ import lombok.Data;
 
 @Data
 public class CreateRepaymentRequest {
-    @JsonProperty("group_id") String groupId;
     @JsonProperty("repayment_info") RepaymentRequestModel repaymentRequestModel;
 }

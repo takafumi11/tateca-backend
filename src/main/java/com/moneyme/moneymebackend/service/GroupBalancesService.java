@@ -25,14 +25,14 @@ public class GroupBalancesService {
     private final RedisService service;
     private final UserGroupRepository userGroupRepository;
 
-    public GetGroupTransactionsResponse getGroupBalances(String groupId) {
-        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(UUID.fromString(groupId));
+    public GetGroupTransactionsResponse getGroupBalances(UUID groupId) {
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupId);
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
                 .map(UUID::toString)
                 .toList();
 
-        Map<String, BigDecimal> balances = service.getBalances(groupId, userIds);
+        Map<String, BigDecimal> balances = service.getBalances(groupId.toString(), userIds);
         List<GroupTransactionsResponseModel> transactions = optimizeTransactions(balances, userGroups);
 
         return GetGroupTransactionsResponse.builder()

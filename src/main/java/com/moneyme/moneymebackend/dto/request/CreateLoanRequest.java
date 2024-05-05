@@ -9,7 +9,6 @@ import java.util.List;
 
 @Data
 public class CreateLoanRequest {
-    @JsonProperty("group_id") String groupId;
     @JsonProperty("loan_info")
     LoanRequestModel loanRequestModel;
     @JsonProperty("obligations_info")

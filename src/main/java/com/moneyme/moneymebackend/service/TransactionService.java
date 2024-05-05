@@ -20,11 +20,9 @@ public class TransactionService {
     private final LoanRepository loanRepository;
     private final RepaymentRepository repaymentRepository;
 
-    public GetTransactionsResponse getTransactions(int count, String groupId) {
-        UUID groupUuid = UUID.fromString(groupId);
-
-        List<LoanEntity> loans = loanRepository.getLoansByGroup(groupUuid, PageRequest.of(0, count));
-        List<RepaymentEntity> repayments = repaymentRepository.getRepaymentsByGroup(groupUuid, PageRequest.of(0, count));
+    public GetTransactionsResponse getTransactions(int count, UUID groupId) {
+        List<LoanEntity> loans = loanRepository.getLoansByGroup(groupId, PageRequest.of(0, count));
+        List<RepaymentEntity> repayments = repaymentRepository.getRepaymentsByGroup(groupId, PageRequest.of(0, count));
 
         List<TransactionResponseModel> transactionsResponses = loans.stream().map(TransactionResponseModel::from).toList();
         List<TransactionResponseModel> transactionsResponses2 = repayments.stream().map(TransactionResponseModel::from).toList();

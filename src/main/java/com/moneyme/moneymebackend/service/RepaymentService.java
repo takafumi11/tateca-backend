@@ -24,14 +24,13 @@ public class RepaymentService {
     private final GroupRepository groupRepository;
     private final RedisService redisService;
 
-    public CreateRepaymentResponse createRepayment(CreateRepaymentRequest request) {
+    public CreateRepaymentResponse createRepayment(CreateRepaymentRequest request, UUID groupId) {
         UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getPayerId()))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         UserEntity recipient = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getRecipientId()))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        UUID groupUuid = UUID.fromString(request.getGroupId());
-        GroupEntity group = groupRepository.findById(groupUuid)
+        GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
         RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipient, group));
@@ -41,7 +40,7 @@ public class RepaymentService {
         balanceUpdates.put(payer.getUuid().toString(), savedRepayment.getAmount().negate());
         balanceUpdates.put(recipient.getUuid().toString(), savedRepayment.getAmount());
 
-        redisService.updateBalances(request.getGroupId(), balanceUpdates);
+        redisService.updateBalances(groupId.toString(), balanceUpdates);
 
         return CreateRepaymentResponse.from(savedRepayment);
     }
