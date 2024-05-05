@@ -1,6 +1,5 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
 import com.moneyme.moneymebackend.dto.model.LoanResponseModel;
 import com.moneyme.moneymebackend.dto.model.ObligationRequestModel;
 import com.moneyme.moneymebackend.dto.model.ObligationResponseModel;
@@ -18,7 +17,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -48,9 +50,18 @@ public class LoanService {
 
         List<ObligationEntity> savedObligations = obligationRepository.saveAll(obligationList);
 
-        savedObligations.stream().forEach(obligation ->
-                redisService.updateBalances(savedLoan.getPayer().getUuid().toString(), obligation.getUser().getUuid().toString(), obligation.getAmount(), request.getGroupId())
-        );
+        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (ObligationEntity obligation : savedObligations) {
+            balanceUpdates.put(obligation.getUser().getUuid().toString(), obligation.getAmount());
+            totalAmount = totalAmount.add(obligation.getAmount());
+        }
+
+        // Subtract the total amount from the payer's balance
+        balanceUpdates.put(user.getUuid().toString(), totalAmount.negate());
+
+        redisService.updateBalances(request.getGroupId(), balanceUpdates);
 
         LoanResponseModel loanResponse = LoanResponseModel.from(savedLoan);
         List<ObligationResponseModel> obligationResponseModels = savedObligations.stream().map(ObligationResponseModel::from).toList();
