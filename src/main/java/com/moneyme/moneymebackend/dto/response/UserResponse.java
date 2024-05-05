@@ -3,10 +3,12 @@ package com.moneyme.moneymebackend.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import lombok.Builder;
+import lombok.Data;
 
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Builder
+@Data
 public class UserResponse {
     @JsonProperty("uuid") String uuid;
     @JsonProperty("user_name") String userName;

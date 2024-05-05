@@ -2,6 +2,7 @@ package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.dto.model.GroupTransactionsResponseModel;
 import com.moneyme.moneymebackend.dto.response.GetGroupTransactionsResponse;
+import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import com.moneyme.moneymebackend.repository.UserGroupRepository;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,30 +33,37 @@ public class GroupBalancesService {
                 .toList();
 
         Map<String, BigDecimal> balances = service.getBalances(groupId, userIds);
-        List<GroupTransactionsResponseModel> transactions = optimizeTransactions(balances);
+        List<GroupTransactionsResponseModel> transactions = optimizeTransactions(balances, userGroups);
 
         return GetGroupTransactionsResponse.builder()
                 .transactions(transactions)
                 .build();
     }
 
-    private List<GroupTransactionsResponseModel> optimizeTransactions(Map<String, BigDecimal> balances) {
+    private List<GroupTransactionsResponseModel> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
         List<GroupTransactionsResponseModel> transactions = new ArrayList<>();
         PriorityQueue<Participant> creditors = new PriorityQueue<>(Comparator.comparing(Participant::getAmount));
         PriorityQueue<Participant> debtors = new PriorityQueue<>(Comparator.comparing(Participant::getAmount));
 
-        classifyParticipants(balances, creditors, debtors);
+        classifyParticipants(balances, creditors, debtors, userGroups);
         processTransactions(creditors, debtors, transactions);
 
         return transactions;
     }
 
-    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<Participant> creditors, PriorityQueue<Participant> debtors) {
+    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<Participant> creditors, PriorityQueue<Participant> debtors, List<UserGroupEntity> userGroups) {
+        Map<String, UserResponse> userMap = userGroups.stream()
+                .collect(Collectors.toMap(
+                        u -> u.getUserUuid().toString(),
+                        u -> UserResponse.from(u.getUser())
+                ));
+
         balances.forEach((userId, amount) -> {
+            UserResponse user = userMap.get(userId);
             if (amount.compareTo(BigDecimal.ZERO) < 0) {
-                creditors.add(new Participant(userId, amount.negate()));
+                creditors.add(new Participant(user, amount.negate()));
             } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
-                debtors.add(new Participant(userId, amount));
+                debtors.add(new Participant(user, amount));
             }
         });
     }
@@ -86,7 +95,7 @@ public class GroupBalancesService {
     @AllArgsConstructor
     @Data
     private static class Participant implements Comparable<Participant> {
-        private String userId;
+        private UserResponse userId;
         private BigDecimal amount;
 
         @Override
