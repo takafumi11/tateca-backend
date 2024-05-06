@@ -1,8 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
-import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
-import com.moneyme.moneymebackend.dto.response.CreateRepaymentResponse;
+import com.moneyme.moneymebackend.dto.request.RepaymentCreationRequest;
+import com.moneyme.moneymebackend.dto.response.RepaymentCreationResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
@@ -12,6 +11,9 @@ import com.moneyme.moneymebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -22,19 +24,25 @@ public class RepaymentService {
     private final GroupRepository groupRepository;
     private final RedisService redisService;
 
-    public CreateRepaymentResponse createRepayment(CreateRepaymentRequest request) {
-        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getPayerId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
-        UserEntity recipientUser = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getRecipientId())).orElseThrow(() -> new IllegalArgumentException("user not found"));
+    public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
+        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getPayerId()))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        UserEntity recipient = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getRecipientId()))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        UUID groupUuid = UUID.fromString(request.getGroupId());
-        GroupEntity group = groupRepository.findById(groupUuid)
-                .orElseThrow(() -> new IllegalArgumentException("group not found"));
+        GroupEntity group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
-        RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipientUser, group));
+        RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipient, group));
 
-        redisService.updateBalances(savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), request.getGroupId());
+        // Update balances in Redis
+        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+        balanceUpdates.put(payer.getUuid().toString(), savedRepayment.getAmount().negate());
+        balanceUpdates.put(recipient.getUuid().toString(), savedRepayment.getAmount());
 
-        return CreateRepaymentResponse.from(savedRepayment);
+        redisService.updateBalances(groupId.toString(), balanceUpdates);
+
+        return RepaymentCreationResponse.from(savedRepayment);
     }
 
 }

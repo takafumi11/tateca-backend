@@ -1,4 +1,4 @@
-package com.moneyme.moneymebackend.dto.model;
+package com.moneyme.moneymebackend.model;
 
 public enum TransactionType {
     LOAN, REPAYMENT

@@ -1,4 +1,4 @@
-package com.moneyme.moneymebackend.dto.model;
+package com.moneyme.moneymebackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.moneyme.moneymebackend.entity.GroupEntity;
@@ -7,7 +7,7 @@ import lombok.Builder;
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Builder
-public class GroupResponseModel {
+public class GroupResponseDTO {
     @JsonProperty("uuid") String uuid;
     @JsonProperty("name") String name;
     @JsonProperty("join_token") String joinToken;
@@ -15,8 +15,8 @@ public class GroupResponseModel {
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static GroupResponseModel from(GroupEntity group) {
-        return GroupResponseModel.builder()
+    public static GroupResponseDTO from(GroupEntity group) {
+        return GroupResponseDTO.builder()
                 .uuid(group.getUuid().toString())
                 .name(group.getName())
                 .joinToken(group.getJoinToken().toString())

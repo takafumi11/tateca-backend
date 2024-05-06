@@ -1,11 +1,10 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
-import com.moneyme.moneymebackend.dto.model.LoanResponseModel;
-import com.moneyme.moneymebackend.dto.model.ObligationRequestModel;
-import com.moneyme.moneymebackend.dto.model.ObligationResponseModel;
-import com.moneyme.moneymebackend.dto.request.CreateLoanRequest;
-import com.moneyme.moneymebackend.dto.response.CreateLoanResponse;
+import com.moneyme.moneymebackend.dto.response.LoanResponseDTO;
+import com.moneyme.moneymebackend.dto.request.ObligationRequestDTO;
+import com.moneyme.moneymebackend.dto.response.ObligationResponseDTO;
+import com.moneyme.moneymebackend.dto.request.LoanCreationRequest;
+import com.moneyme.moneymebackend.dto.response.LoanCreationResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.LoanEntity;
 import com.moneyme.moneymebackend.entity.ObligationEntity;
@@ -18,7 +17,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -31,45 +33,53 @@ public class LoanService {
     private final RedisService redisService;
 
     @Transactional
-    public CreateLoanResponse createLoan(CreateLoanRequest request) {
-        UUID userUuid = UUID.fromString(request.getLoanRequestModel().getPayerId());
+    public LoanCreationResponse createLoan(LoanCreationRequest request, UUID groupId) {
+        UUID userUuid = UUID.fromString(request.getLoanRequestDTO().getPayerId());
         UserEntity user = userRepository.findById(userUuid)
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
 
-        UUID groupUuid = UUID.fromString(request.getGroupId());
-        GroupEntity group = groupRepository.findById(groupUuid)
+        GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("group not found"));
 
         LoanEntity savedLoan = repository.save(LoanEntity.from(request, user, group));
 
-        List<ObligationEntity> obligationList = request.getObligationRequestModels().stream().map(obligationRequestModel ->
-                buildObligationEntity(savedLoan, obligationRequestModel)
+        List<ObligationEntity> obligationList = request.getObligationRequestDTOS().stream().map(obligationRequestDTO ->
+                buildObligationEntity(savedLoan, obligationRequestDTO)
         ).toList();
 
         List<ObligationEntity> savedObligations = obligationRepository.saveAll(obligationList);
 
-        savedObligations.stream().forEach(obligation ->
-                redisService.updateBalances(savedLoan.getPayer().getUuid().toString(), obligation.getUser().getUuid().toString(), obligation.getAmount(), request.getGroupId())
-        );
+        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
 
-        LoanResponseModel loanResponse = LoanResponseModel.from(savedLoan);
-        List<ObligationResponseModel> obligationResponseModels = savedObligations.stream().map(ObligationResponseModel::from).toList();
+        for (ObligationEntity obligation : savedObligations) {
+            balanceUpdates.put(obligation.getUser().getUuid().toString(), obligation.getAmount());
+            totalAmount = totalAmount.add(obligation.getAmount());
+        }
 
-        return CreateLoanResponse.builder()
-                .loanResponseModel(loanResponse)
-                .obligationResponseModels(obligationResponseModels)
+        // Subtract the total amount from the payer's balance
+        balanceUpdates.put(user.getUuid().toString(), totalAmount.negate());
+
+        redisService.updateBalances(groupId.toString(), balanceUpdates);
+
+        LoanResponseDTO loanResponse = LoanResponseDTO.from(savedLoan);
+        List<ObligationResponseDTO> obligationResponseDTOS = savedObligations.stream().map(ObligationResponseDTO::from).toList();
+
+        return LoanCreationResponse.builder()
+                .loanResponseDTO(loanResponse)
+                .obligationResponseDTOS(obligationResponseDTOS)
                 .build();
     }
 
-    public ObligationEntity buildObligationEntity(LoanEntity loan, ObligationRequestModel obligationRequestModel) {
-        UUID userUuid = UUID.fromString(obligationRequestModel.getUserUuid());
+    public ObligationEntity buildObligationEntity(LoanEntity loan, ObligationRequestDTO obligationRequestDTO) {
+        UUID userUuid = UUID.fromString(obligationRequestDTO.getUserUuid());
         UserEntity user = userRepository.findById(userUuid).orElseThrow(() -> new IllegalArgumentException("user not found"));
 
         return ObligationEntity.builder()
                 .uuid(UUID.randomUUID())
                 .loan(loan)
                 .user(user)
-                .amount(obligationRequestModel.getAmount())
+                .amount(obligationRequestDTO.getAmount())
                 .build();
     }
 }

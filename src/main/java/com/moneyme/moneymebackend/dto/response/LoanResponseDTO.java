@@ -1,7 +1,6 @@
-package com.moneyme.moneymebackend.dto.model;
+package com.moneyme.moneymebackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.entity.LoanEntity;
 import lombok.Builder;
 
@@ -10,24 +9,25 @@ import java.math.BigDecimal;
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Builder
-public class LoanResponseModel {
+public class LoanResponseDTO {
     @JsonProperty("uuid") String uuid;
-    @JsonProperty("group") GroupResponseModel group;
+    @JsonProperty("group")
+    GroupResponseDTO group;
     @JsonProperty("title") String title;
     @JsonProperty("amount") BigDecimal amount;
     @JsonProperty("payer")
-    UserResponse payer;
+    UserResponseDTO payer;
     @JsonProperty("detail") String detail;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static LoanResponseModel from(LoanEntity loan) {
-        return LoanResponseModel.builder()
+    public static LoanResponseDTO from(LoanEntity loan) {
+        return LoanResponseDTO.builder()
                 .uuid(loan.getUuid().toString())
-                .group(GroupResponseModel.from(loan.getGroup()))
+                .group(GroupResponseDTO.from(loan.getGroup()))
                 .title(loan.getTitle())
                 .amount(loan.getAmount())
-                .payer(UserResponse.from(loan.getPayer()))
+                .payer(UserResponseDTO.from(loan.getPayer()))
                 .detail(loan.getDetail())
                 .createdAt(convertToTokyoTime(loan.getCreatedAt()))
                 .updatedAt(convertToTokyoTime(loan.getUpdatedAt()))

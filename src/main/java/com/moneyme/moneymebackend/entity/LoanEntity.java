@@ -1,6 +1,6 @@
 package com.moneyme.moneymebackend.entity;
 
-import com.moneyme.moneymebackend.dto.request.CreateLoanRequest;
+import com.moneyme.moneymebackend.dto.request.LoanCreationRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -70,15 +70,15 @@ public class LoanEntity {
         updatedAt = ZonedDateTime.now();
     }
 
-    public static LoanEntity from(CreateLoanRequest request, UserEntity user, GroupEntity group) {
+    public static LoanEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group) {
         return LoanEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
-                .title(request.getLoanRequestModel().getTitle())
-                .amount(request.getLoanRequestModel().getAmount())
-                .date(convertToTokyoTime(request.getLoanRequestModel().getDate()))
+                .title(request.getLoanRequestDTO().getTitle())
+                .amount(request.getLoanRequestDTO().getAmount())
+                .date(convertToTokyoTime(request.getLoanRequestDTO().getDate()))
                 .payer(user)
-                .detail(request.getLoanRequestModel().getDetail())
+                .detail(request.getLoanRequestDTO().getDetail())
                 .build();
     }
 }
