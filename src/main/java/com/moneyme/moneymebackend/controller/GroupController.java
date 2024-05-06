@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.controller;
 
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
-import com.moneyme.moneymebackend.dto.response.UserGroupsResponse;
+import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,19 +26,19 @@ public class GroupController {
     private final GroupService service;
 
     @GetMapping("/{groupId}")
-    public ResponseEntity<UserGroupsResponse> getGroupInfo(
+    public ResponseEntity<GroupDetailsResponse> getGroupInfo(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
             @PathVariable("groupId") UUID groupId
     ) {
-        UserGroupsResponse response = service.getGroupInfo(groupId);
+        GroupDetailsResponse response = service.getGroupInfo(groupId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<UserGroupsResponse> createGroup(
+    public ResponseEntity<GroupDetailsResponse> createGroup(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
             @RequestBody CreateGroupRequest request) {
-        UserGroupsResponse response = service.createGroup(request);
+        GroupDetailsResponse response = service.createGroup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

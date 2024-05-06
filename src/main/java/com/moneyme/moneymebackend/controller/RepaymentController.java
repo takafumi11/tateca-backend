@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.controller;
 
-import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
-import com.moneyme.moneymebackend.dto.response.CreateRepaymentResponse;
+import com.moneyme.moneymebackend.dto.request.RepaymentCreationRequest;
+import com.moneyme.moneymebackend.dto.response.RepaymentCreationResponse;
 import com.moneyme.moneymebackend.service.RepaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,12 +26,12 @@ public class RepaymentController {
     private final RepaymentService service;
 
     @PostMapping
-    public ResponseEntity<CreateRepaymentResponse> createRepayment(
+    public ResponseEntity<RepaymentCreationResponse> createRepayment(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
-            @RequestBody CreateRepaymentRequest request,
+            @RequestBody RepaymentCreationRequest request,
             @PathVariable("groupId") UUID groupId
     ) {
-        CreateRepaymentResponse response = service.createRepayment(request, groupId);
+        RepaymentCreationResponse response = service.createRepayment(request, groupId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

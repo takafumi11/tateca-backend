@@ -8,5 +8,6 @@ public class ApiConstants {
     public static final String PATH_LOANS = "/loans";
     public static final String PATH_REPAYMENTS = "/repayments";
     public static final String PATH_TRANSACTIONS = "/transactions";
-    public static final String PATH_SETTLEMENTS = "/settlements";
+    public static final String PATH_HISTORY = "/history";
+    public static final String PATH_SETTLEMENT = "/settlement";
 }

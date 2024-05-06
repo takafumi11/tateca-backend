@@ -1,18 +1,17 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.model.GroupTransactionsResponseModel;
-import com.moneyme.moneymebackend.dto.model.TransactionResponseModel;
-import com.moneyme.moneymebackend.dto.response.GetGroupTransactionsResponse;
-import com.moneyme.moneymebackend.dto.response.GetTransactionsResponse;
-import com.moneyme.moneymebackend.dto.response.UserResponse;
+import com.moneyme.moneymebackend.dto.response.TransactionSettlementResponseDTO;
+import com.moneyme.moneymebackend.dto.response.TransactionHistoryResponseDTO;
+import com.moneyme.moneymebackend.dto.response.TransactionsSettlementResponse;
+import com.moneyme.moneymebackend.dto.response.TransactionsHistoryResponse;
+import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.entity.LoanEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
+import com.moneyme.moneymebackend.model.ParticipantModel;
 import com.moneyme.moneymebackend.repository.LoanRepository;
 import com.moneyme.moneymebackend.repository.RepaymentRepository;
 import com.moneyme.moneymebackend.repository.UserGroupRepository;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -36,26 +35,26 @@ public class TransactionService {
     private final RepaymentRepository repaymentRepository;
     private final UserGroupRepository userGroupRepository;
 
-    public GetTransactionsResponse getTransactions(int count, UUID groupId) {
+    public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
         List<LoanEntity> loans = loanRepository.getLoansByGroup(groupId, PageRequest.of(0, count));
         List<RepaymentEntity> repayments = repaymentRepository.getRepaymentsByGroup(groupId, PageRequest.of(0, count));
 
-        List<TransactionResponseModel> transactionsResponses = loans.stream().map(TransactionResponseModel::from).toList();
-        List<TransactionResponseModel> transactionsResponses2 = repayments.stream().map(TransactionResponseModel::from).toList();
+        List<TransactionHistoryResponseDTO> transactionsResponses = loans.stream().map(TransactionHistoryResponseDTO::from).toList();
+        List<TransactionHistoryResponseDTO> transactionsResponses2 = repayments.stream().map(TransactionHistoryResponseDTO::from).toList();
 
-        List<TransactionResponseModel> combinedResponses = Stream.concat(transactionsResponses.stream(), transactionsResponses2.stream())
+        List<TransactionHistoryResponseDTO> combinedResponses = Stream.concat(transactionsResponses.stream(), transactionsResponses2.stream())
                 .toList()
                 .stream()
                 .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
                 .limit(count)
                 .toList();
 
-        return GetTransactionsResponse.builder()
-                .transactions(combinedResponses)
+        return TransactionsHistoryResponse.builder()
+                .transactionsHistory(combinedResponses)
                 .build();
     }
 
-    public GetGroupTransactionsResponse getGroupBalances(UUID groupId) {
+    public TransactionsSettlementResponse getGroupBalances(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupId);
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
@@ -63,17 +62,17 @@ public class TransactionService {
                 .toList();
 
         Map<String, BigDecimal> balances = service.getBalances(groupId.toString(), userIds);
-        List<GroupTransactionsResponseModel> transactions = optimizeTransactions(balances, userGroups);
+        List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
 
-        return GetGroupTransactionsResponse.builder()
-                .transactions(transactions)
+        return TransactionsSettlementResponse.builder()
+                .transactionsSettlement(transactions)
                 .build();
     }
 
-    private List<GroupTransactionsResponseModel> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
-        List<GroupTransactionsResponseModel> transactions = new ArrayList<>();
-        PriorityQueue<Participant> creditors = new PriorityQueue<>(Comparator.comparing(Participant::getAmount));
-        PriorityQueue<Participant> debtors = new PriorityQueue<>(Comparator.comparing(Participant::getAmount));
+    private List<TransactionSettlementResponseDTO> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
+        List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
+        PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
+        PriorityQueue<ParticipantModel> debtors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
 
         classifyParticipants(balances, creditors, debtors, userGroups);
         processTransactions(creditors, debtors, transactions);
@@ -81,36 +80,36 @@ public class TransactionService {
         return transactions;
     }
 
-    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<Participant> creditors, PriorityQueue<Participant> debtors, List<UserGroupEntity> userGroups) {
-        Map<String, UserResponse> userMap = userGroups.stream()
+    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<UserGroupEntity> userGroups) {
+        Map<String, UserResponseDTO> userMap = userGroups.stream()
                 .collect(Collectors.toMap(
                         u -> u.getUserUuid().toString(),
-                        u -> UserResponse.from(u.getUser())
+                        u -> UserResponseDTO.from(u.getUser())
                 ));
 
         balances.forEach((userId, amount) -> {
-            UserResponse user = userMap.get(userId);
+            UserResponseDTO user = userMap.get(userId);
             if (amount.compareTo(BigDecimal.ZERO) < 0) {
-                creditors.add(new Participant(user, amount.negate()));
+                creditors.add(new ParticipantModel(user, amount.negate()));
             } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
-                debtors.add(new Participant(user, amount));
+                debtors.add(new ParticipantModel(user, amount));
             }
         });
     }
 
-    private void processTransactions(PriorityQueue<Participant> creditors, PriorityQueue<Participant> debtors, List<GroupTransactionsResponseModel> transactions) {
+    private void processTransactions(PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<TransactionSettlementResponseDTO> transactions) {
         while (!debtors.isEmpty() && !creditors.isEmpty()) {
-            Participant debtor = debtors.poll();
-            Participant creditor = creditors.poll();
+            ParticipantModel debtor = debtors.poll();
+            ParticipantModel creditor = creditors.poll();
 
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            transactions.add(new GroupTransactionsResponseModel(debtor.getUserId(), creditor.getUserId(), minAmount));
+            transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), minAmount));
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);
         }
     }
 
-    private void updateBalances(Participant debtor, Participant creditor, BigDecimal minAmount, PriorityQueue<Participant> debtors, PriorityQueue<Participant> creditors) {
+    private void updateBalances(ParticipantModel debtor, ParticipantModel creditor, BigDecimal minAmount, PriorityQueue<ParticipantModel> debtors, PriorityQueue<ParticipantModel> creditors) {
         debtor.setAmount(debtor.getAmount().subtract(minAmount));
         creditor.setAmount(creditor.getAmount().subtract(minAmount));
 
@@ -119,18 +118,6 @@ public class TransactionService {
         }
         if (creditor.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             creditors.add(creditor);
-        }
-    }
-
-    @AllArgsConstructor
-    @Data
-    private static class Participant implements Comparable<Participant> {
-        private UserResponse userId;
-        private BigDecimal amount;
-
-        @Override
-        public int compareTo(Participant other) {
-            return this.amount.compareTo(other.amount);
         }
     }
 

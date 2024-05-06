@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.controller;
 
-import com.moneyme.moneymebackend.dto.request.CreateLoanRequest;
-import com.moneyme.moneymebackend.dto.response.CreateLoanResponse;
+import com.moneyme.moneymebackend.dto.request.LoanCreationRequest;
+import com.moneyme.moneymebackend.dto.response.LoanCreationResponse;
 import com.moneyme.moneymebackend.service.LoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,12 +26,12 @@ public class LoanController {
     private final LoanService service;
 
     @PostMapping
-    public ResponseEntity<CreateLoanResponse> createLoan(
+    public ResponseEntity<LoanCreationResponse> createLoan(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
-            @RequestBody CreateLoanRequest request,
+            @RequestBody LoanCreationRequest request,
             @PathVariable("groupId") UUID groupId
     ) {
-       CreateLoanResponse response = service.createLoan(request, groupId);
+       LoanCreationResponse response = service.createLoan(request, groupId);
        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

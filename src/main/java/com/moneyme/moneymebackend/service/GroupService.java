@@ -1,9 +1,9 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
-import com.moneyme.moneymebackend.dto.response.UserResponse;
+import com.moneyme.moneymebackend.dto.response.GroupResponseDTO;
+import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
-import com.moneyme.moneymebackend.dto.response.UserGroupsResponse;
+import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
@@ -27,13 +27,13 @@ public class GroupService {
     private final UserGroupRepository userGroupRepository;
 
     @Transactional
-    public UserGroupsResponse getGroupInfo(UUID groupId) {
+    public GroupDetailsResponse getGroupInfo(UUID groupId) {
         GroupEntity group = repository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found"));
         return buildGroupResponse(group);
     }
 
     @Transactional
-    public UserGroupsResponse createGroup(CreateGroupRequest request) {
+    public GroupDetailsResponse createGroup(CreateGroupRequest request) {
         GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
         UserEntity user = userRepository.findById(UUID.fromString(request.getUserUuid())).orElseThrow(() -> new IllegalArgumentException("user not found"));
 
@@ -47,24 +47,24 @@ public class GroupService {
             userEntityList.add(newUser);
         });
 
-        List<UserResponse> userResponseList = userEntityList.stream().map(UserResponse::from).toList();
-        UserGroupsResponse response = UserGroupsResponse.builder()
-                .userResponses(userResponseList)
-                .groupResponseModel(GroupResponseModel.from(savedGroup))
+        List<UserResponseDTO> userResponseDTOList = userEntityList.stream().map(UserResponseDTO::from).toList();
+        GroupDetailsResponse response = GroupDetailsResponse.builder()
+                .userResponseDTOS(userResponseDTOList)
+                .groupResponseDTO(GroupResponseDTO.from(savedGroup))
                 .build();
 
         return response;
     }
 
-    private UserGroupsResponse buildGroupResponse(GroupEntity group) {
+    private GroupDetailsResponse buildGroupResponse(GroupEntity group) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(group.getUuid());
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        List<UserResponse> userResponses = users.stream().map(UserResponse::from).collect(Collectors.toList());
+        List<UserResponseDTO> userResponsDTOS = users.stream().map(UserResponseDTO::from).collect(Collectors.toList());
 
-        GroupResponseModel groupResponse = GroupResponseModel.from(group);
-        return UserGroupsResponse.builder()
-                .userResponses(userResponses)
-                .groupResponseModel(groupResponse)
+        GroupResponseDTO groupResponse = GroupResponseDTO.from(group);
+        return GroupDetailsResponse.builder()
+                .userResponseDTOS(userResponsDTOS)
+                .groupResponseDTO(groupResponse)
                 .build();
     }
 

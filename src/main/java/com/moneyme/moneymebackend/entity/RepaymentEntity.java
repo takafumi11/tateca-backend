@@ -1,7 +1,6 @@
 package com.moneyme.moneymebackend.entity;
 
-import com.moneyme.moneymebackend.dto.model.GroupResponseModel;
-import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
+import com.moneyme.moneymebackend.dto.request.RepaymentCreationRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -75,16 +74,16 @@ public class RepaymentEntity {
         updatedAt = ZonedDateTime.now();
     }
 
-    public static RepaymentEntity from(CreateRepaymentRequest request, UserEntity payer, UserEntity recipientUser, GroupEntity group) {
+    public static RepaymentEntity from(RepaymentCreationRequest request, UserEntity payer, UserEntity recipientUser, GroupEntity group) {
         return RepaymentEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
-                .title(request.getRepaymentRequestModel().getTitle())
-                .amount(request.getRepaymentRequestModel().getAmount())
-                .date(convertToTokyoTime(request.getRepaymentRequestModel().getDate()))
+                .title(request.getRepaymentRequestDTO().getTitle())
+                .amount(request.getRepaymentRequestDTO().getAmount())
+                .date(convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
                 .payer(payer)
                 .recipientUser(recipientUser)
-                .detail(request.getRepaymentRequestModel().getDetail())
+                .detail(request.getRepaymentRequestDTO().getDetail())
                 .build();
     }
 }

@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.controller;
 
-import com.moneyme.moneymebackend.dto.response.GetGroupTransactionsResponse;
-import com.moneyme.moneymebackend.dto.response.GetTransactionsResponse;
+import com.moneyme.moneymebackend.dto.response.TransactionsSettlementResponse;
+import com.moneyme.moneymebackend.dto.response.TransactionsHistoryResponse;
 import com.moneyme.moneymebackend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,8 @@ import java.util.UUID;
 
 import static com.moneyme.moneymebackend.constants.ApiConstants.HEADER_AUTHORIZATION;
 import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_GROUPS;
-import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_SETTLEMENTS;
+import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_HISTORY;
+import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_SETTLEMENT;
 import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_TRANSACTIONS;
 
 @RestController
@@ -25,20 +26,20 @@ import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_TRANSACTION
 public class TransactionController {
     private final TransactionService service;
 
-    @GetMapping
-    public ResponseEntity<GetTransactionsResponse> getTransactions(
+    @GetMapping(PATH_HISTORY)
+    public ResponseEntity<TransactionsHistoryResponse> getTransactions(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
             @RequestParam(defaultValue = "10") int count,
             @PathVariable("groupId") UUID groupId) {
-        GetTransactionsResponse response = service.getTransactions(count, groupId);
+        TransactionsHistoryResponse response = service.getTransactions(count, groupId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(PATH_SETTLEMENTS)
-    public ResponseEntity<GetGroupTransactionsResponse> getGroupSettlements(
+    @GetMapping(PATH_SETTLEMENT)
+    public ResponseEntity<TransactionsSettlementResponse> getGroupSettlements(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
             @PathVariable("groupId") UUID groupId) {
-        GetGroupTransactionsResponse response = service.getGroupBalances(groupId);
+        TransactionsSettlementResponse response = service.getGroupBalances(groupId);
         return ResponseEntity.ok(response);
     }
 }

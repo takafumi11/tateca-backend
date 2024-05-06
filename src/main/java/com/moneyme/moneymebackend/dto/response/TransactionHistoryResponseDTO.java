@@ -1,9 +1,9 @@
-package com.moneyme.moneymebackend.dto.model;
+package com.moneyme.moneymebackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.moneyme.moneymebackend.dto.response.UserResponse;
 import com.moneyme.moneymebackend.entity.LoanEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
+import com.moneyme.moneymebackend.model.TransactionType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +13,7 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoT
 
 @Data
 @Builder
-public class TransactionResponseModel {
+public class TransactionHistoryResponseDTO {
     @JsonProperty("transaction_id") String id;
     @JsonProperty("transaction_type")
     TransactionType transactionType;
@@ -22,32 +22,33 @@ public class TransactionResponseModel {
     BigDecimal amount;
     @JsonProperty("date") String date;
     @JsonProperty("payer")
-    UserResponse payer;
-    @JsonProperty("target_user") UserResponse targetUser;
+    UserResponseDTO payer;
+    @JsonProperty("target_user")
+    UserResponseDTO targetUser;
     @JsonProperty("created_at") String createdAt;
 
-    public static TransactionResponseModel from(LoanEntity loan) {
-        return TransactionResponseModel.builder()
+    public static TransactionHistoryResponseDTO from(LoanEntity loan) {
+        return TransactionHistoryResponseDTO.builder()
                 .id(loan.getUuid().toString())
                 .transactionType(TransactionType.LOAN)
                 .title(loan.getTitle())
                 .amount(loan.getAmount())
                 .date(convertToTokyoTime(loan.getDate()))
-                .payer(UserResponse.from(loan.getPayer()))
+                .payer(UserResponseDTO.from(loan.getPayer()))
                 .targetUser(null)
                 .createdAt(convertToTokyoTime(loan.getCreatedAt()))
                 .build();
     }
 
-    public static TransactionResponseModel from(RepaymentEntity repayment) {
-        return TransactionResponseModel.builder()
+    public static TransactionHistoryResponseDTO from(RepaymentEntity repayment) {
+        return TransactionHistoryResponseDTO.builder()
                 .id(repayment.getUuid().toString())
                 .transactionType(TransactionType.REPAYMENT)
                 .title(repayment.getTitle())
                 .amount(repayment.getAmount())
                 .date(convertToTokyoTime(repayment.getDate()))
-                .payer(UserResponse.from(repayment.getPayer()))
-                .targetUser(UserResponse.from(repayment.getRecipientUser()))
+                .payer(UserResponseDTO.from(repayment.getPayer()))
+                .targetUser(UserResponseDTO.from(repayment.getRecipientUser()))
                 .createdAt(convertToTokyoTime(repayment.getCreatedAt()))
                 .build();
     }

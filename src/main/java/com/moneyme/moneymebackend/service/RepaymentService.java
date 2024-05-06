@@ -1,7 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.dto.request.CreateRepaymentRequest;
-import com.moneyme.moneymebackend.dto.response.CreateRepaymentResponse;
+import com.moneyme.moneymebackend.dto.request.RepaymentCreationRequest;
+import com.moneyme.moneymebackend.dto.response.RepaymentCreationResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
@@ -24,10 +24,10 @@ public class RepaymentService {
     private final GroupRepository groupRepository;
     private final RedisService redisService;
 
-    public CreateRepaymentResponse createRepayment(CreateRepaymentRequest request, UUID groupId) {
-        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getPayerId()))
+    public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
+        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getPayerId()))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        UserEntity recipient = userRepository.findById(UUID.fromString(request.getRepaymentRequestModel().getRecipientId()))
+        UserEntity recipient = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getRecipientId()))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         GroupEntity group = groupRepository.findById(groupId)
@@ -42,7 +42,7 @@ public class RepaymentService {
 
         redisService.updateBalances(groupId.toString(), balanceUpdates);
 
-        return CreateRepaymentResponse.from(savedRepayment);
+        return RepaymentCreationResponse.from(savedRepayment);
     }
 
 }
