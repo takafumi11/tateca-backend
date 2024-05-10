@@ -45,4 +45,9 @@ public class RepaymentService {
         return RepaymentCreationResponse.from(savedRepayment);
     }
 
+    public RepaymentCreationResponse getRepayment(UUID groupId, UUID repaymentId) {
+        RepaymentEntity repayment = repository.findById(repaymentId).orElseThrow(() -> new IllegalArgumentException("repayment not found"));
+
+        return RepaymentCreationResponse.from(repayment);
+    }
 }
