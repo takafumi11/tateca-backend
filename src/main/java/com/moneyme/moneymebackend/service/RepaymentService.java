@@ -30,62 +30,66 @@ public class RepaymentService {
 
     @Transactional
     public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
-        UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getPayerId()))
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        UserEntity recipient = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getRecipientId()))
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+        UserEntity payer = findUserById(request.getRepaymentRequestDTO().getPayerId());
+        UserEntity recipient = findUserById(request.getRepaymentRequestDTO().getRecipientId());
+        GroupEntity group = findGroupById(groupId);
 
         RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipient, group));
-
-        // Update balances in Redis
-        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-        balanceUpdates.put(payer.getUuid().toString(), savedRepayment.getAmount().negate());
-        balanceUpdates.put(recipient.getUuid().toString(), savedRepayment.getAmount());
-
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+        updateBalancesInRedis(groupId, payer, recipient, savedRepayment.getAmount(), BigDecimal.ZERO);
 
         return RepaymentCreationResponse.from(savedRepayment);
     }
 
     public RepaymentCreationResponse getRepayment(UUID groupId, UUID repaymentId) {
-        RepaymentEntity repayment = repository.findById(repaymentId).orElseThrow(() -> new IllegalArgumentException("repayment not found"));
-
+        RepaymentEntity repayment = repository.findById(repaymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
         return RepaymentCreationResponse.from(repayment);
     }
 
     @Transactional
     public RepaymentCreationResponse updateRepayment(UUID groupId, UUID repaymentId, RepaymentCreationRequest request) {
-        RepaymentEntity repayment = repository.findById(repaymentId).orElseThrow(() -> new IllegalArgumentException("repayment not found"));
-        RepaymentRequestDTO requestDTO = request.getRepaymentRequestDTO();
-
+        RepaymentEntity repayment = repository.findById(repaymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
         BigDecimal prevAmount = repayment.getAmount();
 
-        repayment.setTitle(requestDTO.getTitle());
-        repayment.setAmount(requestDTO.getAmount());
-        repayment.setDate(convertToTokyoTime(requestDTO.getDate()));
-        repayment.setDetail(requestDTO.getDetail());
-        RepaymentEntity savedRepayment = repository.save(repayment);
+        updateRepaymentDetails(repayment, request.getRepaymentRequestDTO());
+        repository.save(repayment);
 
-        // Update balances in Redis
-        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-        balanceUpdates.put(savedRepayment.getPayer().getUuid().toString(), prevAmount.add(savedRepayment.getAmount().negate()));
-        balanceUpdates.put(savedRepayment.getRecipientUser().getUuid().toString(), prevAmount.negate().add(savedRepayment.getAmount()));
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), repayment.getAmount(), prevAmount);
 
-        return RepaymentCreationResponse.from(savedRepayment);
+        return RepaymentCreationResponse.from(repayment);
     }
 
     @Transactional
     public void deleteRepayment(UUID groupId, UUID repaymentId) {
-        RepaymentEntity repayment = repository.findById(repaymentId).orElseThrow(() -> new IllegalArgumentException("repayment not found"));
+        RepaymentEntity repayment = repository.findById(repaymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
         repository.delete(repayment);
 
+        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), BigDecimal.ZERO, repayment.getAmount());
+    }
+
+    private UserEntity findUserById(String userId) {
+        return userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+    }
+
+    private GroupEntity findGroupById(UUID groupId) {
+        return groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found with ID: " + groupId));
+    }
+
+    private void updateRepaymentDetails(RepaymentEntity repayment, RepaymentRequestDTO requestDTO) {
+        repayment.setTitle(requestDTO.getTitle());
+        repayment.setAmount(requestDTO.getAmount());
+        repayment.setDate(convertToTokyoTime(requestDTO.getDate()));
+        repayment.setDetail(requestDTO.getDetail());
+    }
+
+    private void updateBalancesInRedis(UUID groupId, UserEntity payer, UserEntity recipient, BigDecimal newAmount, BigDecimal oldAmount) {
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-        balanceUpdates.put(repayment.getPayer().getUuid().toString(), repayment.getAmount());
-        balanceUpdates.put(repayment.getRecipientUser().getUuid().toString(), repayment.getAmount().negate());
+        balanceUpdates.put(payer.getUuid().toString(), oldAmount.subtract(newAmount));
+        balanceUpdates.put(recipient.getUuid().toString(), newAmount.subtract(oldAmount));
         redisService.updateBalances(groupId.toString(), balanceUpdates);
     }
 
