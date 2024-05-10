@@ -11,7 +11,7 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoT
 @Data
 public class UserResponseDTO {
     @JsonProperty("uuid") String uuid;
-    @JsonProperty("user_name") String userName;
+    @JsonProperty("name") String userName;
     @JsonProperty("email") String email;
     @JsonProperty("auth_user_id") String authUserId;
     @JsonProperty("created_at") String createdAt;
