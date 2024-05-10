@@ -18,9 +18,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -82,6 +86,20 @@ public class LoanService {
                 .amount(obligationRequestDTO.getAmount())
                 .build();
     }
+
+    public LoanCreationResponse getLoan(UUID groupId, UUID loanId) {
+        LoanEntity loan = repository.findById(loanId).orElseThrow(() -> new IllegalArgumentException("Loan not found"));
+
+        List<ObligationEntity> obligations = obligationRepository.findByLoanId(loan.getUuid());
+
+        List<ObligationResponseDTO> obligationResponseDTOList = obligations.stream().map(ObligationResponseDTO::from).toList();
+
+        return LoanCreationResponse.builder()
+                .loanResponseDTO(LoanResponseDTO.from(loan))
+                .obligationResponseDTOS(obligationResponseDTOList)
+                .build();
+    }
+
     public void deleteLoan(UUID groupId, UUID loanId) {
         LoanEntity loan = repository.findById(loanId).orElseThrow(() -> new IllegalArgumentException("Loan not found"));
 
