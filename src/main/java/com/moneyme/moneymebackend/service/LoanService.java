@@ -82,4 +82,27 @@ public class LoanService {
                 .amount(obligationRequestDTO.getAmount())
                 .build();
     }
+    public void deleteLoan(UUID groupId, UUID loanId) {
+        LoanEntity loan = repository.findById(loanId).orElseThrow(() -> new IllegalArgumentException("Loan not found"));
+
+        List<ObligationEntity> obligations = obligationRepository.findByLoanId(loan.getUuid());
+
+        obligationRepository.deleteAll(obligations);
+        repository.delete(loan);
+
+        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (ObligationEntity obligation : obligations) {
+            balanceUpdates.put(obligation.getUser().getUuid().toString(), obligation.getAmount().negate());
+            totalAmount = totalAmount.add(obligation.getAmount());
+        }
+
+        // Subtract the total amount from the payer's balance
+        balanceUpdates.put(loan.getPayer().getUuid().toString(), totalAmount);
+
+        redisService.updateBalances(groupId.toString(), balanceUpdates);
+
+
+    }
 }
