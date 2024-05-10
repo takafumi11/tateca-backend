@@ -6,6 +6,8 @@ import com.moneyme.moneymebackend.service.LoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,5 +35,25 @@ public class LoanController {
     ) {
        LoanCreationResponse response = service.createLoan(request, groupId);
        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{loanId}")
+    public ResponseEntity<LoanCreationResponse> getLoan(
+            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("loanId") UUID loanId
+    ) {
+        LoanCreationResponse response = service.getLoan(groupId, loanId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/{loanId}")
+    public ResponseEntity<Void> deleteLoan(
+            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("loanId") UUID loanId
+    ) {
+        service.deleteLoan(groupId, loanId);
+        return ResponseEntity.noContent().build();
     }
 }
