@@ -34,4 +34,13 @@ public class RepaymentController {
         RepaymentCreationResponse response = service.createRepayment(request, groupId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    @GetMapping("/{repaymentId}")
+    public ResponseEntity<RepaymentCreationResponse> getRepayment(
+            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("repaymentId") UUID repaymentId
+    ) {
+        RepaymentCreationResponse response = service.getRepayment(groupId, repaymentId);
+        return ResponseEntity.ok(response);
+    }
 }
