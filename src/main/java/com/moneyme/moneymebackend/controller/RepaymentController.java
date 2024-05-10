@@ -49,7 +49,7 @@ public class RepaymentController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{repaymentId}")
+//    @PatchMapping("/{repaymentId}")
 //    public ResponseEntity<RepaymentCreationResponse> updateRepayment(
 //            @RequestHeader(HEADER_AUTHORIZATION) String token,
 //            @PathVariable("groupId") UUID groupId,
