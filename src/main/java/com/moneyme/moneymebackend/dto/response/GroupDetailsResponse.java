@@ -10,9 +10,9 @@ import java.util.List;
 @Data
 @Builder
 public class GroupDetailsResponse {
-    @JsonProperty("group_info")
+    @JsonProperty("group")
     GroupResponseDTO groupResponseDTO;
 
-    @JsonProperty("users_info")
+    @JsonProperty("users")
     List<UserResponseDTO> userResponseDTOS;
 }

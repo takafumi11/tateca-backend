@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.dto.request.RepaymentCreationRequest;
+import com.moneyme.moneymebackend.dto.request.RepaymentRequestDTO;
 import com.moneyme.moneymebackend.dto.response.RepaymentCreationResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
@@ -8,6 +9,7 @@ import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.repository.GroupRepository;
 import com.moneyme.moneymebackend.repository.RepaymentRepository;
 import com.moneyme.moneymebackend.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class RepaymentService {
     private final GroupRepository groupRepository;
     private final RedisService redisService;
 
+    @Transactional
     public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
         UserEntity payer = userRepository.findById(UUID.fromString(request.getRepaymentRequestDTO().getPayerId()))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -50,4 +55,49 @@ public class RepaymentService {
 
         return RepaymentCreationResponse.from(repayment);
     }
+
+//    @Transactional
+//    public RepaymentCreationResponse updateRepayment(UUID groupId, UUID repaymentId, RepaymentCreationRequest request) {
+//        RepaymentEntity repayment = repository.findById(repaymentId).orElseThrow(() -> new IllegalArgumentException("repayment not found"));
+//        RepaymentRequestDTO requestDTO = request.getRepaymentRequestDTO();
+//        UserEntity payer = userRepository.findById(UUID.fromString(requestDTO.getPayerId()))
+//                .orElseThrow(() -> new IllegalArgumentException("Payer not found with the id in body"));
+//        UserEntity recipient = userRepository.findById(UUID.fromString(requestDTO.getRecipientId()))
+//                .orElseThrow(() -> new IllegalArgumentException("Recipient not found with the id in body"));
+//
+//        // 前のrepaymentをRedisに反映
+//        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+//        balanceUpdates.put(repayment.getPayer().getUuid().toString(), repayment.getAmount());
+//        balanceUpdates.put(repayment.getRecipientUser().getUuid().toString(), repayment.getAmount().negate());
+//        redisService.updateBalances(groupId.toString(), balanceUpdates);
+//
+//        repayment.setTitle(requestDTO.getTitle());
+//        repayment.setAmount(requestDTO.getAmount());
+//        repayment.setDate(convertToTokyoTime(requestDTO.getDate()));
+//        repayment.setPayer(payer);
+//        repayment.setRecipientUser(recipient);
+//        repayment.setDetail(requestDTO.getDetail());
+//        RepaymentEntity savedRepayment = repository.save(repayment);
+//
+//
+//        // Update balances in Redis
+//        balanceUpdates = new HashMap<>();
+//        balanceUpdates.put(savedRepayment.getPayer().getUuid().toString(), savedRepayment.getAmount().negate());
+//        balanceUpdates.put(savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount());
+//        redisService.updateBalances(groupId.toString(), balanceUpdates);
+//
+//        return RepaymentCreationResponse.from(savedRepayment);
+//    }
+
+    @Transactional
+    public void deleteRepayment(UUID groupId, UUID repaymentId) {
+        RepaymentEntity repayment = repository.findById(repaymentId).orElseThrow(() -> new IllegalArgumentException("repayment not found"));
+        repository.delete(repayment);
+
+        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+        balanceUpdates.put(repayment.getPayer().getUuid().toString(), repayment.getAmount());
+        balanceUpdates.put(repayment.getRecipientUser().getUuid().toString(), repayment.getAmount().negate());
+        redisService.updateBalances(groupId.toString(), balanceUpdates);
+    }
+
 }
