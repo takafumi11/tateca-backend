@@ -15,6 +15,7 @@ public class RepaymentCreationResponse {
     GroupResponseDTO group;
     @JsonProperty("title") String title;
     @JsonProperty("amount") BigDecimal amount;
+    @JsonProperty("date") String date;
     @JsonProperty("payer")
     UserResponseDTO payer;
     @JsonProperty("recipient")
@@ -29,6 +30,7 @@ public class RepaymentCreationResponse {
                 .group(GroupResponseDTO.from(repayment.getGroup()))
                 .title(repayment.getTitle())
                 .amount(repayment.getAmount())
+                .date(convertToTokyoTime(repayment.getDate()))
                 .payer(UserResponseDTO.from(repayment.getPayer()))
                 .recipient(UserResponseDTO.from(repayment.getRecipientUser()))
                 .detail(repayment.getDetail())
