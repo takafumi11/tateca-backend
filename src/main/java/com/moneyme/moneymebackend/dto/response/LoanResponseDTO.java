@@ -15,6 +15,7 @@ public class LoanResponseDTO {
     GroupResponseDTO group;
     @JsonProperty("title") String title;
     @JsonProperty("amount") BigDecimal amount;
+    @JsonProperty("date") String date;
     @JsonProperty("payer")
     UserResponseDTO payer;
     @JsonProperty("detail") String detail;
@@ -27,6 +28,7 @@ public class LoanResponseDTO {
                 .group(GroupResponseDTO.from(loan.getGroup()))
                 .title(loan.getTitle())
                 .amount(loan.getAmount())
+                .date(convertToTokyoTime(loan.getDate()))
                 .payer(UserResponseDTO.from(loan.getPayer()))
                 .detail(loan.getDetail())
                 .createdAt(convertToTokyoTime(loan.getCreatedAt()))
