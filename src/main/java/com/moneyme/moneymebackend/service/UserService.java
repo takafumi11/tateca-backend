@@ -48,4 +48,10 @@ public class UserService {
         return UserResponseDTO.from(savedUser);
     }
 
+    public UserResponseDTO getUserInfo(String token, UUID userId) {
+        UserEntity user = repository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
+
+        return UserResponseDTO.from(user);
+    }
+
 }
