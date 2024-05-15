@@ -26,7 +26,6 @@ public class GroupService {
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
 
-    @Transactional
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
         GroupEntity group = repository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found"));
         return buildGroupResponse(group);
@@ -42,6 +41,9 @@ public class GroupService {
         createUserGroup(user, savedGroup);
 
         request.getUsersName().forEach(userName -> {
+            if (user.getName().equals(userName)) {
+                return;
+            }
             UserEntity newUser = createAndSaveNoAuthUser(userName);
             createUserGroup(newUser, savedGroup);
             userEntityList.add(newUser);
@@ -59,11 +61,11 @@ public class GroupService {
     private GroupDetailsResponse buildGroupResponse(GroupEntity group) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(group.getUuid());
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        List<UserResponseDTO> userResponsDTOS = users.stream().map(UserResponseDTO::from).collect(Collectors.toList());
+        List<UserResponseDTO> userResponseDTOS = users.stream().map(UserResponseDTO::from).collect(Collectors.toList());
 
         GroupResponseDTO groupResponse = GroupResponseDTO.from(group);
         return GroupDetailsResponse.builder()
-                .userResponseDTOS(userResponsDTOS)
+                .userResponseDTOS(userResponseDTOS)
                 .groupResponseDTO(groupResponse)
                 .build();
     }
