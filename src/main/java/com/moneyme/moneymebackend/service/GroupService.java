@@ -35,6 +35,7 @@ public class GroupService {
     public GroupDetailsResponse createGroup(CreateGroupRequest request) {
         GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
         UserEntity user = userRepository.findById(UUID.fromString(request.getUserUuid())).orElseThrow(() -> new IllegalArgumentException("user not found"));
+        user.setName(request.getHostName());
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(user);
