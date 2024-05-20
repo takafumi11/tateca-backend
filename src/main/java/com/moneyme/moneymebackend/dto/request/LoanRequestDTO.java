@@ -9,7 +9,9 @@ import java.math.BigDecimal;
 public class LoanRequestDTO {
     @JsonProperty("title") String title;
     @JsonProperty("amount")
-    BigDecimal amount;
+    Integer amount;
+    @JsonProperty("currency_code") String currencyCode;
+    @JsonProperty("currency_rate") BigDecimal currencyRate;
     @JsonProperty("date") String date;
     @JsonProperty("payer_id") String payerId;
 }
