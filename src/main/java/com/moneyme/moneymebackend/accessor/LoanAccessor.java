@@ -1,17 +1,10 @@
 package com.moneyme.moneymebackend.accessor;
 
 import com.moneyme.moneymebackend.entity.LoanEntity;
-import com.moneyme.moneymebackend.entity.ObligationEntity;
 import com.moneyme.moneymebackend.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import static com.moneyme.moneymebackend.service.util.AmountHelper.calculateAmount;
 
 @RequiredArgsConstructor
 public class LoanAccessor {

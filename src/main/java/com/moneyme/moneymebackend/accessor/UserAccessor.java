@@ -14,4 +14,6 @@ public class UserAccessor {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
     }
+
+
 }

@@ -76,18 +76,4 @@ public class RepaymentEntity {
     protected void onUpdate() {
         updatedAt = ZonedDateTime.now();
     }
-
-    public static RepaymentEntity from(RepaymentCreationRequest request, UserEntity payer, UserEntity recipientUser, GroupEntity group) {
-        return RepaymentEntity.builder()
-                .uuid(UUID.randomUUID())
-                .group(group)
-                .title(request.getRepaymentRequestDTO().getTitle())
-                .amount(request.getRepaymentRequestDTO().getAmount())
-                .currencyCode(request.getRepaymentRequestDTO().getCurrencyCode())
-                .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
-                .date(convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
-                .payer(payer)
-                .recipientUser(recipientUser)
-                .build();
-    }
 }

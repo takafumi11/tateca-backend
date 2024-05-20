@@ -45,7 +45,7 @@ public class RepaymentController {
             @PathVariable("groupId") UUID groupId,
             @PathVariable("repaymentId") UUID repaymentId
     ) {
-        RepaymentCreationResponse response = service.getRepayment(groupId, repaymentId);
+        RepaymentCreationResponse response = service.getRepayment(repaymentId);
         return ResponseEntity.ok(response);
     }
 
