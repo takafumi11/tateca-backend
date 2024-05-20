@@ -44,7 +44,7 @@ public class LoanController {
             @PathVariable("groupId") UUID groupId,
             @PathVariable("loanId") UUID loanId
     ) {
-        LoanCreationResponse response = service.getLoan(groupId, loanId);
+        LoanCreationResponse response = service.getLoan(loanId);
         return ResponseEntity.ok(response);
     }
 

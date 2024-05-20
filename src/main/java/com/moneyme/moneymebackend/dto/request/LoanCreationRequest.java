@@ -10,5 +10,5 @@ public class LoanCreationRequest {
     @JsonProperty("loan")
     LoanRequestDTO loanRequestDTO;
     @JsonProperty("obligations")
-    List<ObligationRequestDTO> obligationRequestDTOS;
+    List<ObligationRequestDTO> obligationRequestDTOs;
 }

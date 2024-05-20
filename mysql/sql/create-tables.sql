@@ -32,7 +32,9 @@ CREATE TABLE IF NOT EXISTS loans (
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     group_uuid BINARY(16),
     title VARCHAR(50),
-    amount DECIMAL(10,2) NOT NULL,
+    amount INT NOT NULL,
+    currency_code CHAR(3) NOT NULL,
+    currency_rate DECIMAL(9, 6) NOT NULL,
     date DATETIME NOT NULL,
     payer_id BINARY(16) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,19 +48,21 @@ CREATE TABLE IF NOT EXISTS loan_obligations (
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     loan_uuid BINARY(16) NOT NULL,
     user_uuid BINARY(16) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
+    amount INT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (loan_uuid) REFERENCES loans(uuid),
     FOREIGN KEY (user_uuid) REFERENCES users(uuid)
 );
 
-CREATE TABLE IF NOT EXISTS repayment_history (
+CREATE TABLE IF NOT EXISTS repayments (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     group_uuid BINARY(16),
     title VARCHAR(50),
-    amount DECIMAL(10,2) NOT NULL,
+    amount INT NOT NULL,
+    currency_code CHAR(3) NOT NULL,
+    currency_rate DECIMAL(9, 6) NOT NULL,
     date DATETIME NOT NULL,
     payer_id BINARY(16) NOT NULL,
     recipient_user_id BINARY(16) NOT NULL,

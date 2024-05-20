@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -45,7 +44,7 @@ public class RepaymentController {
             @PathVariable("groupId") UUID groupId,
             @PathVariable("repaymentId") UUID repaymentId
     ) {
-        RepaymentCreationResponse response = service.getRepayment(groupId, repaymentId);
+        RepaymentCreationResponse response = service.getRepayment(repaymentId);
         return ResponseEntity.ok(response);
     }
 

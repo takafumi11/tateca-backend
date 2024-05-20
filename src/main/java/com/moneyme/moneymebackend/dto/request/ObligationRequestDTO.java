@@ -7,6 +7,6 @@ import java.math.BigDecimal;
 
 @Data
 public class ObligationRequestDTO {
-    @JsonProperty("amount") BigDecimal amount;
+    @JsonProperty("amount") Integer amount;
     @JsonProperty("user_uuid") String userUuid ;
 }

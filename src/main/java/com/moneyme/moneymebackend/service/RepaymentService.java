@@ -1,14 +1,14 @@
 package com.moneyme.moneymebackend.service;
 
+import com.moneyme.moneymebackend.accessor.GroupAccessor;
+import com.moneyme.moneymebackend.accessor.RepaymentAccessor;
+import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.dto.request.RepaymentCreationRequest;
 import com.moneyme.moneymebackend.dto.request.RepaymentRequestDTO;
 import com.moneyme.moneymebackend.dto.response.RepaymentCreationResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
-import com.moneyme.moneymebackend.repository.GroupRepository;
-import com.moneyme.moneymebackend.repository.RepaymentRepository;
-import com.moneyme.moneymebackend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,78 +18,86 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.moneyme.moneymebackend.service.util.AmountHelper.calculateAmount;
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Service
 @RequiredArgsConstructor
 public class RepaymentService {
-    private final RepaymentRepository repository;
-    private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
+    private final RepaymentAccessor accessor;
+    private final UserAccessor userAccessor;
+    private final GroupAccessor groupAccessor;
     private final RedisService redisService;
 
     @Transactional
-    public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
-        UserEntity payer = findUserById(request.getRepaymentRequestDTO().getPayerId());
-        UserEntity recipient = findUserById(request.getRepaymentRequestDTO().getRecipientId());
-        GroupEntity group = findGroupById(groupId);
-
-        RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipient, group));
-        updateBalancesInRedis(groupId, payer, recipient, savedRepayment.getAmount(), BigDecimal.ZERO);
-
-        return RepaymentCreationResponse.from(savedRepayment);
-    }
-
-    public RepaymentCreationResponse getRepayment(UUID groupId, UUID repaymentId) {
-        RepaymentEntity repayment = repository.findById(repaymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
+    public RepaymentCreationResponse getRepayment(UUID repaymentId) {
+        RepaymentEntity repayment = accessor.findById(repaymentId);
         return RepaymentCreationResponse.from(repayment);
     }
 
     @Transactional
+    public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
+        RepaymentRequestDTO repaymentRequestDTO = request.getRepaymentRequestDTO();
+        String payerId = repaymentRequestDTO.getPayerId();
+        String recipientId = repaymentRequestDTO.getRecipientId();
+
+        UserEntity payer = userAccessor.findById(UUID.fromString(payerId));
+        UserEntity recipient = userAccessor.findById(UUID.fromString(recipientId));
+        GroupEntity group = groupAccessor.findById(groupId);
+
+        RepaymentEntity repaymentEntity = RepaymentEntity.builder()
+                .uuid(UUID.randomUUID())
+                .group(group)
+                .title(repaymentRequestDTO.getTitle())
+                .amount(repaymentRequestDTO.getAmount())
+                .currencyCode(repaymentRequestDTO.getCurrencyCode())
+                .currencyRate(repaymentRequestDTO.getCurrencyRate())
+                .date(convertToTokyoTime(repaymentRequestDTO.getDate()))
+                .payer(payer)
+                .recipientUser(recipient)
+                .build();
+
+        RepaymentEntity savedRepayment = accessor.save(repaymentEntity);
+        updateBalancesInRedis(groupId.toString(), payerId, recipientId, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
+
+        return RepaymentCreationResponse.from(savedRepayment);
+    }
+
+    @Transactional
     public RepaymentCreationResponse updateRepayment(UUID groupId, UUID repaymentId, RepaymentCreationRequest request) {
-        RepaymentEntity repayment = repository.findById(repaymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
-        BigDecimal prevAmount = repayment.getAmount();
+        RepaymentEntity repayment = accessor.findById(repaymentId);
 
-        updateRepaymentDetails(repayment, request.getRepaymentRequestDTO());
-        repository.save(repayment);
+        int prevAmount = repayment.getAmount();
+        BigDecimal prevCurrencyRate = repayment.getCurrencyRate();
 
-        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), repayment.getAmount(), prevAmount);
+        repayment.setTitle(request.getRepaymentRequestDTO().getTitle());
+        repayment.setAmount(request.getRepaymentRequestDTO().getAmount());
+        repayment.setDate(convertToTokyoTime(request.getRepaymentRequestDTO().getDate()));
+
+        RepaymentEntity savedRepayment = accessor.save(repayment);
+
+        updateBalancesInRedis(groupId.toString(), savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
 
         return RepaymentCreationResponse.from(repayment);
     }
 
     @Transactional
     public void deleteRepayment(UUID groupId, UUID repaymentId) {
-        RepaymentEntity repayment = repository.findById(repaymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
-        repository.delete(repayment);
+        RepaymentEntity repayment = accessor.findById(repaymentId);
+        accessor.delete(repayment);
 
-        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), BigDecimal.ZERO, repayment.getAmount());
+        updateBalancesInRedis(groupId.toString(), repayment.getPayer().getUuid().toString(), repayment.getRecipientUser().getUuid().toString(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
     }
 
-    private UserEntity findUserById(String userId) {
-        return userRepository.findById(UUID.fromString(userId))
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-    }
-
-    private GroupEntity findGroupById(UUID groupId) {
-        return groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Group not found with ID: " + groupId));
-    }
-
-    private void updateRepaymentDetails(RepaymentEntity repayment, RepaymentRequestDTO requestDTO) {
-        repayment.setTitle(requestDTO.getTitle());
-        repayment.setAmount(requestDTO.getAmount());
-        repayment.setDate(convertToTokyoTime(requestDTO.getDate()));
-    }
-
-    private void updateBalancesInRedis(UUID groupId, UserEntity payer, UserEntity recipient, BigDecimal newAmount, BigDecimal oldAmount) {
+    private void updateBalancesInRedis(String groupId, String payerId, String recipientId, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-        balanceUpdates.put(payer.getUuid().toString(), oldAmount.subtract(newAmount));
-        balanceUpdates.put(recipient.getUuid().toString(), newAmount.subtract(oldAmount));
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+
+        BigDecimal oldAmount = calculateAmount(oldAmountInt, oldCurrencyRate);
+        BigDecimal newAmount = calculateAmount(newAmountInt, newCurrencyRate);
+
+        balanceUpdates.put(payerId, oldAmount.subtract(newAmount));
+        balanceUpdates.put(recipientId, newAmount.subtract(oldAmount));
+        redisService.updateBalances(groupId, balanceUpdates);
     }
 
 }

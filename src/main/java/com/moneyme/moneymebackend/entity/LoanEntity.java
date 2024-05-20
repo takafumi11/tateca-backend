@@ -40,7 +40,13 @@ public class LoanEntity {
     private String title;
 
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    private Integer amount;
+
+    @Column(name = "currency_code", nullable = false)
+    private String currencyCode;
+
+    @Column(name = "currency_rate", nullable = false)
+    private BigDecimal currencyRate;
 
     @Column(name = "date", nullable = false)
     private ZonedDateTime date;
@@ -73,6 +79,8 @@ public class LoanEntity {
                 .group(group)
                 .title(request.getLoanRequestDTO().getTitle())
                 .amount(request.getLoanRequestDTO().getAmount())
+                .currencyCode(request.getLoanRequestDTO().getCurrencyCode())
+                .currencyRate(request.getLoanRequestDTO().getCurrencyRate())
                 .date(convertToTokyoTime(request.getLoanRequestDTO().getDate()))
                 .payer(user)
                 .build();

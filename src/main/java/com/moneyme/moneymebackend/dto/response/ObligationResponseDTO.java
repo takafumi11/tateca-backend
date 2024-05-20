@@ -14,7 +14,7 @@ public class ObligationResponseDTO {
     @JsonProperty("user")
     UserResponseDTO user;
     @JsonProperty("amount")
-    BigDecimal amount;
+    int amount;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
