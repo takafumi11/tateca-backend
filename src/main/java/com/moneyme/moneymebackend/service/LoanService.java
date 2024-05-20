@@ -1,62 +1,72 @@
 package com.moneyme.moneymebackend.service;
 
+import com.moneyme.moneymebackend.accessor.GroupAccessor;
+import com.moneyme.moneymebackend.accessor.LoanAccessor;
+import com.moneyme.moneymebackend.accessor.ObligationAccessor;
+import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.dto.request.LoanRequestDTO;
-import com.moneyme.moneymebackend.dto.response.LoanResponseDTO;
 import com.moneyme.moneymebackend.dto.request.ObligationRequestDTO;
-import com.moneyme.moneymebackend.dto.response.ObligationResponseDTO;
 import com.moneyme.moneymebackend.dto.request.LoanCreationRequest;
 import com.moneyme.moneymebackend.dto.response.LoanCreationResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.LoanEntity;
 import com.moneyme.moneymebackend.entity.ObligationEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
-import com.moneyme.moneymebackend.repository.GroupRepository;
-import com.moneyme.moneymebackend.repository.ObligationRepository;
-import com.moneyme.moneymebackend.repository.LoanRepository;
-import com.moneyme.moneymebackend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.moneyme.moneymebackend.service.util.AmountHelper.calculateAmount;
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
 public class LoanService {
-    private final LoanRepository repository;
-    private final ObligationRepository obligationRepository;
-    private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
+    private final LoanAccessor accessor;
+    private final UserAccessor userAccessor;
+    private final GroupAccessor groupAccessor;
+    private final ObligationAccessor obligationAccessor;
     private final RedisService redisService;
 
     @Transactional
+    public LoanCreationResponse getLoan(UUID loanId) {
+        LoanEntity loan = accessor.findById(loanId);
+        List<ObligationEntity> obligations = obligationAccessor.findByLoanId(loan.getUuid());
+
+        return LoanCreationResponse.buildResponse(loan, obligations);
+    }
+
+    @Transactional
     public LoanCreationResponse createLoan(LoanCreationRequest request, UUID groupId) {
-        UUID userUuid = UUID.fromString(request.getLoanRequestDTO().getPayerId());
-        UserEntity user = userRepository.findById(userUuid)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        UUID userId = UUID.fromString(request.getLoanRequestDTO().getPayerId());
+        UserEntity user = userAccessor.findById(userId);
+        GroupEntity group = groupAccessor.findById(groupId);
 
-        GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("group not found"));
+        LoanEntity savedLoan = accessor.save(LoanEntity.from(request, user, group));
 
-        LoanEntity savedLoan = repository.save(LoanEntity.from(request, user, group));
+        List<ObligationEntity> obligationEntityList = request.getObligationRequestDTOS().stream()
+                .map(obligation -> {
+                    UUID obligationUserId = UUID.fromString(obligation.getUserUuid());
+                    UserEntity obligationUser = userAccessor.findById(obligationUserId);
 
-        List<ObligationEntity> obligationList = request.getObligationRequestDTOS().stream().map(obligationRequestDTO ->
-                buildObligationEntity(savedLoan, obligationRequestDTO)
-        ).toList();
+                    return ObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .loan(savedLoan)
+                            .user(obligationUser)
+                            .amount(obligation.getAmount())
+                            .build();
+                })
+                .collect(Collectors.toList());
 
-        List<ObligationEntity> savedObligations = obligationRepository.saveAll(obligationList);
+        List<ObligationEntity> savedObligations = obligationAccessor.saveAll(obligationEntityList);
 
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -72,52 +82,21 @@ public class LoanService {
 
         redisService.updateBalances(groupId.toString(), balanceUpdates);
 
-        LoanResponseDTO loanResponse = LoanResponseDTO.from(savedLoan);
-        List<ObligationResponseDTO> obligationResponseDTOS = savedObligations.stream().map(ObligationResponseDTO::from).toList();
-
-        return LoanCreationResponse.builder()
-                .loanResponseDTO(loanResponse)
-                .obligationResponseDTOS(obligationResponseDTOS)
-                .build();
-    }
-
-    public ObligationEntity buildObligationEntity(LoanEntity loan, ObligationRequestDTO obligationRequestDTO) {
-        UUID userUuid = UUID.fromString(obligationRequestDTO.getUserUuid());
-        UserEntity user = userRepository.findById(userUuid).orElseThrow(() -> new IllegalArgumentException("user not found"));
-
-        return ObligationEntity.builder()
-                .uuid(UUID.randomUUID())
-                .loan(loan)
-                .user(user)
-                .amount(obligationRequestDTO.getAmount())
-                .build();
-    }
-
-    public LoanCreationResponse getLoan(UUID groupId, UUID loanId) {
-        LoanEntity loan = repository.findById(loanId).orElseThrow(() -> new IllegalArgumentException("Loan not found"));
-
-        List<ObligationEntity> obligations = obligationRepository.findByLoanId(loan.getUuid());
-
-        List<ObligationResponseDTO> obligationResponseDTOList = obligations.stream().map(ObligationResponseDTO::from).toList();
-
-        return LoanCreationResponse.builder()
-                .loanResponseDTO(LoanResponseDTO.from(loan))
-                .obligationResponseDTOS(obligationResponseDTOList)
-                .build();
+        return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
 
     public LoanCreationResponse updateLoan(UUID groupId, UUID loanId, LoanCreationRequest request) {
-        LoanEntity loan = repository.findById(loanId).orElseThrow(() -> new IllegalArgumentException("Loan not found"));
+        LoanEntity loan = accessor.findById(loanId);
 
         LoanRequestDTO loanRequestDTO = request.getLoanRequestDTO();
         loan.setTitle(loanRequestDTO.getTitle());
         loan.setAmount(loanRequestDTO.getAmount());
         loan.setDate(convertToTokyoTime(loanRequestDTO.getDate()));
 
-        LoanEntity savedLoan = repository.save(loan);
+        LoanEntity savedLoan = accessor.save(loan);
 
         // Fetch previous obligations to calculate balance updates correctly
-        List<ObligationEntity> existingObligations = obligationRepository.findByLoanId(loanId);
+        List<ObligationEntity> existingObligations = obligationAccessor.findByLoanId(loanId);
 
         Map<UUID, Integer> previousAmounts = existingObligations.stream()
                 .collect(Collectors.toMap(obligation -> obligation.getUser().getUuid(), ObligationEntity::getAmount));
@@ -136,9 +115,9 @@ public class LoanService {
 
             existingObligation.setAmount(matchingRequestDTO.getAmount());
             return existingObligation;
-        }).collect(Collectors.toList());
+        }).collect(toList());
 
-        List<ObligationEntity> savedObligations = obligationRepository.saveAll(updatedObligations);
+        List<ObligationEntity> savedObligations = obligationAccessor.saveAll(updatedObligations);
 
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -162,30 +141,25 @@ public class LoanService {
 
         redisService.updateBalances(groupId.toString(), balanceUpdates);
 
-        LoanResponseDTO loanResponse = LoanResponseDTO.from(savedLoan);
-        List<ObligationResponseDTO> obligationResponseDTOS = savedObligations.stream().map(ObligationResponseDTO::from).toList();
-
-        return LoanCreationResponse.builder()
-                .loanResponseDTO(loanResponse)
-                .obligationResponseDTOS(obligationResponseDTOS)
-                .build();
+        return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
 
+    @Transactional
     public void deleteLoan(UUID groupId, UUID loanId) {
-        LoanEntity loan = repository.findById(loanId).orElseThrow(() -> new IllegalArgumentException("Loan not found"));
+        LoanEntity loan = accessor.findById(loanId);
 
-        List<ObligationEntity> obligations = obligationRepository.findByLoanId(loan.getUuid());
+        List<ObligationEntity> obligations = obligationAccessor.findByLoanId(loanId);
 
-        obligationRepository.deleteAll(obligations);
-        repository.delete(loan);
+        obligationAccessor.deleteAll(obligations);
+        accessor.delete(loan);
 
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        for (ObligationEntity obligation : obligations) {
-            BigDecimal amount = calculateAmount(obligation.getAmount(), loan.getCurrencyRate());
-            balanceUpdates.put(obligation.getUser().getUuid().toString(), amount.negate());
-            totalAmount = totalAmount.add(amount);
+        for (ObligationEntity obligationEntity : obligations) {
+            BigDecimal amountAdded = calculateAmount(obligationEntity.getAmount(), loan.getCurrencyRate());
+            balanceUpdates.put(obligationEntity.getUser().getUuid().toString(), amountAdded.negate());
+            totalAmount = totalAmount.add(amountAdded);
         }
 
         // Subtract the total amount from the payer's balance
@@ -193,4 +167,5 @@ public class LoanService {
 
         redisService.updateBalances(groupId.toString(), balanceUpdates);
     }
+
 }
