@@ -35,7 +35,7 @@ public class RepaymentService {
         GroupEntity group = findGroupById(groupId);
 
         RepaymentEntity savedRepayment = repository.save(RepaymentEntity.from(request, payer, recipient, group));
-        updateBalancesInRedis(groupId, payer, recipient, savedRepayment.getAmount(), BigDecimal.ZERO);
+        updateBalancesInRedis(groupId, payer, recipient, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
 
         return RepaymentCreationResponse.from(savedRepayment);
     }
@@ -50,12 +50,13 @@ public class RepaymentService {
     public RepaymentCreationResponse updateRepayment(UUID groupId, UUID repaymentId, RepaymentCreationRequest request) {
         RepaymentEntity repayment = repository.findById(repaymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
-        BigDecimal prevAmount = repayment.getAmount();
+        int prevAmount = repayment.getAmount();
+        BigDecimal prevCurrencyRate = repayment.getCurrencyRate();
 
         updateRepaymentDetails(repayment, request.getRepaymentRequestDTO());
-        repository.save(repayment);
+        RepaymentEntity savedRepayment = repository.save(repayment);
 
-        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), repayment.getAmount(), prevAmount);
+        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
 
         return RepaymentCreationResponse.from(repayment);
     }
@@ -66,7 +67,8 @@ public class RepaymentService {
                 .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + repaymentId));
         repository.delete(repayment);
 
-        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), BigDecimal.ZERO, repayment.getAmount());
+
+        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
     }
 
     private UserEntity findUserById(String userId) {
@@ -85,11 +87,23 @@ public class RepaymentService {
         repayment.setDate(convertToTokyoTime(requestDTO.getDate()));
     }
 
-    private void updateBalancesInRedis(UUID groupId, UserEntity payer, UserEntity recipient, BigDecimal newAmount, BigDecimal oldAmount) {
+    private void updateBalancesInRedis(UUID groupId, UserEntity payer, UserEntity recipient, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
+
+        BigDecimal oldAmount = calculateAmount(oldAmountInt, oldCurrencyRate);
+        BigDecimal newAmount = calculateAmount(newAmountInt, newCurrencyRate);
+
         balanceUpdates.put(payer.getUuid().toString(), oldAmount.subtract(newAmount));
         balanceUpdates.put(recipient.getUuid().toString(), newAmount.subtract(oldAmount));
         redisService.updateBalances(groupId.toString(), balanceUpdates);
+    }
+
+    private BigDecimal calculateAmount(int amountInt, BigDecimal currencyRate) {
+        if (amountInt == 0) {
+            return BigDecimal.ZERO;
+        } else {
+            return BigDecimal.valueOf(amountInt).divide(currencyRate, 6, BigDecimal.ROUND_HALF_UP);
+        }
     }
 
 }
