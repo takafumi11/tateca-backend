@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.moneyme.moneymebackend.service.util.AmountHelper.calculateAmount;
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Service
@@ -61,8 +62,9 @@ public class LoanService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (ObligationEntity obligation : savedObligations) {
-            balanceUpdates.put(obligation.getUser().getUuid().toString(), obligation.getAmount());
-            totalAmount = totalAmount.add(obligation.getAmount());
+            BigDecimal amount = calculateAmount(obligation.getAmount(), request.getLoanRequestDTO().getCurrencyRate());
+            balanceUpdates.put(obligation.getUser().getUuid().toString(), amount);
+            totalAmount = totalAmount.add(amount);
         }
 
         // Subtract the total amount from the payer's balance
@@ -169,15 +171,14 @@ public class LoanService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (ObligationEntity obligation : obligations) {
-            balanceUpdates.put(obligation.getUser().getUuid().toString(), obligation.getAmount().negate());
-            totalAmount = totalAmount.add(obligation.getAmount());
+            BigDecimal amount = calculateAmount(obligation.getAmount(), loan.getCurrencyRate());
+            balanceUpdates.put(obligation.getUser().getUuid().toString(), amount.negate());
+            totalAmount = totalAmount.add(amount);
         }
 
         // Subtract the total amount from the payer's balance
         balanceUpdates.put(loan.getPayer().getUuid().toString(), totalAmount);
 
         redisService.updateBalances(groupId.toString(), balanceUpdates);
-
-
     }
 }
