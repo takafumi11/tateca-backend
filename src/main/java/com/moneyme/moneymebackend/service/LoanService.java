@@ -52,7 +52,7 @@ public class LoanService {
 
         LoanEntity savedLoan = accessor.save(LoanEntity.from(request, user, group));
 
-        List<ObligationEntity> obligationEntityList = request.getObligationRequestDTOS().stream()
+        List<ObligationEntity> obligationEntityList = request.getObligationRequestDTOs().stream()
                 .map(obligation -> {
                     UUID obligationUserId = UUID.fromString(obligation.getUserUuid());
                     UserEntity obligationUser = userAccessor.findById(obligationUserId);
@@ -85,6 +85,7 @@ public class LoanService {
         return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
 
+    @Transactional
     public LoanCreationResponse updateLoan(UUID groupId, UUID loanId, LoanCreationRequest request) {
         LoanEntity loan = accessor.findById(loanId);
 
@@ -108,7 +109,7 @@ public class LoanService {
                 ));
 
         List<ObligationEntity> updatedObligations = existingObligations.stream().map(existingObligation -> {
-            ObligationRequestDTO matchingRequestDTO = request.getObligationRequestDTOS().stream()
+            ObligationRequestDTO matchingRequestDTO = request.getObligationRequestDTOs().stream()
                     .filter(reqDTO -> reqDTO.getUserUuid().equals(existingObligation.getUser().getUuid().toString()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Matching ObligationRequestDTO not found for existing obligation"));

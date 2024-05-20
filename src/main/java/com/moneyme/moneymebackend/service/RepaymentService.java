@@ -38,9 +38,11 @@ public class RepaymentService {
     @Transactional
     public RepaymentCreationResponse createRepayment(RepaymentCreationRequest request, UUID groupId) {
         RepaymentRequestDTO repaymentRequestDTO = request.getRepaymentRequestDTO();
-        UserEntity payer = userAccessor.findById(UUID.fromString(repaymentRequestDTO.getPayerId()));
-        UserEntity recipient = userAccessor.findById(UUID.fromString(request.getRepaymentRequestDTO().getRecipientId()));
+        String payerId = repaymentRequestDTO.getPayerId();
+        String recipientId = repaymentRequestDTO.getRecipientId();
 
+        UserEntity payer = userAccessor.findById(UUID.fromString(payerId));
+        UserEntity recipient = userAccessor.findById(UUID.fromString(recipientId));
         GroupEntity group = groupAccessor.findById(groupId);
 
         RepaymentEntity repaymentEntity = RepaymentEntity.builder()
@@ -56,7 +58,7 @@ public class RepaymentService {
                 .build();
 
         RepaymentEntity savedRepayment = accessor.save(repaymentEntity);
-        updateBalancesInRedis(groupId, payer, recipient, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
+        updateBalancesInRedis(groupId.toString(), payerId, recipientId, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
 
         return RepaymentCreationResponse.from(savedRepayment);
     }
@@ -74,7 +76,7 @@ public class RepaymentService {
 
         RepaymentEntity savedRepayment = accessor.save(repayment);
 
-        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
+        updateBalancesInRedis(groupId.toString(), savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
 
         return RepaymentCreationResponse.from(repayment);
     }
@@ -84,18 +86,18 @@ public class RepaymentService {
         RepaymentEntity repayment = accessor.findById(repaymentId);
         accessor.delete(repayment);
 
-        updateBalancesInRedis(groupId, repayment.getPayer(), repayment.getRecipientUser(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
+        updateBalancesInRedis(groupId.toString(), repayment.getPayer().getUuid().toString(), repayment.getRecipientUser().getUuid().toString(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
     }
 
-    private void updateBalancesInRedis(UUID groupId, UserEntity payer, UserEntity recipient, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {
+    private void updateBalancesInRedis(String groupId, String payerId, String recipientId, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {
         Map<String, BigDecimal> balanceUpdates = new HashMap<>();
 
         BigDecimal oldAmount = calculateAmount(oldAmountInt, oldCurrencyRate);
         BigDecimal newAmount = calculateAmount(newAmountInt, newCurrencyRate);
 
-        balanceUpdates.put(payer.getUuid().toString(), oldAmount.subtract(newAmount));
-        balanceUpdates.put(recipient.getUuid().toString(), newAmount.subtract(oldAmount));
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+        balanceUpdates.put(payerId, oldAmount.subtract(newAmount));
+        balanceUpdates.put(recipientId, newAmount.subtract(oldAmount));
+        redisService.updateBalances(groupId, balanceUpdates);
     }
 
 }
