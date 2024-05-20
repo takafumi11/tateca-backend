@@ -83,7 +83,6 @@ public class RepaymentService {
         repayment.setTitle(requestDTO.getTitle());
         repayment.setAmount(requestDTO.getAmount());
         repayment.setDate(convertToTokyoTime(requestDTO.getDate()));
-        repayment.setDetail(requestDTO.getDetail());
     }
 
     private void updateBalancesInRedis(UUID groupId, UserEntity payer, UserEntity recipient, BigDecimal newAmount, BigDecimal oldAmount) {

@@ -111,7 +111,6 @@ public class LoanService {
         loan.setTitle(loanRequestDTO.getTitle());
         loan.setAmount(loanRequestDTO.getAmount());
         loan.setDate(convertToTokyoTime(loanRequestDTO.getDate()));
-        loan.setDetail(loanRequestDTO.getDetail());
 
         LoanEntity savedLoan = repository.save(loan);
 

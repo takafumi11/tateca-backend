@@ -18,7 +18,6 @@ public class LoanResponseDTO {
     @JsonProperty("date") String date;
     @JsonProperty("payer")
     UserResponseDTO payer;
-    @JsonProperty("detail") String detail;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
@@ -30,7 +29,6 @@ public class LoanResponseDTO {
                 .amount(loan.getAmount())
                 .date(convertToTokyoTime(loan.getDate()))
                 .payer(UserResponseDTO.from(loan.getPayer()))
-                .detail(loan.getDetail())
                 .createdAt(convertToTokyoTime(loan.getCreatedAt()))
                 .updatedAt(convertToTokyoTime(loan.getUpdatedAt()))
                 .build();

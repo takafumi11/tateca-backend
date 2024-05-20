@@ -20,7 +20,6 @@ public class RepaymentCreationResponse {
     UserResponseDTO payer;
     @JsonProperty("recipient")
     UserResponseDTO recipient;
-    @JsonProperty("detail") String detail;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
@@ -33,7 +32,6 @@ public class RepaymentCreationResponse {
                 .date(convertToTokyoTime(repayment.getDate()))
                 .payer(UserResponseDTO.from(repayment.getPayer()))
                 .recipient(UserResponseDTO.from(repayment.getRecipientUser()))
-                .detail(repayment.getDetail())
                 .createdAt(convertToTokyoTime(repayment.getCreatedAt()))
                 .updatedAt(convertToTokyoTime(repayment.getUpdatedAt()))
                 .build();

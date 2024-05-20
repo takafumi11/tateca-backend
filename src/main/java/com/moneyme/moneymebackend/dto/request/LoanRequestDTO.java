@@ -12,5 +12,4 @@ public class LoanRequestDTO {
     BigDecimal amount;
     @JsonProperty("date") String date;
     @JsonProperty("payer_id") String payerId;
-    @JsonProperty("detail") String detail;
 }

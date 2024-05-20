@@ -49,9 +49,6 @@ public class LoanEntity {
     @JoinColumn(name = "payer_id", nullable = false, updatable = false)
     private UserEntity payer;
 
-    @Column(name = "detail", length = 255)
-    private String detail;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
@@ -78,7 +75,6 @@ public class LoanEntity {
                 .amount(request.getLoanRequestDTO().getAmount())
                 .date(convertToTokyoTime(request.getLoanRequestDTO().getDate()))
                 .payer(user)
-                .detail(request.getLoanRequestDTO().getDetail())
                 .build();
     }
 }
