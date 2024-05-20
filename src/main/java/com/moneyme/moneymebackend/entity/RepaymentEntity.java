@@ -26,7 +26,7 @@ import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoT
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "`repayment_history`")
+@Table(name = "`repayments`")
 public class RepaymentEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
@@ -40,7 +40,13 @@ public class RepaymentEntity {
     private String title;
 
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    private Integer amount;
+
+    @Column(name = "currency_code", nullable = false)
+    private String currencyCode;
+
+    @Column(name = "currency_rate", nullable = false)
+    private BigDecimal currencyRate;
 
     @Column(name = "date", nullable = false)
     private ZonedDateTime date;
@@ -52,9 +58,6 @@ public class RepaymentEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipient_user_id", nullable = false, updatable = false)
     private UserEntity recipientUser;
-
-    @Column(name = "detail", length = 255)
-    private String detail;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
@@ -72,18 +75,5 @@ public class RepaymentEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = ZonedDateTime.now();
-    }
-
-    public static RepaymentEntity from(RepaymentCreationRequest request, UserEntity payer, UserEntity recipientUser, GroupEntity group) {
-        return RepaymentEntity.builder()
-                .uuid(UUID.randomUUID())
-                .group(group)
-                .title(request.getRepaymentRequestDTO().getTitle())
-                .amount(request.getRepaymentRequestDTO().getAmount())
-                .date(convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
-                .payer(payer)
-                .recipientUser(recipientUser)
-                .detail(request.getRepaymentRequestDTO().getDetail())
-                .build();
     }
 }

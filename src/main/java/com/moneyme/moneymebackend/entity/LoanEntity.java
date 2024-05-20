@@ -40,7 +40,13 @@ public class LoanEntity {
     private String title;
 
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    private Integer amount;
+
+    @Column(name = "currency_code", nullable = false)
+    private String currencyCode;
+
+    @Column(name = "currency_rate", nullable = false)
+    private BigDecimal currencyRate;
 
     @Column(name = "date", nullable = false)
     private ZonedDateTime date;
@@ -48,9 +54,6 @@ public class LoanEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false, updatable = false)
     private UserEntity payer;
-
-    @Column(name = "detail", length = 255)
-    private String detail;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
@@ -76,9 +79,10 @@ public class LoanEntity {
                 .group(group)
                 .title(request.getLoanRequestDTO().getTitle())
                 .amount(request.getLoanRequestDTO().getAmount())
+                .currencyCode(request.getLoanRequestDTO().getCurrencyCode())
+                .currencyRate(request.getLoanRequestDTO().getCurrencyRate())
                 .date(convertToTokyoTime(request.getLoanRequestDTO().getDate()))
                 .payer(user)
-                .detail(request.getLoanRequestDTO().getDetail())
                 .build();
     }
 }

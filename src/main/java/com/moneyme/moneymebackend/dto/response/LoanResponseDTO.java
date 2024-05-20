@@ -14,11 +14,12 @@ public class LoanResponseDTO {
     @JsonProperty("group")
     GroupResponseDTO group;
     @JsonProperty("title") String title;
-    @JsonProperty("amount") BigDecimal amount;
+    @JsonProperty("amount") Integer amount;
+    @JsonProperty("currency_code") String currencyCode;
+    @JsonProperty("currency_rate") BigDecimal currencyRate;
     @JsonProperty("date") String date;
     @JsonProperty("payer")
     UserResponseDTO payer;
-    @JsonProperty("detail") String detail;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
@@ -28,9 +29,10 @@ public class LoanResponseDTO {
                 .group(GroupResponseDTO.from(loan.getGroup()))
                 .title(loan.getTitle())
                 .amount(loan.getAmount())
+                .currencyCode(loan.getCurrencyCode())
+                .currencyRate(loan.getCurrencyRate())
                 .date(convertToTokyoTime(loan.getDate()))
                 .payer(UserResponseDTO.from(loan.getPayer()))
-                .detail(loan.getDetail())
                 .createdAt(convertToTokyoTime(loan.getCreatedAt()))
                 .updatedAt(convertToTokyoTime(loan.getUpdatedAt()))
                 .build();

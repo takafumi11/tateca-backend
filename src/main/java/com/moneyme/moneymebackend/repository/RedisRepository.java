@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,22 +21,28 @@ public class RedisRepository {
         redisTemplate.opsForHash().putAll(key, updates);
     }
 
-    public BigDecimal getAmountFromRedis(String key, String hashKey) {
-        Object value = redisTemplate.opsForHash().get(key, hashKey);
-        return (value != null) ? new BigDecimal(value.toString()) : BigDecimal.ZERO;
-    }
-
     public Map<String, BigDecimal> getAmountsFromRedis(String key, List<String> hashKeys) {
         Map<String, BigDecimal> results = new HashMap<>();
-        // Cast List<String> to Collection<Object> explicitly
         List<Object> values = redisTemplate.opsForHash().multiGet(key, (Collection<Object>) (Collection<?>) hashKeys);
 
-        for (int i = 0; i < hashKeys.size(); i++) {
+        IntStream.range(0, hashKeys.size()).forEach(i -> {
             String hashKey = hashKeys.get(i);
             Object value = values.get(i);
-            BigDecimal amount = (value != null) ? new BigDecimal(value.toString()) : BigDecimal.ZERO;
-            results.put(hashKey, amount);
-        }
+            if (value == null) {
+                if (results.containsKey(hashKey)) {
+                    throw new IllegalArgumentException("Missing value for key: " + hashKey);
+                }
+                results.put(hashKey, BigDecimal.ZERO);
+            } else {
+                try {
+                    BigDecimal amount = new BigDecimal(value.toString());
+                    results.put(hashKey, amount);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid BigDecimal value for key: " + hashKey, e);
+                }
+            }
+        });
+
         return results;
     }
 }
