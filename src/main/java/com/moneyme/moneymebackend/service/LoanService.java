@@ -119,8 +119,14 @@ public class LoanService {
         // Fetch previous obligations to calculate balance updates correctly
         List<ObligationEntity> existingObligations = obligationRepository.findByLoanId(loanId);
 
-        Map<UUID, BigDecimal> previousAmounts = existingObligations.stream()
+        Map<UUID, Integer> previousAmounts = existingObligations.stream()
                 .collect(Collectors.toMap(obligation -> obligation.getUser().getUuid(), ObligationEntity::getAmount));
+
+        Map<UUID, BigDecimal> previousRates = existingObligations.stream()
+                .collect(Collectors.toMap(
+                        obligation -> obligation.getUser().getUuid(),
+                        obligation -> obligation.getLoan().getCurrencyRate()
+                ));
 
         List<ObligationEntity> updatedObligations = existingObligations.stream().map(existingObligation -> {
             ObligationRequestDTO matchingRequestDTO = request.getObligationRequestDTOS().stream()
@@ -139,9 +145,15 @@ public class LoanService {
         BigDecimal prevTotalAmount = BigDecimal.ZERO;
 
         for (ObligationEntity obligation : savedObligations) {
-            BigDecimal prevAmount = previousAmounts.getOrDefault(obligation.getUser().getUuid(), BigDecimal.ZERO);
-            balanceUpdates.put(obligation.getUser().getUuid().toString(), prevAmount.negate().add(obligation.getAmount()));
-            totalAmount = totalAmount.add(obligation.getAmount());
+            UUID uuid = obligation.getUser().getUuid();
+            int prevAmountTmp = previousAmounts.getOrDefault(uuid, 0);
+            BigDecimal prevRateTmp = previousRates.getOrDefault(uuid, BigDecimal.ZERO);
+
+            BigDecimal prevAmount = calculateAmount(prevAmountTmp, prevRateTmp);
+            BigDecimal amount = calculateAmount(obligation.getAmount(), request.getLoanRequestDTO().getCurrencyRate());
+
+            balanceUpdates.put(uuid.toString(), prevAmount.negate().add(amount));
+            totalAmount = totalAmount.add(amount);
             prevTotalAmount = prevTotalAmount.add(prevAmount);
         }
 
