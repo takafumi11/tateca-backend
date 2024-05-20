@@ -38,7 +38,7 @@ public class ObligationEntity {
     private UserEntity user;
 
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    private int amount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;

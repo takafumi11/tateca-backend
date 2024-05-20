@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.moneyme.moneymebackend.service.util.AmountHelper.calculateAmount;
 import static com.moneyme.moneymebackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Service
@@ -98,12 +99,6 @@ public class RepaymentService {
         redisService.updateBalances(groupId.toString(), balanceUpdates);
     }
 
-    private BigDecimal calculateAmount(int amountInt, BigDecimal currencyRate) {
-        if (amountInt == 0) {
-            return BigDecimal.ZERO;
-        } else {
-            return BigDecimal.valueOf(amountInt).divide(currencyRate, 6, BigDecimal.ROUND_HALF_UP);
-        }
-    }
+
 
 }
