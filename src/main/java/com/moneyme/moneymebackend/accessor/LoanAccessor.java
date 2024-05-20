@@ -3,10 +3,12 @@ package com.moneyme.moneymebackend.accessor;
 import com.moneyme.moneymebackend.entity.LoanEntity;
 import com.moneyme.moneymebackend.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @RequiredArgsConstructor
+@Component
 public class LoanAccessor {
     private final LoanRepository repository;
 
