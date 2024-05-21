@@ -39,7 +39,7 @@ public class TransactionController {
     public ResponseEntity<TransactionsSettlementResponse> getGroupSettlements(
             @RequestHeader(HEADER_AUTHORIZATION) String token,
             @PathVariable("groupId") UUID groupId) {
-        TransactionsSettlementResponse response = service.getGroupBalances(groupId);
+        TransactionsSettlementResponse response = service.getSettlements(groupId);
         return ResponseEntity.ok(response);
     }
 }
