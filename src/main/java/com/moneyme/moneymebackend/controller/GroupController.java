@@ -27,7 +27,7 @@ public class GroupController {
 
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupDetailsResponse> getGroupInfo(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @PathVariable("groupId") UUID groupId
     ) {
         GroupDetailsResponse response = service.getGroupInfo(groupId);
@@ -36,7 +36,7 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupDetailsResponse> createGroup(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @RequestBody CreateGroupRequest request) {
         GroupDetailsResponse response = service.createGroup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

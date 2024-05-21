@@ -30,7 +30,7 @@ public class LoanController {
 
     @PostMapping
     public ResponseEntity<LoanCreationResponse> createLoan(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @RequestBody LoanCreationRequest request,
             @PathVariable("groupId") UUID groupId
     ) {
@@ -40,7 +40,7 @@ public class LoanController {
 
     @GetMapping("/{loanId}")
     public ResponseEntity<LoanCreationResponse> getLoan(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @PathVariable("groupId") UUID groupId,
             @PathVariable("loanId") UUID loanId
     ) {
@@ -50,7 +50,7 @@ public class LoanController {
 
     @PatchMapping("/{loanId}")
     public ResponseEntity<LoanCreationResponse> updateLoan(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @RequestBody LoanCreationRequest request,
             @PathVariable("groupId") UUID groupId,
             @PathVariable("loanId") UUID loanId
@@ -61,7 +61,7 @@ public class LoanController {
     
     @DeleteMapping("/{loanId}")
     public ResponseEntity<Void> deleteLoan(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @PathVariable("groupId") UUID groupId,
             @PathVariable("loanId") UUID loanId
     ) {

@@ -41,7 +41,7 @@ public class UserService {
 
         user.setName(request.getUserName());
         user.setEmail(request.getEmail());
-        user.setAuthUserId(authUserId);
+        user.setUid(authUserId);
 
         UserEntity savedUser = repository.save(user);
 
