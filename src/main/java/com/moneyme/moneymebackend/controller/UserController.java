@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -47,13 +48,23 @@ public class UserController {
         UserResponseDTO response = service.updateUserInfo(idToken, userId, request);
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponseDTO> getUserInfo(
-            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
-            @PathVariable("userId") UUID userId
+
+    @GetMapping
+    public ResponseEntity<UserResponseDTO> getUser(
+            @ValidBearerToken String firebaseUid,
+            @RequestParam("uid") String uid
     ) {
-        UserResponseDTO response = service.getUserInfo(idToken, userId);
+        UserResponseDTO response = service.getUser(uid);
         return ResponseEntity.ok(response);
     }
+
+//    @GetMapping("/{userId}")
+//    public ResponseEntity<UserResponseDTO> getUserInfo(
+//            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
+//            @PathVariable("userId") UUID userId
+//    ) {
+//        UserResponseDTO response = service.getUserInfo(idToken, userId);
+//        return ResponseEntity.ok(response);
+//    }
 }
 

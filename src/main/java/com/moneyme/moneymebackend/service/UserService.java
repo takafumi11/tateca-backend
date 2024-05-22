@@ -51,7 +51,11 @@ public class UserService {
 
     public UserResponseDTO getUserInfo(String token, UUID userId) {
         UserEntity user = repository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
+        return UserResponseDTO.from(user);
+    }
 
+    public UserResponseDTO getUser(String uid) {
+        UserEntity user = accessor.findByUid(uid);
         return UserResponseDTO.from(user);
     }
 
