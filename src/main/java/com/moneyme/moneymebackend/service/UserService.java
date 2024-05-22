@@ -20,12 +20,12 @@ public class UserService {
     private final UserRepository repository;
 
     @Transactional
-    public UserResponseDTO createUser(UserRequestDTO request) {
+    public UserResponseDTO createUser(String uid, UserRequestDTO request) {
         UserEntity user = UserEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getUserName())
                 .email(request.getEmail())
-                .uid(request.getUid())
+                .uid(uid)
                 .build();
 
         UserEntity savedUser = accessor.save(user);

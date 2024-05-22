@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.annotation;
 
 import com.google.common.net.HttpHeaders;
+import com.google.firebase.auth.FirebaseToken;
 import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class BearerTokenArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public String resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
         String bearerToken = webRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        FirebaseAuthHelper.verifyIdToken(bearerToken);
-        return bearerToken;
+        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken);
+        return firebaseToken.getUid();
     }
 }

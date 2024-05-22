@@ -32,9 +32,9 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(
-            @ValidBearerToken String bearerToken,
+            @ValidBearerToken String uid,
             @RequestBody UserRequestDTO request) {
-        UserResponseDTO response = service.createUser(request);
+        UserResponseDTO response = service.createUser(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
