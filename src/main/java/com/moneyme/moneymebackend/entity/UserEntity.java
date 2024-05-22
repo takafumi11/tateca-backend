@@ -32,7 +32,7 @@ public class UserEntity {
     private String email;
 
     @Column(name = "auth_user_id", length = 128)
-    private String authUserId;
+    private String uid;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;

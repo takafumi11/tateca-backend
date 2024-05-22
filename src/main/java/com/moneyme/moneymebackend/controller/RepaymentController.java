@@ -30,7 +30,7 @@ public class RepaymentController {
 
     @PostMapping
     public ResponseEntity<RepaymentCreationResponse> createRepayment(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @RequestBody RepaymentCreationRequest request,
             @PathVariable("groupId") UUID groupId
     ) {
@@ -40,7 +40,7 @@ public class RepaymentController {
 
     @GetMapping("/{repaymentId}")
     public ResponseEntity<RepaymentCreationResponse> getRepayment(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @PathVariable("groupId") UUID groupId,
             @PathVariable("repaymentId") UUID repaymentId
     ) {
@@ -50,7 +50,7 @@ public class RepaymentController {
 
     @PatchMapping("/{repaymentId}")
     public ResponseEntity<RepaymentCreationResponse> updateRepayment(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @PathVariable("groupId") UUID groupId,
             @PathVariable("repaymentId") UUID repaymentId,
             @RequestBody RepaymentCreationRequest request
@@ -61,7 +61,7 @@ public class RepaymentController {
 
     @DeleteMapping("/{repaymentId}")
     public ResponseEntity<Void> deleteRepayment(
-            @RequestHeader(HEADER_AUTHORIZATION) String token,
+            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
             @PathVariable("groupId") UUID groupId,
             @PathVariable("repaymentId") UUID repaymentId
     ) {
