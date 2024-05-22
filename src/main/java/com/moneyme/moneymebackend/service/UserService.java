@@ -2,6 +2,7 @@ package com.moneyme.moneymebackend.service;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.entity.UserEntity;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private final UserAccessor accessor;
     private final UserRepository repository;
 
     @Transactional
@@ -26,7 +28,7 @@ public class UserService {
                 .uid(request.getUid())
                 .build();
 
-        UserEntity savedUser = repository.save(user);
+        UserEntity savedUser = accessor.save(user);
 
         return UserResponseDTO.from(savedUser);
     }

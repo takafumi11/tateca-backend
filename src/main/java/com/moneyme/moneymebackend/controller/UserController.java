@@ -33,8 +33,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(
             @ValidBearerToken String bearerToken,
-            @RequestBody UserRequestDTO request) throws FirebaseAuthException {
-        FirebaseAuthHelper.verifyIdToken(bearerToken);
+            @RequestBody UserRequestDTO request) {
         UserResponseDTO response = service.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
