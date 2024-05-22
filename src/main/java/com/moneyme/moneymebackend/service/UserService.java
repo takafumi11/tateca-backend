@@ -16,31 +16,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository repository;
-    private final FirebaseAuthService firebaseAuthService;
 
     @Transactional
-    public UserResponseDTO createUser(String idToken, UserRequestDTO request) {
-        try {
-            if (idToken.startsWith("Bearer ")) {
-                idToken = idToken.substring(7);
-            }
-            FirebaseToken decodedToken = firebaseAuthService.verifyIdToken(idToken);
+    public UserResponseDTO createUser(UserRequestDTO request) {
+        UserEntity user = UserEntity.builder()
+                .uuid(UUID.randomUUID())
+                .name(request.getUserName())
+                .email(request.getEmail())
+                .uid(request.getUid())
+                .build();
 
-            String uid = decodedToken.getUid();
+        UserEntity savedUser = repository.save(user);
 
-            UserEntity user = UserEntity.builder()
-                    .uuid(UUID.randomUUID())
-                    .name(request.getUserName())
-                    .email(request.getEmail())
-                    .uid(uid)
-                    .build();
-
-            UserEntity savedUser = repository.save(user);
-
-            return UserResponseDTO.from(savedUser);
-        } catch (FirebaseAuthException e) {
-            throw new RuntimeException("Invalid ID token", e);
-        }
+        return UserResponseDTO.from(savedUser);
     }
 
     @Transactional

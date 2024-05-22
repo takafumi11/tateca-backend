@@ -1,16 +1,20 @@
-package com.moneyme.moneymebackend.service;
+package com.moneyme.moneymebackend.service.util;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 
 public class FirebaseAuthHelper {
-    static public FirebaseToken verifyIdToken(String bearerToken) throws FirebaseAuthException {
+    static public FirebaseToken verifyIdToken(String bearerToken) throws FirebaseAuthException  {
+        String idToken = getIdToken(bearerToken);
+        return FirebaseAuth.getInstance().verifyIdToken(idToken);
+    }
+
+    static private String getIdToken(String bearerToken) throws IllegalArgumentException {
         if (bearerToken.startsWith("Bearer ")) {
-            String idToken = bearerToken.substring(7);
-            return FirebaseAuth.getInstance().verifyIdToken(idToken);
+          return bearerToken.substring(7);
         } else {
-            throw new RuntimeException("Invalid token format");
+            throw new IllegalArgumentException("Invalid token format");
         }
     }
 }

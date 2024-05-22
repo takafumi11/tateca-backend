@@ -1,7 +1,10 @@
 package com.moneyme.moneymebackend.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.moneyme.moneymebackend.annotation.ValidBearerToken;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
+import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
 import com.moneyme.moneymebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -29,9 +32,10 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String idToken,
-            @RequestBody UserRequestDTO request) {
-        UserResponseDTO response = service.createUser(idToken, request);
+            @ValidBearerToken String bearerToken,
+            @RequestBody UserRequestDTO request) throws FirebaseAuthException {
+        FirebaseAuthHelper.verifyIdToken(bearerToken);
+        UserResponseDTO response = service.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
