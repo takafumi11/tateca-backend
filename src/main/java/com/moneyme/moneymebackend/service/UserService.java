@@ -1,7 +1,5 @@
 package com.moneyme.moneymebackend.service;
 
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
