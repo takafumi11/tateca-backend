@@ -1,5 +1,8 @@
 package com.moneyme.moneymebackend.service;
 
+import com.moneyme.moneymebackend.accessor.GroupAccessor;
+import com.moneyme.moneymebackend.accessor.UserAccessor;
+import com.moneyme.moneymebackend.accessor.UserGroupAccessor;
 import com.moneyme.moneymebackend.dto.response.GroupResponseDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
@@ -23,52 +26,43 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GroupService {
     private final GroupRepository repository;
+    private final GroupAccessor accessor;
     private final UserRepository userRepository;
+    private final UserAccessor userAccessor;
+    private final UserGroupAccessor userGroupAccessor;
     private final UserGroupRepository userGroupRepository;
 
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
-        GroupEntity group = repository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found"));
-        return buildGroupResponse(group);
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
+
+        return GroupDetailsResponse.from(users, groupEntity);
     }
 
     @Transactional
     public GroupDetailsResponse createGroup(CreateGroupRequest request) {
         GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
-        UserEntity user = userRepository.findById(UUID.fromString(request.getUserUuid())).orElseThrow(() -> new IllegalArgumentException("user not found"));
-        user.setName(request.getHostName());
+        UserEntity user = userAccessor.findById(UUID.fromString(request.getHostUuid()));
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(user);
         createUserGroup(user, savedGroup);
 
-        request.getUsersName().forEach(userName -> {
-            if (user.getName().equals(userName)) {
+        request.getParticipantsName().forEach(userName -> {
+            if(userName.equals(user.getName())) {
                 return;
             }
-            UserEntity newUser = createAndSaveNoAuthUser(userName);
-            createUserGroup(newUser, savedGroup);
-            userEntityList.add(newUser);
+            UserEntity noAuthUser = UserEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .name(userName)
+                    .build();
+            UserEntity noAuthUserSaved = userRepository.save(noAuthUser);
+            createUserGroup(noAuthUserSaved, savedGroup);
+            userEntityList.add(noAuthUserSaved);
         });
 
-        List<UserResponseDTO> userResponseDTOList = userEntityList.stream().map(UserResponseDTO::from).toList();
-        GroupDetailsResponse response = GroupDetailsResponse.builder()
-                .userResponseDTOS(userResponseDTOList)
-                .groupResponseDTO(GroupResponseDTO.from(savedGroup))
-                .build();
-
-        return response;
-    }
-
-    private GroupDetailsResponse buildGroupResponse(GroupEntity group) {
-        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(group.getUuid());
-        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        List<UserResponseDTO> userResponseDTOS = users.stream().map(UserResponseDTO::from).collect(Collectors.toList());
-
-        GroupResponseDTO groupResponse = GroupResponseDTO.from(group);
-        return GroupDetailsResponse.builder()
-                .userResponseDTOS(userResponseDTOS)
-                .groupResponseDTO(groupResponse)
-                .build();
+        return GroupDetailsResponse.from(userEntityList, savedGroup);
     }
 
     private GroupEntity createAndSaveGroup(String groupName) {
@@ -78,14 +72,6 @@ public class GroupService {
                 .joinToken(UUID.randomUUID())
                 .build();
         return repository.save(group);
-    }
-
-    private UserEntity createAndSaveNoAuthUser(String userName) {
-        UserEntity user = UserEntity.builder()
-                .uuid(UUID.randomUUID())
-                .name(userName)
-                .build();
-        return userRepository.save(user);
     }
 
     private void createUserGroup(UserEntity user, GroupEntity group) {
