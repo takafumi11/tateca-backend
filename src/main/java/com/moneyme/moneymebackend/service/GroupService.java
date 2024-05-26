@@ -3,34 +3,31 @@ package com.moneyme.moneymebackend.service;
 import com.moneyme.moneymebackend.accessor.GroupAccessor;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.accessor.UserGroupAccessor;
-import com.moneyme.moneymebackend.dto.response.GroupResponseDTO;
-import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
+import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
+import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
 import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
+import com.moneyme.moneymebackend.dto.response.GroupResponseDTO;
 import com.moneyme.moneymebackend.entity.GroupEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
-import com.moneyme.moneymebackend.repository.GroupRepository;
-import com.moneyme.moneymebackend.repository.UserGroupRepository;
-import com.moneyme.moneymebackend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class GroupService {
-    private final GroupRepository repository;
     private final GroupAccessor accessor;
-    private final UserRepository userRepository;
     private final UserAccessor userAccessor;
     private final UserGroupAccessor userGroupAccessor;
-    private final UserGroupRepository userGroupRepository;
 
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
@@ -40,9 +37,23 @@ public class GroupService {
         return GroupDetailsResponse.from(users, groupEntity);
     }
 
+    public GetGroupListResponse getGroupList(UUID userId) {
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByUserUuid(userId);
+
+        List<GroupEntity> groupEntityList = userGroups.stream().map(UserGroupEntity::getGroup).toList();
+
+        return GetGroupListResponse.from(groupEntityList);
+    }
+
     @Transactional
     public GroupDetailsResponse createGroup(CreateGroupRequest request) {
-        GroupEntity savedGroup = createAndSaveGroup(request.getGroupName());
+        GroupEntity group = GroupEntity.builder()
+                .uuid(UUID.randomUUID())
+                .name(request.getGroupName())
+                .joinToken(UUID.randomUUID())
+                .build();
+        GroupEntity savedGroup = accessor.save(group);
+
         UserEntity user = userAccessor.findById(UUID.fromString(request.getHostUuid()));
 
         List<UserEntity> userEntityList = new ArrayList<>();
@@ -57,21 +68,12 @@ public class GroupService {
                     .uuid(UUID.randomUUID())
                     .name(userName)
                     .build();
-            UserEntity noAuthUserSaved = userRepository.save(noAuthUser);
+            UserEntity noAuthUserSaved = userAccessor.save(noAuthUser);
             createUserGroup(noAuthUserSaved, savedGroup);
             userEntityList.add(noAuthUserSaved);
         });
 
         return GroupDetailsResponse.from(userEntityList, savedGroup);
-    }
-
-    private GroupEntity createAndSaveGroup(String groupName) {
-        GroupEntity group = GroupEntity.builder()
-                .uuid(UUID.randomUUID())
-                .name(groupName)
-                .joinToken(UUID.randomUUID())
-                .build();
-        return repository.save(group);
     }
 
     private void createUserGroup(UserEntity user, GroupEntity group) {
@@ -81,6 +83,6 @@ public class GroupService {
                 .user(user)
                 .group(group)
                 .build();
-        userGroupRepository.save(userGroup);
+        userGroupAccessor.save(userGroup);
     }
 }

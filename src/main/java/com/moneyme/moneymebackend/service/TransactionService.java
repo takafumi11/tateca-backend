@@ -12,7 +12,6 @@ import com.moneyme.moneymebackend.model.ParticipantModel;
 import com.moneyme.moneymebackend.repository.LoanRepository;
 import com.moneyme.moneymebackend.repository.RepaymentRepository;
 import com.moneyme.moneymebackend.repository.UserGroupRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,6 @@ public class TransactionService {
     private final RepaymentRepository repaymentRepository;
     private final UserGroupRepository userGroupRepository;
 
-    @Transactional
     public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
         List<LoanEntity> loans = loanRepository.getLoansByGroup(groupId, PageRequest.of(0, count));
         List<RepaymentEntity> repayments = repaymentRepository.getRepaymentsByGroup(groupId, PageRequest.of(0, count));
@@ -56,7 +54,6 @@ public class TransactionService {
                 .build();
     }
 
-    @Transactional
     public TransactionsSettlementResponse getSettlements(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupId);
         List<String> userIds = userGroups.stream()
