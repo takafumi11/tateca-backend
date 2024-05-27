@@ -22,7 +22,7 @@ public class UserResponseDTO {
                 .uuid(user.getUuid().toString())
                 .userName(user.getName())
                 .email(user.getEmail())
-                .authUserId(user.getAuthUserId())
+                .authUserId(user.getUid())
                 .createdAt(convertToTokyoTime(user.getCreatedAt()))
                 .updatedAt(convertToTokyoTime(user.getUpdatedAt()))
                 .build();

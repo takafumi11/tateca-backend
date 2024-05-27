@@ -54,7 +54,7 @@ public class TransactionService {
                 .build();
     }
 
-    public TransactionsSettlementResponse getGroupBalances(UUID groupId) {
+    public TransactionsSettlementResponse getSettlements(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupId);
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
@@ -103,7 +103,7 @@ public class TransactionService {
             ParticipantModel creditor = creditors.poll();
 
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), minAmount));
+            transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), minAmount.intValue()));
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);
         }
