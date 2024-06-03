@@ -1,6 +1,5 @@
 package com.moneyme.moneymebackend.repository;
 
-import com.moneyme.moneymebackend.exception.RedisOperationException;
 import io.lettuce.core.RedisException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

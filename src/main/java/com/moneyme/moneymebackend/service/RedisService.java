@@ -1,6 +1,5 @@
 package com.moneyme.moneymebackend.service;
 
-import com.moneyme.moneymebackend.exception.RedisOperationException;
 import com.moneyme.moneymebackend.repository.RedisRepository;
 import io.lettuce.core.RedisException;
 import jakarta.transaction.Transactional;
