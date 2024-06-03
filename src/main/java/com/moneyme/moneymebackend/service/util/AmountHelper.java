@@ -4,10 +4,8 @@ import java.math.BigDecimal;
 
 public class AmountHelper {
     public static BigDecimal calculateAmount(int amountInt, BigDecimal currencyRate) {
-        if (amountInt == 0) {
-            return BigDecimal.ZERO;
-        } else {
-            return BigDecimal.valueOf(amountInt).multiply(currencyRate);
-        }
+        System.out.println("amount" + amountInt);
+        System.out.println("rate" + currencyRate);
+        return BigDecimal.valueOf(amountInt).multiply(currencyRate);
     }
 }
