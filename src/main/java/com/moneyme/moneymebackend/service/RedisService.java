@@ -1,6 +1,9 @@
 package com.moneyme.moneymebackend.service;
 
+import com.moneyme.moneymebackend.exception.RedisOperationException;
 import com.moneyme.moneymebackend.repository.RedisRepository;
+import io.lettuce.core.RedisException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,23 +19,32 @@ public class RedisService {
     private final RedisRepository repository;
 
     public Map<String, BigDecimal> getBalances(String groupId, List<String> userIds) {
-        return repository.getAmountsFromRedis(groupId, userIds);
+        try {
+            return repository.getAmountsFromRedis(groupId, userIds);
+        } catch (Exception e) {
+            throw new RedisException("Failed to get data from redis", e);
+        }
     }
 
+    @Transactional
     public void updateBalances(String groupId, Map<String, BigDecimal> userAmounts) {
-        // 既存の値を取得
-        Map<String, BigDecimal> currentBalances = repository.getAmountsFromRedis(groupId, new ArrayList<>(userAmounts.keySet()));
+        try {
+            // 既存の値を取得
+            Map<String, BigDecimal> currentBalances = repository.getAmountsFromRedis(groupId, new ArrayList<>(userAmounts.keySet()));
 
-        // 新しい値を加算
-        Map<String, String> updates = new HashMap<>();
-        userAmounts.forEach((userId, amountToAdd) -> {
-            BigDecimal currentAmount = currentBalances.getOrDefault(userId, BigDecimal.ZERO);
-            BigDecimal newAmount = currentAmount.add(amountToAdd);
-            updates.put(userId, newAmount.toString());
-        });
+            // 新しい値を加算
+            Map<String, String> updates = new HashMap<>();
+            userAmounts.forEach((userId, amountToAdd) -> {
+                BigDecimal currentAmount = currentBalances.getOrDefault(userId, BigDecimal.ZERO);
+                BigDecimal newAmount = currentAmount.add(amountToAdd);
+                updates.put(userId, newAmount.toString());
+            });
 
-        // 更新された値をRedisに保存
-        repository.saveAmountsIntoRedis(groupId, updates);
+            // 更新された値をRedisに保存
+            repository.saveAmountsIntoRedis(groupId, updates);
+        } catch (Exception e) {
+            throw new RedisException("Failed to save data into redis", e);
+        }
     }
 
 

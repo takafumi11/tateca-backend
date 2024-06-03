@@ -7,7 +7,7 @@ public class AmountHelper {
         if (amountInt == 0) {
             return BigDecimal.ZERO;
         } else {
-            return BigDecimal.valueOf(amountInt).divide(currencyRate, 6, BigDecimal.ROUND_HALF_UP);
+            return BigDecimal.valueOf(amountInt).multiply(currencyRate);
         }
     }
 }
