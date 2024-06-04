@@ -21,6 +21,10 @@ public class ObligationAccessor {
         return repository.findByLoanId(id);
     }
 
+    public List<ObligationEntity> findByGroupId(UUID id) {
+        return repository.findByGroupId(id);
+    }
+
     public void deleteAll(List<ObligationEntity> obligationEntityList) {
         repository.deleteAll(obligationEntityList);
     }
