@@ -1,11 +1,13 @@
 package com.moneyme.moneymebackend.service;
 
+import com.moneyme.moneymebackend.accessor.ObligationAccessor;
 import com.moneyme.moneymebackend.dto.response.TransactionSettlementResponseDTO;
 import com.moneyme.moneymebackend.dto.response.TransactionHistoryResponseDTO;
 import com.moneyme.moneymebackend.dto.response.TransactionsSettlementResponse;
 import com.moneyme.moneymebackend.dto.response.TransactionsHistoryResponse;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.entity.LoanEntity;
+import com.moneyme.moneymebackend.entity.ObligationEntity;
 import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import com.moneyme.moneymebackend.model.ParticipantModel;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -34,6 +37,8 @@ public class TransactionService {
     private final LoanRepository loanRepository;
     private final RepaymentRepository repaymentRepository;
     private final UserGroupRepository userGroupRepository;
+
+    private final ObligationAccessor obligationAccessor;
 
     public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
         List<LoanEntity> loans = loanRepository.getLoansByGroup(groupId, PageRequest.of(0, count));
@@ -61,14 +66,35 @@ public class TransactionService {
                 .map(UUID::toString)
                 .toList();
 
-        Map<String, BigDecimal> balances = service.getBalances(groupId.toString(), userIds);
+        List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
+        Map<String, BigDecimal> balances = new HashMap<>();
+
+        for (String userId : userIds) {
+            BigDecimal balance = BigDecimal.ZERO;
+
+            for (ObligationEntity obligation : obligationEntityList) {
+                UUID obligationUserUuid = obligation.getUser().getUuid();
+                UUID loanPayerUuid = obligation.getLoan().getPayer().getUuid();
+                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getLoan().getCurrencyRate());
+
+                if (obligationUserUuid.toString().equals(userId)) {
+                    balance = balance.add(obligationAmount);
+                }
+
+                if (loanPayerUuid.toString().equals(userId)) {
+                    balance = balance.subtract(obligationAmount);
+                }
+            }
+
+            balances.put(userId, balance);
+        }
+
         List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
 
         return TransactionsSettlementResponse.builder()
                 .transactionsSettlement(transactions)
                 .build();
     }
-
     private List<TransactionSettlementResponseDTO> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
         List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
         PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
