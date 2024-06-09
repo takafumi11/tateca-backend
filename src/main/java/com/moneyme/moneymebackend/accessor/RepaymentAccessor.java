@@ -5,6 +5,7 @@ import com.moneyme.moneymebackend.repository.RepaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -15,6 +16,10 @@ public class RepaymentAccessor {
     public RepaymentEntity findById(UUID id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + id));
+    }
+
+    public List<RepaymentEntity> findByIdGroupId(UUID id) {
+        return repository.findByGroupId(id);
     }
 
     public RepaymentEntity save(RepaymentEntity repaymentEntity) {
