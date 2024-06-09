@@ -58,7 +58,7 @@ public class RepaymentService {
                 .build();
 
         RepaymentEntity savedRepayment = accessor.save(repaymentEntity);
-        updateBalancesInRedis(groupId.toString(), payerId, recipientId, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
+//        updateBalancesInRedis(groupId.toString(), payerId, recipientId, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
 
         return RepaymentCreationResponse.from(savedRepayment);
     }
@@ -76,7 +76,7 @@ public class RepaymentService {
 
         RepaymentEntity savedRepayment = accessor.save(repayment);
 
-        updateBalancesInRedis(groupId.toString(), savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
+//        updateBalancesInRedis(groupId.toString(), savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
 
         return RepaymentCreationResponse.from(repayment);
     }
@@ -86,7 +86,7 @@ public class RepaymentService {
         RepaymentEntity repayment = accessor.findById(repaymentId);
         accessor.delete(repayment);
 
-        updateBalancesInRedis(groupId.toString(), repayment.getPayer().getUuid().toString(), repayment.getRecipientUser().getUuid().toString(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
+//        updateBalancesInRedis(groupId.toString(), repayment.getPayer().getUuid().toString(), repayment.getRecipientUser().getUuid().toString(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
     }
 
     private void updateBalancesInRedis(String groupId, String payerId, String recipientId, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {
@@ -97,7 +97,7 @@ public class RepaymentService {
 
         balanceUpdates.put(payerId, oldAmount.subtract(newAmount));
         balanceUpdates.put(recipientId, newAmount.subtract(oldAmount));
-        redisService.updateBalances(groupId, balanceUpdates);
+//        redisService.updateBalances(groupId, balanceUpdates);
     }
 
 }

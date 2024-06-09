@@ -13,4 +13,7 @@ import java.util.UUID;
 public interface ObligationRepository extends JpaRepository<ObligationEntity, UUID> {
     @Query("SELECT o FROM ObligationEntity o WHERE o.loan.uuid = :loanId")
     List<ObligationEntity> findByLoanId(UUID loanId);
+
+    @Query("SELECT o FROM ObligationEntity o WHERE o.loan.group.uuid = :groupId")
+    List<ObligationEntity> findByGroupId(UUID groupId);
 }

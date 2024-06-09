@@ -80,7 +80,7 @@ public class LoanService {
         // Subtract the total amount from the payer's balance
         balanceUpdates.put(user.getUuid().toString(), totalAmount.negate());
 
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+//        redisService.updateBalances(groupId.toString(), balanceUpdates);
 
         return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
@@ -140,7 +140,7 @@ public class LoanService {
         // Adjust the payer's balance considering the previous loan amount
         balanceUpdates.put(savedLoan.getPayer().getUuid().toString(), prevTotalAmount.add(totalAmount.negate()));
 
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+//        redisService.updateBalances(groupId.toString(), balanceUpdates);
 
         return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
@@ -166,7 +166,7 @@ public class LoanService {
         // Subtract the total amount from the payer's balance
         balanceUpdates.put(loan.getPayer().getUuid().toString(), totalAmount);
 
-        redisService.updateBalances(groupId.toString(), balanceUpdates);
+//        redisService.updateBalances(groupId.toString(), balanceUpdates);
     }
 
 }

@@ -13,4 +13,7 @@ import java.util.UUID;
 public interface RepaymentRepository extends JpaRepository<RepaymentEntity, UUID> {
     @Query("SELECT r FROM RepaymentEntity r WHERE r.group.uuid = :groupId ORDER BY r.createdAt DESC")
     List<RepaymentEntity> getRepaymentsByGroup(UUID groupId, Pageable pageable);
+
+    @Query("SELECT r FROM RepaymentEntity r WHERE r.group.uuid = :groupId")
+    List<RepaymentEntity> findByGroupId(UUID groupId);
 }
