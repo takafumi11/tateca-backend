@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.accessor.ObligationAccessor;
+import com.moneyme.moneymebackend.accessor.RepaymentAccessor;
 import com.moneyme.moneymebackend.dto.response.TransactionSettlementResponseDTO;
 import com.moneyme.moneymebackend.dto.response.TransactionHistoryResponseDTO;
 import com.moneyme.moneymebackend.dto.response.TransactionsSettlementResponse;
@@ -39,6 +40,7 @@ public class TransactionService {
     private final UserGroupRepository userGroupRepository;
 
     private final ObligationAccessor obligationAccessor;
+    private final RepaymentAccessor repaymentAccessor;
 
     public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
         List<LoanEntity> loans = loanRepository.getLoansByGroup(groupId, PageRequest.of(0, count));
@@ -67,6 +69,8 @@ public class TransactionService {
                 .toList();
 
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
+        List<RepaymentEntity> repaymentEntityList = repaymentAccessor.findByIdGroupId(groupId);
+
         Map<String, BigDecimal> balances = new HashMap<>();
 
         for (String userId : userIds) {
@@ -83,6 +87,20 @@ public class TransactionService {
 
                 if (loanPayerUuid.toString().equals(userId)) {
                     balance = balance.subtract(obligationAmount);
+                }
+            }
+
+            for (RepaymentEntity repayment : repaymentEntityList) {
+                UUID payerId = repayment.getPayer().getUuid();
+                UUID recipientId = repayment.getRecipientUser().getUuid();
+                BigDecimal repaymentAmount = BigDecimal.valueOf(repayment.getAmount()).multiply(repayment.getCurrencyRate());
+
+                if (recipientId.toString().equals(userId)) {
+                    balance = balance.add(repaymentAmount);
+                }
+
+                if (payerId.toString().equals(userId)) {
+                    balance = balance.subtract(repaymentAmount);
                 }
             }
 
