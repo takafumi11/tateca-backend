@@ -69,7 +69,7 @@ public class TransactionService {
                 .toList();
 
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
-        List<RepaymentEntity> repaymentEntityList = repaymentAccessor.findByIdGroupId(groupId);
+        List<RepaymentEntity> repaymentEntityList = repaymentAccessor.findByGroupId(groupId);
 
         Map<String, BigDecimal> balances = new HashMap<>();
 

@@ -34,7 +34,7 @@ public class ObligationEntity {
     private LoanEntity loan;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_uuid", nullable = false, updatable = false)
+    @JoinColumn(name = "user_uuid", nullable = false)
     private UserEntity user;
 
     @Column(name = "amount", nullable = false)

@@ -18,7 +18,7 @@ public class RepaymentAccessor {
                 .orElseThrow(() -> new IllegalArgumentException("Repayment not found with ID: " + id));
     }
 
-    public List<RepaymentEntity> findByIdGroupId(UUID id) {
+    public List<RepaymentEntity> findByGroupId(UUID id) {
         return repository.findByGroupId(id);
     }
 

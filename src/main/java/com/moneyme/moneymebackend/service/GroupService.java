@@ -1,6 +1,9 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.accessor.GroupAccessor;
+import com.moneyme.moneymebackend.accessor.LoanAccessor;
+import com.moneyme.moneymebackend.accessor.ObligationAccessor;
+import com.moneyme.moneymebackend.accessor.RepaymentAccessor;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.accessor.UserGroupAccessor;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
@@ -8,6 +11,9 @@ import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
 import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
+import com.moneyme.moneymebackend.entity.LoanEntity;
+import com.moneyme.moneymebackend.entity.ObligationEntity;
+import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import jakarta.transaction.Transactional;
@@ -25,6 +31,9 @@ public class GroupService {
     private final GroupAccessor accessor;
     private final UserAccessor userAccessor;
     private final UserGroupAccessor userGroupAccessor;
+    private final RepaymentAccessor repaymentAccessor;
+    private final LoanAccessor loanAccessor;
+    private final ObligationAccessor obligationAccessor;
 
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
@@ -78,19 +87,47 @@ public class GroupService {
         UUID tmpUserId = UUID.fromString(request.getTmpUserId());
         UUID actualUserId = UUID.fromString(request.getActualUserId());
 
-        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuid(tmpUserId);
+        userGroupAccessor.delete(tmpUserId, groupId);
 
-        for (UserGroupEntity userGroupEntity : userGroupEntityList) {
-            userGroupEntity.setUserUuid(actualUserId);
+        GroupEntity group = accessor.findById(groupId);
+        UserEntity actualUser = userAccessor.findById(actualUserId);
+        createUserGroup(actualUser, group);
+
+        // repayment, loanの修正が必要
+        List<RepaymentEntity> repaymentList = repaymentAccessor.findByGroupId(groupId);
+        for (RepaymentEntity repayment : repaymentList) {
+            if (repayment.getPayer().getUuid().equals(tmpUserId)) {
+                repayment.setPayer(actualUser);
+            }
+
+            if (repayment.getRecipientUser().getUuid().equals(tmpUserId)) {
+                repayment.setRecipientUser(actualUser);
+            }
+
+            repaymentAccessor.save(repayment);
         }
 
-        List<UserGroupEntity> savedUserGroupEnttyList = userGroupAccessor.saveAll(userGroupEntityList);
+        List<ObligationEntity> obligationList = obligationAccessor.findByGroupId(groupId);
+        for (ObligationEntity obligation : obligationList) {
+            if (obligation.getUser().getUuid().equals(tmpUserId)) {
+                obligation.setUser(actualUser);
+            }
+            obligationAccessor.save(obligation);
+        }
 
-        UserEntity tmpUserEntity = userAccessor.findById(tmpUserId);
-        userAccessor.delete(tmpUserEntity);
+        List<LoanEntity> loanList = loanAccessor.findByGroupId(groupId);
+        for (LoanEntity loan : loanList) {
+            if (loan.getPayer().getUuid().equals(tmpUserId)) {
+                loan.setPayer(actualUser);
+            }
 
-        List<UserEntity> users = savedUserGroupEnttyList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        GroupEntity groupEntity = savedUserGroupEnttyList.stream().map(UserGroupEntity::getGroup).toList().get(0);
+            loanAccessor.save(loan);
+        }
+
+        List<UserGroupEntity> updatedUserGroupList = userGroupAccessor.findByGroupUuid(groupId);
+
+        List<UserEntity> users = updatedUserGroupList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        GroupEntity groupEntity = updatedUserGroupList.stream().map(UserGroupEntity::getGroup).toList().get(0);
 
         return GroupDetailsResponse.from(users, groupEntity);
     }

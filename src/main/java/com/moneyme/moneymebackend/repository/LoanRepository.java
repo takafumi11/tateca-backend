@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.repository;
 
 import com.moneyme.moneymebackend.entity.LoanEntity;
+import com.moneyme.moneymebackend.entity.RepaymentEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,4 +14,7 @@ import java.util.UUID;
 public interface LoanRepository extends JpaRepository<LoanEntity, UUID> {
     @Query("SELECT l FROM LoanEntity l WHERE l.group.uuid = :groupId ORDER BY l.createdAt DESC")
     List<LoanEntity> getLoansByGroup(UUID groupId, Pageable pageable);
+
+    @Query("SELECT r FROM LoanEntity r WHERE r.group.uuid = :groupId")
+    List<LoanEntity> findByGroupId(UUID groupId);
 }

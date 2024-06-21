@@ -52,11 +52,11 @@ public class RepaymentEntity {
     private ZonedDateTime date;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payer_id", nullable = false, updatable = false)
+    @JoinColumn(name = "payer_id", nullable = false)
     private UserEntity payer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_user_id", nullable = false, updatable = false)
+    @JoinColumn(name = "recipient_user_id", nullable = false)
     private UserEntity recipientUser;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -52,7 +52,7 @@ public class LoanEntity {
     private ZonedDateTime date;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payer_id", nullable = false, updatable = false)
+    @JoinColumn(name = "payer_id", nullable = false)
     private UserEntity payer;
 
     @Column(name = "created_at", nullable = false, updatable = false)

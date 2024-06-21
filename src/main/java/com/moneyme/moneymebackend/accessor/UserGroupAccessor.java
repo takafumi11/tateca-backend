@@ -62,4 +62,13 @@ public class UserGroupAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public void delete(UUID userUuid, UUID groupUuid) {
+        try {
+            repository.deleteByUserUuidAndGroupUuid(userUuid, groupUuid);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
 }

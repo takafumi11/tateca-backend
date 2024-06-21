@@ -18,4 +18,5 @@ public interface UserGroupRepository extends JpaRepository<UserGroupEntity, User
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid = :userId")
     List<UserGroupEntity> findByUserUuid(UUID userId);
 
+    void deleteByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid);
 }

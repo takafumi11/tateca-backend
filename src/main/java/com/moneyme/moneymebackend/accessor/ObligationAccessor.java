@@ -17,6 +17,10 @@ public class ObligationAccessor {
         return repository.saveAll(obligationEntityList);
     }
 
+    public ObligationEntity save(ObligationEntity obligationEntity) {
+        return repository.save(obligationEntity);
+    }
+
     public List<ObligationEntity> findByLoanId(UUID id) {
         return repository.findByLoanId(id);
     }
