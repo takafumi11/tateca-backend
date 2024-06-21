@@ -4,6 +4,7 @@ import com.moneyme.moneymebackend.accessor.GroupAccessor;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.accessor.UserGroupAccessor;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
+import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
 import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.entity.GroupEntity;
@@ -70,6 +71,23 @@ public class GroupService {
         });
 
         return GroupDetailsResponse.from(userEntityList, savedGroup);
+    }
+
+    @Transactional
+    public GroupDetailsResponse joinGroup(JoinGroupRequest request, UUID groupId, String token) {
+        UserEntity oldUserEntity = userAccessor.findById(UUID.fromString(request.getOldUserId()));
+        UserEntity newUserEntity = userAccessor.findById(UUID.fromString(request.getNewUserId()));
+
+        newUserEntity.setEmail(oldUserEntity.getEmail());
+        newUserEntity.setUid(oldUserEntity.getUid());
+
+        userAccessor.save(newUserEntity);
+
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
+
+        return GroupDetailsResponse.from(users, groupEntity);
     }
 
     private void createUserGroup(UserEntity user, GroupEntity group) {

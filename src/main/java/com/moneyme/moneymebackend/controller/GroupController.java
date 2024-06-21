@@ -2,6 +2,7 @@ package com.moneyme.moneymebackend.controller;
 
 import com.moneyme.moneymebackend.annotation.ValidBearerToken;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
+import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
 import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.service.GroupService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,6 +51,17 @@ public class GroupController {
             @PathVariable("userId") UUID userId
     ) {
         GetGroupListResponse response = service.getGroupList(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<GroupDetailsResponse> joinGroup(
+            @ValidBearerToken String uid,
+            @RequestBody JoinGroupRequest request,
+            @PathVariable("groupId") UUID groupId,
+            @RequestHeader("token") String token
+    ) {
+        GroupDetailsResponse response = service.joinGroup(request, groupId, token);
         return ResponseEntity.ok(response);
     }
 
