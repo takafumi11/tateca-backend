@@ -81,6 +81,8 @@ public class GroupService {
         newUserEntity.setEmail(oldUserEntity.getEmail());
         newUserEntity.setUid(oldUserEntity.getUid());
 
+        oldUserEntity.setEmail("");
+        userAccessor.save(oldUserEntity);
         userAccessor.save(newUserEntity);
 
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
