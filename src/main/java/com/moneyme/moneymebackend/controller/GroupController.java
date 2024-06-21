@@ -54,7 +54,7 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping("/{groupId}")
     public ResponseEntity<GroupDetailsResponse> joinGroup(
             @ValidBearerToken String uid,
             @RequestBody JoinGroupRequest request,
