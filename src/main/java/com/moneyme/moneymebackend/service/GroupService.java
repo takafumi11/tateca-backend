@@ -81,7 +81,8 @@ public class GroupService {
         newUserEntity.setEmail(oldUserEntity.getEmail());
         newUserEntity.setUid(oldUserEntity.getUid());
 
-        oldUserEntity.setEmail("");
+        oldUserEntity.setEmail(oldUserEntity.getEmail()+"deprecated");
+        oldUserEntity.setUid("");
         userAccessor.save(oldUserEntity);
         userAccessor.save(newUserEntity);
 
