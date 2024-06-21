@@ -54,4 +54,12 @@ public class UserGroupAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public List<UserGroupEntity> saveAll(List<UserGroupEntity> userGroupEntityList) {
+        try {
+            return repository.saveAll(userGroupEntityList);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

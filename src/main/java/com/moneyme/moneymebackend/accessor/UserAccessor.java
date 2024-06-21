@@ -43,4 +43,12 @@ public class UserAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public void delete(UserEntity userEntity) throws ResponseStatusException {
+        try {
+            repository.delete(userEntity);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

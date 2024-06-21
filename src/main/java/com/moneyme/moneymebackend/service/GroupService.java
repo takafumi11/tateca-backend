@@ -75,20 +75,22 @@ public class GroupService {
 
     @Transactional
     public GroupDetailsResponse joinGroup(JoinGroupRequest request, UUID groupId, String token) {
-        UserEntity oldUserEntity = userAccessor.findById(UUID.fromString(request.getOldUserId()));
-        UserEntity newUserEntity = userAccessor.findById(UUID.fromString(request.getNewUserId()));
+        UUID tmpUserId = UUID.fromString(request.getTmpUserId());
+        UUID actualUserId = UUID.fromString(request.getActualUserId());
 
-        newUserEntity.setEmail(oldUserEntity.getEmail());
-        newUserEntity.setUid(oldUserEntity.getUid());
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuid(tmpUserId);
 
-        oldUserEntity.setEmail(oldUserEntity.getEmail()+"deprecated");
-        oldUserEntity.setUid("");
-        userAccessor.save(oldUserEntity);
-        userAccessor.save(newUserEntity);
+        for (UserGroupEntity userGroupEntity : userGroupEntityList) {
+            userGroupEntity.setUserUuid(actualUserId);
+        }
 
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
-        List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
+        List<UserGroupEntity> savedUserGroupEnttyList = userGroupAccessor.saveAll(userGroupEntityList);
+
+        UserEntity tmpUserEntity = userAccessor.findById(tmpUserId);
+        userAccessor.delete(tmpUserEntity);
+
+        List<UserEntity> users = savedUserGroupEnttyList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        GroupEntity groupEntity = savedUserGroupEnttyList.stream().map(UserGroupEntity::getGroup).toList().get(0);
 
         return GroupDetailsResponse.from(users, groupEntity);
     }

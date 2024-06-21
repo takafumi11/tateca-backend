@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class JoinGroupRequest {
-    @JsonProperty("old_user_id") String oldUserId;
-    @JsonProperty("new_user_id") String newUserId;
+    @JsonProperty("tmp_user_id") String tmpUserId;
+    @JsonProperty("actual_user_id") String actualUserId;
 }
