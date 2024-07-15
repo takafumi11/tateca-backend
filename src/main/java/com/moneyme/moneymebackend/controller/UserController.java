@@ -2,6 +2,7 @@ package com.moneyme.moneymebackend.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.moneyme.moneymebackend.annotation.ValidBearerToken;
+import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
 import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +57,15 @@ public class UserController {
             @RequestBody UserRequestDTO request) {
         UserResponseDTO response = service.updateUserInfo(uuid, request, uid);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<UserResponseDTO> deleteUserInfo(
+            @ValidBearerToken String uid,
+            @PathVariable("userId") UUID uuid,
+            @RequestBody UserDeleteRequestDTO request) {
+        UserResponseDTO response = service.deleteUserInfo(uuid, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
     }
 
 //    @GetMapping("/{userId}")

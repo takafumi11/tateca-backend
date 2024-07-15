@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.service;
 
 import com.moneyme.moneymebackend.accessor.UserAccessor;
+import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.entity.UserEntity;
@@ -38,6 +39,18 @@ public class UserService {
         user.setName(request.getUserName());
         user.setEmail(request.getEmail());
         user.setUid(uid);
+
+        UserEntity savedUser = repository.save(user);
+
+        return UserResponseDTO.from(savedUser);
+    }
+
+    @Transactional
+    public UserResponseDTO deleteUserInfo(UUID userId, UserDeleteRequestDTO request) {
+        UserEntity user = accessor.findById(userId);
+
+        user.setEmail(request.getEmail());
+        user.setUid(request.getUid());
 
         UserEntity savedUser = repository.save(user);
 

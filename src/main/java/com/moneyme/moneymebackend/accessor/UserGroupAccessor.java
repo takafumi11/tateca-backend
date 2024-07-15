@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,21 +29,15 @@ public class UserGroupAccessor {
             } else {
                 return userGroupEntityList;
             }
-        } catch(DataAccessException e) {
+        } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
 
     public List<UserGroupEntity> findByUserUuid(UUID userId) {
         try {
-            List<UserGroupEntity> userGroupEntityList = repository.findByUserUuid(userId);
-
-            if (userGroupEntityList.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UserGroups not found with user id: " + userId);
-            } else {
-                return userGroupEntityList;
-            }
-        } catch(DataAccessException e) {
+            return repository.findByUserUuid(userId);
+        } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
