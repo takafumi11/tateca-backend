@@ -18,7 +18,9 @@ import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +48,10 @@ public class GroupService {
     public GetGroupListResponse getGroupList(UUID userId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByUserUuid(userId);
 
+        if (userGroups.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UserGroups not found with user id: " + userId);
+        }
+
         List<GroupEntity> groupEntityList = userGroups.stream().map(UserGroupEntity::getGroup).toList();
 
         return GetGroupListResponse.from(groupEntityList);
@@ -53,6 +59,11 @@ public class GroupService {
 
     @Transactional
     public GroupDetailsResponse createGroup(CreateGroupRequest request) {
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuid(UUID.fromString(request.getHostUuid()));
+        if (userGroupEntityList.size() >= 5) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 5 groups");
+        }
+
         GroupEntity group = GroupEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getGroupName())
@@ -84,6 +95,21 @@ public class GroupService {
 
     @Transactional
     public GroupDetailsResponse joinGroup(JoinGroupRequest request, UUID groupId, String token) {
+        List<UserGroupEntity> userGroupEntityList2 = userGroupAccessor.findByUserUuid(UUID.fromString(request.getActualUserId()));
+        if (userGroupEntityList2.size() >= 5) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 5 groups");
+        }
+
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuid(groupId);
+
+        long emptyUserEntityCount = userGroupEntityList.stream()
+                .filter(userGroupEntity -> userGroupEntity.getUser().getUid() == null)
+                .count();
+
+        if (emptyUserEntityCount == 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The group is full");
+        }
+
         UUID tmpUserId = UUID.fromString(request.getTmpUserId());
         UUID actualUserId = UUID.fromString(request.getActualUserId());
 
