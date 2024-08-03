@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import java.time.ZonedDateTime;
 
 public class FirebaseAuthHelper {
-    static public FirebaseToken verifyIdToken(String bearerToken, String apiName, ZonedDateTime requestTime) throws CustomResponseStatusException {
+    static public FirebaseToken verifyIdToken(ZonedDateTime requestTime, String bearerToken, String apiName) throws CustomResponseStatusException {
         String idToken = getIdToken(bearerToken, apiName, requestTime);
         try {
             return FirebaseAuth.getInstance().verifyIdToken(idToken);

@@ -12,6 +12,9 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+import static com.moneyme.moneymebackend.annotation.RequestTimeArgumentResolver.REQUEST_TIME_ATTRIBUTE;
+
+
 @Component
 public class BearerTokenArgumentResolver implements HandlerMethodArgumentResolver {
     @Override
@@ -20,10 +23,10 @@ public class BearerTokenArgumentResolver implements HandlerMethodArgumentResolve
     }
 
     @Override
-    public BearerTokenWithRequestTime resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
-        ZonedDateTime requestTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"));
+    public String resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
+        ZonedDateTime requestTime = (ZonedDateTime) webRequest.getAttribute(REQUEST_TIME_ATTRIBUTE, NativeWebRequest.SCOPE_REQUEST);
         String bearerToken = webRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken, parameter.getMethod().getName(), requestTime);
-        return new BearerTokenWithRequestTime(firebaseToken.getUid(), requestTime);
+        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(requestTime, bearerToken, parameter.getMethod().getName());
+        return firebaseToken.getUid();
     }
 }

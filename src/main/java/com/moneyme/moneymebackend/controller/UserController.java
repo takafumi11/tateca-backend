@@ -1,6 +1,8 @@
 package com.moneyme.moneymebackend.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
+import com.moneyme.moneymebackend.annotation.BearerTokenWithRequestTime;
+import com.moneyme.moneymebackend.annotation.RequestTime;
 import com.moneyme.moneymebackend.annotation.ValidBearerToken;
 import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static com.moneyme.moneymebackend.constants.ApiConstants.HEADER_AUTHORIZATION;
@@ -43,7 +46,8 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<UserResponseDTO> getUser(
-            @ValidBearerToken String firebaseUid,
+            @RequestTime ZonedDateTime requestTime,
+            @ValidBearerToken String uidFromToken,
             @RequestParam("uid") String uid
     ) {
         UserResponseDTO response = service.getUser(uid);
