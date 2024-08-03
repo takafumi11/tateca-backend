@@ -3,11 +3,16 @@ package com.moneyme.moneymebackend.annotation;
 import com.google.common.net.HttpHeaders;
 import com.google.firebase.auth.FirebaseToken;
 import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Component
 public class BearerTokenArgumentResolver implements HandlerMethodArgumentResolver {
@@ -17,9 +22,10 @@ public class BearerTokenArgumentResolver implements HandlerMethodArgumentResolve
     }
 
     @Override
-    public String resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
+    public BearerTokenWithRequestTime resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
+        ZonedDateTime requestTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"));
         String bearerToken = webRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken);
-        return firebaseToken.getUid();
+        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken, parameter.getMethod().getName(), requestTime);
+        return new BearerTokenWithRequestTime(firebaseToken.getUid(), requestTime);
     }
 }
