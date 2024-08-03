@@ -3,8 +3,6 @@ package com.moneyme.moneymebackend.annotation;
 import com.google.common.net.HttpHeaders;
 import com.google.firebase.auth.FirebaseToken;
 import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.NativeWebRequest;

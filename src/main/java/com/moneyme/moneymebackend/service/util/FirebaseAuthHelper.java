@@ -4,18 +4,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.moneyme.moneymebackend.exception.CustomResponseStatusException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 public class FirebaseAuthHelper {
-
     static public FirebaseToken verifyIdToken(String bearerToken, String apiName, ZonedDateTime requestTime) throws CustomResponseStatusException {
         String idToken = getIdToken(bearerToken, apiName, requestTime);
         try {
