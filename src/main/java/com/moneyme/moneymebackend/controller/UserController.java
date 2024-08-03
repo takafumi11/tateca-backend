@@ -1,16 +1,12 @@
 package com.moneyme.moneymebackend.controller;
 
-import com.google.firebase.auth.FirebaseAuthException;
-import com.moneyme.moneymebackend.annotation.BearerTokenWithRequestTime;
 import com.moneyme.moneymebackend.annotation.RequestTime;
 import com.moneyme.moneymebackend.annotation.ValidBearerToken;
 import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
-import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
 import com.moneyme.moneymebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,7 +15,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static com.moneyme.moneymebackend.constants.ApiConstants.HEADER_AUTHORIZATION;
 import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_USERS;
 
 @RequiredArgsConstructor
