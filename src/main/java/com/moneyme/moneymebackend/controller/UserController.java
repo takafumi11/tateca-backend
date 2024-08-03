@@ -37,10 +37,10 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<UserResponseDTO> getUser(
+    public ResponseEntity<UserResponseDTO> getUserInfo(
             @RequestParam("uid") String uid
     ) {
-        UserResponseDTO response = service.getUser(uid);
+        UserResponseDTO response = service.getUserInfo(uid);
         return ResponseEntity.ok(response);
     }
 
@@ -61,14 +61,5 @@ public class UserController {
         UserResponseDTO response = service.deleteUserInfo(uuid, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
     }
-
-//    @GetMapping("/{userId}")
-//    public ResponseEntity<UserResponseDTO> getUserInfo(
-//            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
-//            @PathVariable("userId") UUID userId
-//    ) {
-//        UserResponseDTO response = service.getUserInfo(idToken, userId);
-//        return ResponseEntity.ok(response);
-//    }
 }
 
