@@ -14,17 +14,17 @@ public class FirebaseAuthHelper {
         try {
             return FirebaseAuth.getInstance().verifyIdToken(idToken);
         } catch (FirebaseAuthException e) {
-            throw new CustomResponseStatusException(requestTime, HttpStatus.UNAUTHORIZED, "Invalid Bearer Token", apiName);
+            throw new CustomResponseStatusException(requestTime, apiName, "unknown", "Invalid Bearer Token", HttpStatus.UNAUTHORIZED);
         }
     }
 
     static private String getIdToken(String bearerToken, String apiName, ZonedDateTime requestTime) throws CustomResponseStatusException {
         if (bearerToken == null || bearerToken.isEmpty()) {
-            throw new CustomResponseStatusException(requestTime, HttpStatus.UNAUTHORIZED, "Missing Authorization header", apiName);
+            throw new CustomResponseStatusException(requestTime, apiName, "unknown", "Missing Authorization header", HttpStatus.UNAUTHORIZED);
         } else if (bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         } else {
-            throw new CustomResponseStatusException(requestTime, HttpStatus.UNAUTHORIZED, "Invalid Authorization header", apiName);
+            throw new CustomResponseStatusException(requestTime, apiName, "unknown", "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
         }
     }
 }

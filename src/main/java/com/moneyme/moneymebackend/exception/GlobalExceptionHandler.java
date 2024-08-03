@@ -36,8 +36,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomResponseStatusException.class)
     public ResponseEntity<ErrorResponse2> handleCustomResponseStatusException(CustomResponseStatusException ex) {
-        ErrorResponse2 errorResponse = new ErrorResponse2(ex.getRequestTime(), ex.getApiName(), ex.getMessage());
-        logger.error("Exception occurred for api_name: {}, at: {}, error: {}", ex.getApiName(), ex.getRequestTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")), ex.getMessage());
+        ErrorResponse2 errorResponse = new ErrorResponse2(ex.getRequestTime(), ex.getApiName(),ex.getUid(), ex.getMessage());
+        logger.error("Exception occurred for api_name: {}, at: {}, uid: {}, error: {}", ex.getApiName(), ex.getRequestTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")), ex.getUid(), ex.getMessage());
         return ResponseEntity.status(ex.getStatus()).body(errorResponse);
     }
 

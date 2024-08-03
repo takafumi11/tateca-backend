@@ -10,5 +10,6 @@ import java.time.ZonedDateTime;
 public class ErrorResponse2 {
     private ZonedDateTime requestTime;
     private String apiName;
+    private String uid;
     private String errorMessage;
 }

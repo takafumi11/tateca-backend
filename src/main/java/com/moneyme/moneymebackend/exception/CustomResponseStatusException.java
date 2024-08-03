@@ -12,7 +12,8 @@ import java.time.ZonedDateTime;
 @EqualsAndHashCode(callSuper = false)
 public class CustomResponseStatusException extends RuntimeException {
     private final ZonedDateTime requestTime;
-    private final HttpStatus status;
-    private final String message;
     private final String apiName;
+    private final String uid;
+    private final String message;
+    private final HttpStatus status;
 }
