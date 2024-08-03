@@ -40,8 +40,6 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<UserResponseDTO> getUser(
-            @RequestTime ZonedDateTime requestTime,
-            @ValidBearerToken String uidFromToken,
             @RequestParam("uid") String uid
     ) {
         UserResponseDTO response = service.getUser(uid);
