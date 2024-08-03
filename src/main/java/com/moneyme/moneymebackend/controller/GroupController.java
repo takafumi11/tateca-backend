@@ -1,6 +1,5 @@
 package com.moneyme.moneymebackend.controller;
 
-import com.moneyme.moneymebackend.annotation.ValidBearerToken;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
 import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
@@ -29,7 +28,6 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupDetailsResponse> createGroup(
-            @ValidBearerToken String uid,
             @RequestBody CreateGroupRequest request
     ) {
         GroupDetailsResponse response = service.createGroup(request);
@@ -38,7 +36,6 @@ public class GroupController {
 
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupDetailsResponse> getGroupInfo(
-            @ValidBearerToken String uid,
             @PathVariable("groupId") UUID groupId
     ) {
         GroupDetailsResponse response = service.getGroupInfo(groupId);
@@ -47,7 +44,6 @@ public class GroupController {
 
     @GetMapping("/list/{userId}")
     public ResponseEntity<GetGroupListResponse> getGroupList(
-            @ValidBearerToken String uid,
             @PathVariable("userId") UUID userId
     ) {
         GetGroupListResponse response = service.getGroupList(userId);
@@ -56,7 +52,6 @@ public class GroupController {
 
     @PostMapping("/{groupId}")
     public ResponseEntity<GroupDetailsResponse> joinGroup(
-            @ValidBearerToken String uid,
             @RequestBody JoinGroupRequest request,
             @PathVariable("groupId") UUID groupId,
             @RequestHeader("token") String token

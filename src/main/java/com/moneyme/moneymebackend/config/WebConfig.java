@@ -1,6 +1,6 @@
 package com.moneyme.moneymebackend.config;
 
-import com.moneyme.moneymebackend.annotation.BearerTokenArgumentResolver;
+import com.moneyme.moneymebackend.annotation.UIdArgumentResolver;
 import com.moneyme.moneymebackend.annotation.RequestTimeArgumentResolver;
 import com.moneyme.moneymebackend.interceptor.BearerTokenInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +14,14 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
-    private final BearerTokenArgumentResolver bearerTokenArgumentResolver;
+    private final UIdArgumentResolver UIdArgumentResolver;
     private final RequestTimeArgumentResolver requestTimeArgumentResolver;
     private final BearerTokenInterceptor bearerTokenInterceptor;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(requestTimeArgumentResolver);
-        resolvers.add(bearerTokenArgumentResolver);
+        resolvers.add(UIdArgumentResolver);
     }
 
     @Override
