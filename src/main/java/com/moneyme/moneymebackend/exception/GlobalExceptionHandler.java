@@ -31,13 +31,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
     }
 
-
-    @ExceptionHandler(CustomResponseStatusException.class)
-    public ResponseEntity<AuthErrorResponse> handleCustomResponseStatusException(CustomResponseStatusException ex) {
-        AuthErrorResponse authErrorResponse = new AuthErrorResponse(ex.getApiName(), ex.getMessage());
-        return ResponseEntity.status(ex.getStatus()).body(authErrorResponse);
-    }
-
     @ExceptionHandler(RedisException.class)
     public ResponseEntity<ErrorResponse> handleRedisOperationException(RedisException ex) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
