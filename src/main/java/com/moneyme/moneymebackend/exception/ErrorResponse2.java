@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Data
 public class ErrorResponse2 {
-    private ZonedDateTime requestTime;
+//    private ZonedDateTime requestTime;
     private String apiName;
     private String uid;
     private String errorMessage;

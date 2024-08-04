@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomResponseStatusException.class)
     public ResponseEntity<ErrorResponse2> handleCustomResponseStatusException(CustomResponseStatusException ex) {
-        ErrorResponse2 errorResponse = new ErrorResponse2(ex.getRequestTime(), ex.getApiName(),ex.getUid(), ex.getMessage());
+        ErrorResponse2 errorResponse = new ErrorResponse2(ex.getApiName(),ex.getUid(), ex.getMessage());
         return ResponseEntity.status(ex.getStatus()).body(errorResponse);
     }
 

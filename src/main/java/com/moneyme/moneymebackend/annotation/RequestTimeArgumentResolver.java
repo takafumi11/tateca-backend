@@ -19,8 +19,9 @@ public class RequestTimeArgumentResolver implements HandlerMethodArgumentResolve
 
     @Override
     public ZonedDateTime resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
-        ZonedDateTime requestTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"));
-        webRequest.setAttribute(REQUEST_TIME_ATTRIBUTE, requestTime, NativeWebRequest.SCOPE_REQUEST);
-        return requestTime;
+        return (ZonedDateTime) webRequest.getAttribute("requestTime", NativeWebRequest.SCOPE_REQUEST);
+//        ZonedDateTime requestTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"));
+//        webRequest.setAttribute(REQUEST_TIME_ATTRIBUTE, requestTime, NativeWebRequest.SCOPE_REQUEST);
+//        return requestTime;
     }
 }

@@ -18,18 +18,18 @@ public class BearerTokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        ZonedDateTime requestTime = ZonedDateTime.now();
+//        ZonedDateTime requestTime = ZonedDateTime.now();
         String httpMethod = request.getMethod();
         String uri = request.getRequestURI();
         String apiName = httpMethod + " " + uri;
 
         try {
-            FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(requestTime, bearerToken, request.getRequestURI());
+            FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken, request.getRequestURI());
             request.setAttribute("uid", firebaseToken.getUid());
-            request.setAttribute("requestTime", requestTime);
+//            request.setAttribute("requestTime", requestTime);
             return true;
         } catch (Exception e) {
-            throw new CustomResponseStatusException(requestTime, apiName, "unknown", "Invalid Bearer Token", HttpStatus.UNAUTHORIZED);
+            throw new CustomResponseStatusException(apiName, "unknown", "Invalid Bearer Token", HttpStatus.UNAUTHORIZED);
         }
     }
 }
