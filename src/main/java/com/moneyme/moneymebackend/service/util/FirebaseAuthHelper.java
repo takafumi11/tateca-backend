@@ -7,8 +7,6 @@ import com.moneyme.moneymebackend.exception.CustomResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.ZonedDateTime;
-
 public class FirebaseAuthHelper {
     static public FirebaseToken verifyIdToken(String bearerToken) throws CustomResponseStatusException {
         String idToken = getIdToken(bearerToken);
