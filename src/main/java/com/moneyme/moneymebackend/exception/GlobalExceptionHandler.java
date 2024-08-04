@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.format.DateTimeFormatter;
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -35,9 +33,9 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(CustomResponseStatusException.class)
-    public ResponseEntity<ErrorResponse2> handleCustomResponseStatusException(CustomResponseStatusException ex) {
-        ErrorResponse2 errorResponse = new ErrorResponse2(ex.getApiName(),ex.getUid(), ex.getMessage());
-        return ResponseEntity.status(ex.getStatus()).body(errorResponse);
+    public ResponseEntity<AuthErrorResponse> handleCustomResponseStatusException(CustomResponseStatusException ex) {
+        AuthErrorResponse authErrorResponse = new AuthErrorResponse(ex.getApiName(), ex.getMessage());
+        return ResponseEntity.status(ex.getStatus()).body(authErrorResponse);
     }
 
     @ExceptionHandler(RedisException.class)
