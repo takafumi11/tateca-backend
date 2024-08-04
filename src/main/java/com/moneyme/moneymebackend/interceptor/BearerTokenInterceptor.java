@@ -2,32 +2,34 @@ package com.moneyme.moneymebackend.interceptor;
 
 import com.google.common.net.HttpHeaders;
 import com.google.firebase.auth.FirebaseToken;
-import com.moneyme.moneymebackend.exception.CustomResponseStatusException;
 import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.time.ZonedDateTime;
 
 @Component
 public class BearerTokenInterceptor implements HandlerInterceptor {
+    public static final String UID_ATTRIBUTE = "uid";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String httpMethod = request.getMethod();
-        String uri = request.getRequestURI();
-        String apiName = httpMethod + " " + uri;
+        String uid = request.getHeader("x-uid");
 
-        try {
-            FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken, request.getRequestURI());
-            request.setAttribute("uid", firebaseToken.getUid());
+        if (uid == null || uid.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing x-uid header");
+        }
+
+        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken);
+
+        if (uid.equals(firebaseToken.getUid())) {
+            request.setAttribute(UID_ATTRIBUTE, firebaseToken.getUid());
             return true;
-        } catch (Exception e) {
-            throw new CustomResponseStatusException(apiName, "unknown", "Invalid Bearer Token", HttpStatus.UNAUTHORIZED);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid x-uid header");
         }
     }
 }

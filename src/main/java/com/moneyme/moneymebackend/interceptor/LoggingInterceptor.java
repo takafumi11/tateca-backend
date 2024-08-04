@@ -31,12 +31,6 @@ public class LoggingInterceptor implements HandlerInterceptor {
         request.setAttribute(REQUEST_ID_ATTRIBUTE, requestId);
         request.setAttribute(REQUEST_TIME_ATTRIBUTE, requestTime);
 
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-        String requestBody = getRequestBody(requestWrapper);
-
-        logger.info("Request: [{}] {} {} - RequestTime: {} - Body: {}",
-                requestId, request.getMethod(), request.getRequestURI(), formatter.format(requestTime), requestBody);
-
         return true;
     }
 
@@ -44,14 +38,23 @@ public class LoggingInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         String requestId = (String) request.getAttribute(REQUEST_ID_ATTRIBUTE);
         Instant requestTime = (Instant) request.getAttribute(REQUEST_TIME_ATTRIBUTE);
+        String uid = (String) request.getAttribute(BearerTokenInterceptor.UID_ATTRIBUTE);
+        uid = (uid != null) ? uid : "unknown";
+
         Instant responseTime = Instant.now();
         long processingTimeMs = responseTime.toEpochMilli() - requestTime.toEpochMilli();
 
+        ContentCachingRequestWrapper requestWrapper = getWrapper(request, ContentCachingRequestWrapper.class);
         ContentCachingResponseWrapper responseWrapper = getWrapper(response, ContentCachingResponseWrapper.class);
+
+        String requestBody = requestWrapper != null ? getRequestBody(requestWrapper) : "N/A";
         String responseBody = responseWrapper != null ? getResponseBody(responseWrapper) : "N/A";
 
-        logger.info("Response: [{}] {} - ResponseTime: {}ms - Body: {}",
-                requestId, response.getStatus(), processingTimeMs, responseBody);
+        logger.info("Request: [{}] UID: {} {} {} - RequestTime: {} - Body: {}",
+                requestId, uid, request.getMethod(), request.getRequestURI(), formatter.format(requestTime), requestBody);
+
+        logger.info("Response: [{}] UID: {} {} {} - ProcessingTime: {}ms - Body: {}",
+                requestId, uid, response.getStatus(), request.getRequestURI(), processingTimeMs, responseBody);
 
         if (responseWrapper != null) {
             responseWrapper.copyBodyToResponse();
