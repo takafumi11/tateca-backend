@@ -11,10 +11,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import static com.moneyme.moneymebackend.constants.ApiConstants.X_UID_HEADER;
+import static com.moneyme.moneymebackend.constants.AttributeConstants.UID_ATTRIBUTE;
+
 @Component
 public class BearerTokenInterceptor implements HandlerInterceptor {
-    public static final String UID_ATTRIBUTE = "uid";
-    private static final String X_UID_HEADER = "x-uid";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {

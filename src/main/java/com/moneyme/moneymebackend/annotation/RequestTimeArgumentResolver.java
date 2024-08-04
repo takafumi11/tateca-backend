@@ -6,12 +6,12 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
+
+import static com.moneyme.moneymebackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
 
 @Component
 public class RequestTimeArgumentResolver implements HandlerMethodArgumentResolver {
-    static final String REQUEST_TIME_ATTRIBUTE = "requestTime";
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.getParameterAnnotation(RequestTime.class) != null;
@@ -19,9 +19,6 @@ public class RequestTimeArgumentResolver implements HandlerMethodArgumentResolve
 
     @Override
     public ZonedDateTime resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
-        return (ZonedDateTime) webRequest.getAttribute("requestTime", NativeWebRequest.SCOPE_REQUEST);
-//        ZonedDateTime requestTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"));
-//        webRequest.setAttribute(REQUEST_TIME_ATTRIBUTE, requestTime, NativeWebRequest.SCOPE_REQUEST);
-//        return requestTime;
+        return (ZonedDateTime) webRequest.getAttribute(REQUEST_TIME_ATTRIBUTE, NativeWebRequest.SCOPE_REQUEST);
     }
 }

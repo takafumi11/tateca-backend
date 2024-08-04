@@ -16,11 +16,14 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import static com.moneyme.moneymebackend.constants.AttributeConstants.REQUEST_ID_ATTRIBUTE;
+import static com.moneyme.moneymebackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
+import static com.moneyme.moneymebackend.constants.AttributeConstants.UID_ATTRIBUTE;
+
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
-    public static final String REQUEST_ID_ATTRIBUTE = "requestId";
-    public static final String REQUEST_TIME_ATTRIBUTE = "requestTime";
+
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
             .withZone(ZoneId.of("Asia/Tokyo"));
 
@@ -38,7 +41,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         String requestId = (String) request.getAttribute(REQUEST_ID_ATTRIBUTE);
         Instant requestTime = (Instant) request.getAttribute(REQUEST_TIME_ATTRIBUTE);
-        String uid = (String) request.getAttribute(BearerTokenInterceptor.UID_ATTRIBUTE);
+        String uid = (String) request.getAttribute(UID_ATTRIBUTE);
         uid = (uid != null) ? uid : "unknown";
 
         Instant responseTime = Instant.now();
