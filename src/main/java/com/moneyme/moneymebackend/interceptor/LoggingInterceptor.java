@@ -6,10 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
-import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,8 +50,8 @@ public class LoggingInterceptor implements HandlerInterceptor {
         ContentCachingResponseWrapper responseWrapper = getWrapper(response, ContentCachingResponseWrapper.class);
         String responseBody = responseWrapper != null ? getResponseBody(responseWrapper) : "N/A";
 
-        logger.info("Response: [{}] {} {} - ProcessingTime: {}ms - Body: {}",
-                requestId, response.getStatus(), request.getRequestURI(), processingTimeMs, responseBody);
+        logger.info("Response: [{}] {} - ResponseTime: {}ms - Body: {}",
+                requestId, response.getStatus(), processingTimeMs, responseBody);
 
         if (responseWrapper != null) {
             responseWrapper.copyBodyToResponse();
