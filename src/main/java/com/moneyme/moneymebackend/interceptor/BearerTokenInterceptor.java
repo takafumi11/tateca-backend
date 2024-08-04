@@ -1,6 +1,7 @@
 package com.moneyme.moneymebackend.interceptor;
 
 import com.google.common.net.HttpHeaders;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.moneyme.moneymebackend.service.util.FirebaseAuthHelper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,11 +14,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class BearerTokenInterceptor implements HandlerInterceptor {
     public static final String UID_ATTRIBUTE = "uid";
+    private static final String X_UID_HEADER = "x-uid";
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String uid = request.getHeader("x-uid");
+        String uid = request.getHeader(X_UID_HEADER);
 
         request.setAttribute(UID_ATTRIBUTE, uid);
 
@@ -25,12 +27,16 @@ public class BearerTokenInterceptor implements HandlerInterceptor {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing x-uid header");
         }
 
-        FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken);
-
-        if (uid.equals(firebaseToken.getUid())) {
-            return true;
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid x-uid header");
+        try {
+            FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken);
+            if (!uid.equals(firebaseToken.getUid())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid x-uid header");
+            }
+        } catch (FirebaseAuthException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid bearer token");
         }
+
+        return true;
     }
+
 }

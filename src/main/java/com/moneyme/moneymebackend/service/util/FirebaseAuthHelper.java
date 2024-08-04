@@ -7,22 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 public class FirebaseAuthHelper {
-    static public FirebaseToken verifyIdToken(String bearerToken)  {
-        String idToken = getIdToken(bearerToken);
-        try {
-            return FirebaseAuth.getInstance().verifyIdToken(idToken);
-        } catch (FirebaseAuthException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Bearer Token");
-        }
-    }
-
-    static private String getIdToken(String bearerToken) {
+    static public FirebaseToken verifyIdToken(String bearerToken) throws FirebaseAuthException {
         if (bearerToken == null || bearerToken.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing Authorization header");
-        } else if (bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Authorization header");
         }
+
+        if (!bearerToken.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Authorization header format");
+        }
+
+        String idToken = bearerToken.substring(7);
+        return FirebaseAuth.getInstance().verifyIdToken(idToken);
     }
 }
