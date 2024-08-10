@@ -1,6 +1,5 @@
 package com.moneyme.moneymebackend.controller;
 
-import com.moneyme.moneymebackend.annotation.ValidBearerToken;
 import com.moneyme.moneymebackend.dto.response.TransactionsHistoryResponse;
 import com.moneyme.moneymebackend.dto.response.TransactionsSettlementResponse;
 import com.moneyme.moneymebackend.service.TransactionService;
@@ -27,7 +26,6 @@ public class TransactionController {
 
     @GetMapping(PATH_HISTORY)
     public ResponseEntity<TransactionsHistoryResponse> getTransactions(
-            @ValidBearerToken String uid,
             @RequestParam(defaultValue = "10") int count,
             @PathVariable UUID groupId) {
         TransactionsHistoryResponse response = service.getTransactions(count, groupId);
@@ -36,7 +34,6 @@ public class TransactionController {
 
     @GetMapping(PATH_SETTLEMENT)
     public ResponseEntity<TransactionsSettlementResponse> getGroupSettlements(
-            @ValidBearerToken String uid,
             @PathVariable UUID groupId) {
         TransactionsSettlementResponse response = service.getSettlements(groupId);
         return ResponseEntity.ok(response);

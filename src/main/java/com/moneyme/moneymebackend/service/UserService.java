@@ -62,7 +62,7 @@ public class UserService {
         return UserResponseDTO.from(user);
     }
 
-    public UserResponseDTO getUser(String uid) {
+    public UserResponseDTO getUserInfo(String uid) {
         UserEntity user = accessor.findByUid(uid);
         return UserResponseDTO.from(user);
     }
