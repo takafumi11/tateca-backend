@@ -19,8 +19,13 @@ public class UserAccessor {
     private final UserRepository repository;
 
     public UserEntity findById(UUID id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
+        try {
+            return repository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + id));
+
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
     }
 
     public UserEntity findByUid(String uid) {

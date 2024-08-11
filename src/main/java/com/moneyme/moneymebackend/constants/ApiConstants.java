@@ -1,7 +1,10 @@
 package com.moneyme.moneymebackend.constants;
 
 public class ApiConstants {
-    // Header constants
+    // Header
+    public static final String X_UID_HEADER = "x-uid";
+
+    // Path
     public static final String HEADER_AUTHORIZATION = "Authorization";
     public static final String PATH_USERS = "/users";
     public static final String PATH_GROUPS = "/groups";
