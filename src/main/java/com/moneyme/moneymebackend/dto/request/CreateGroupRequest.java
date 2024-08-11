@@ -9,5 +9,6 @@ import java.util.List;
 public class CreateGroupRequest {
     @JsonProperty("group_name") String groupName;
     @JsonProperty("host_uuid") String hostUuid;
+    @JsonProperty("host_name") String hostName;
     @JsonProperty("participants_name") List<String> participantsName;
 }

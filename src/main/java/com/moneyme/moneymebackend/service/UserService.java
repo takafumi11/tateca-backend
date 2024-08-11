@@ -19,7 +19,7 @@ public class UserService {
     private final UserRepository repository;
 
     @Transactional
-    public UserResponseDTO createUser(String uid, UserRequestDTO request) {
+    public UserResponseDTO createAuthedUser(String uid, UserRequestDTO request) {
         UserEntity user = UserEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getUserName())

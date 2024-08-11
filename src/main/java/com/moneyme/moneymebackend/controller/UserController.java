@@ -29,10 +29,10 @@ public class UserController {
     private final UserService service;
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(
+    public ResponseEntity<UserResponseDTO> createAuthedUser(
             @UId String uid,
             @RequestBody UserRequestDTO request) {
-        UserResponseDTO response = service.createUser(uid, request);
+        UserResponseDTO response = service.createAuthedUser(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

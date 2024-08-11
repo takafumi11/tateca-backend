@@ -59,11 +59,13 @@ public class GroupService {
 
     @Transactional
     public GroupDetailsResponse createGroup(CreateGroupRequest request) {
+        // validation to check if exceeds max group count
         List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuid(UUID.fromString(request.getHostUuid()));
         if (userGroupEntityList.size() >= 5) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 5 groups");
         }
 
+        // create new record into groups table.
         GroupEntity group = GroupEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getGroupName())
@@ -71,16 +73,19 @@ public class GroupService {
                 .build();
         GroupEntity savedGroup = accessor.save(group);
 
-        UserEntity user = userAccessor.findById(UUID.fromString(request.getHostUuid()));
 
+        // update host's username
+        UserEntity host = userAccessor.findById(UUID.fromString(request.getHostUuid()));
+        host.setName(request.getHostName());
+        UserEntity userUpdated = userAccessor.save(host);
+
+        // create new record for host user into user_groups table.
         List<UserEntity> userEntityList = new ArrayList<>();
-        userEntityList.add(user);
-        createUserGroup(user, savedGroup);
+        userEntityList.add(userUpdated);
+        createUserGroup(userUpdated, savedGroup);
 
+        // create new skeleton records for participants into user_groups table.
         request.getParticipantsName().forEach(userName -> {
-            if(userName.equals(user.getName())) {
-                return;
-            }
             UserEntity noAuthUser = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name(userName)
