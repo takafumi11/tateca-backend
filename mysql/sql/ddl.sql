@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS auth_users (
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     name VARCHAR(50),
     email VARCHAR(255) UNIQUE,
-    auth_user_id VARCHAR(128),
+    uid VARCHAR(128),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -12,11 +12,19 @@ CREATE TABLE IF NOT EXISTS users (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     name VARCHAR(50) NOT NULL,
-    auth_user_uuid BINARY(16),
-    auth_user_uuid_text CHAR(36) AS (BIN_TO_UUID(auth_user_uuid)) VIRTUAL,
     FOREIGN KEY (auth_user_uuid) REFERENCES auth_users(uuid),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_auth_users (
+    user_uuid BINARY(16),
+    auth_user_uuid BINARY(16),
+    user_uuid_text CHAR(36) AS (BIN_TO_UUID(user_uuid)) VIRTUAL,
+    auth_user_uuid_text CHAR(36) AS (BIN_TO_UUID(auth_user_uuid)) VIRTUAL,
+    PRIMARY KEY (user_uuid, auth_user_uuid),
+    FOREIGN KEY (user_uuid) REFERENCES users(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (auth_user_uuid) REFERENCES auth_users(uuid) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `groups` (
