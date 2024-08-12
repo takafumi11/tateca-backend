@@ -27,4 +27,12 @@ public class AuthUserAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public AuthUserEntity save(AuthUserEntity entity) {
+        try {
+            return repository.save(entity);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }
