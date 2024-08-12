@@ -24,7 +24,7 @@ public class GroupAccessor {
         try {
             return groupRepository.save(groupEntity);
         } catch(DataAccessException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error at groupRepo.save", e);
         }
     }
 }

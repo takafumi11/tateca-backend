@@ -36,6 +36,14 @@ public class UserAccessor {
         }
     }
 
+    public List<UserEntity> saveAll(List<UserEntity> users) throws ResponseStatusException {
+        try {
+            return repository.saveAll(users);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
     public void delete(UserEntity userEntity) throws ResponseStatusException {
         try {
             repository.delete(userEntity);

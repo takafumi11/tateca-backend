@@ -1,5 +1,6 @@
 package com.moneyme.moneymebackend.controller;
 
+import com.moneyme.moneymebackend.annotation.UId;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
 import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
 import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
@@ -28,9 +29,10 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupDetailsResponse> createGroup(
+            @UId String uid,
             @RequestBody CreateGroupRequest request
     ) {
-        GroupDetailsResponse response = service.createGroup(request);
+        GroupDetailsResponse response = service.createGroup(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -50,14 +52,14 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{groupId}")
-    public ResponseEntity<GroupDetailsResponse> joinGroup(
-            @RequestBody JoinGroupRequest request,
-            @PathVariable("groupId") UUID groupId,
-            @RequestHeader("token") String token
-    ) {
-        GroupDetailsResponse response = service.joinGroup(request, groupId, token);
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping("/{groupId}")
+//    public ResponseEntity<GroupDetailsResponse> joinGroup(
+//            @RequestBody JoinGroupRequest request,
+//            @PathVariable("groupId") UUID groupId,
+//            @RequestHeader("token") String token
+//    ) {
+//        GroupDetailsResponse response = service.joinGroup(request, groupId, token);
+//        return ResponseEntity.ok(response);
+//    }
 
 }

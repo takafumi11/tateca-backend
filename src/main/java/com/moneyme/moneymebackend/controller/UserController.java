@@ -32,21 +32,21 @@ public class UserController {
     private final AuthUserService authUserService;
 
     // TODO: Add ENUM or cretae new endpoint
-    @PatchMapping("/{userId}")
-    public ResponseEntity<UserResponseDTO> updateUserInfo(
-            @UId String uid,
-            @PathVariable("userId") UUID uuid,
-            @RequestBody UserRequestDTO request) {
-        UserResponseDTO response = service.updateUserInfo(uuid, request, uid);
-        return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<UserResponseDTO> deleteUserInfo(
-            @PathVariable("userId") UUID uuid,
-            @RequestBody UserDeleteRequestDTO request) {
-        UserResponseDTO response = service.deleteUserInfo(uuid, request);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
-    }
+//    @PatchMapping("/{userId}")
+//    public ResponseEntity<UserResponseDTO> updateUserInfo(
+//            @UId String uid,
+//            @PathVariable("userId") UUID uuid,
+//            @RequestBody UserRequestDTO request) {
+//        UserResponseDTO response = service.updateUserInfo(uuid, request, uid);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    @DeleteMapping("/{userId}")
+//    public ResponseEntity<UserResponseDTO> deleteUserInfo(
+//            @PathVariable("userId") UUID uuid,
+//            @RequestBody UserDeleteRequestDTO request) {
+//        UserResponseDTO response = service.deleteUserInfo(uuid, request);
+//        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+//    }
 }
 

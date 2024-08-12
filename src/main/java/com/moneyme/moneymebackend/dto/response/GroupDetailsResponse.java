@@ -18,10 +18,14 @@ public class GroupDetailsResponse {
     @JsonProperty("users")
     List<UserResponseDTO> userResponseDTOS;
 
-    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity) {
+    @JsonProperty("user_uuid")
+    String userUuid;
+
+    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity, String userUuid) {
         return GroupDetailsResponse.builder()
                 .groupResponseDTO(GroupResponseDTO.from(groupEntity))
                 .userResponseDTOS(userEntityList.stream().map(UserResponseDTO::from).toList())
+                .userUuid(userUuid)
                 .build();
     }
 }

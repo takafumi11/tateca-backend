@@ -19,29 +19,29 @@ import java.util.UUID;
 public class UserService {
     private final UserAccessor accessor;
     private final UserRepository repository;
-    
-    @Transactional
-    public UserResponseDTO updateUserInfo(UUID userId, UserRequestDTO request, String uid) {
-        UserEntity user = accessor.findById(userId);
 
-        user.setName(request.getUserName());
-        user.setEmail(request.getEmail());
-        user.setUid(uid);
-
-        UserEntity savedUser = repository.save(user);
-
-        return UserResponseDTO.from(savedUser);
-    }
-
-    @Transactional
-    public UserResponseDTO deleteUserInfo(UUID userId, UserDeleteRequestDTO request) {
-        UserEntity user = accessor.findById(userId);
-
-        user.setEmail(request.getEmail());
-        user.setUid(request.getUid());
-
-        UserEntity savedUser = repository.save(user);
-
-        return UserResponseDTO.from(savedUser);
-    }
+//    @Transactional
+//    public UserResponseDTO updateUserInfo(UUID userId, UserRequestDTO request, String uid) {
+//        UserEntity user = accessor.findById(userId);
+//
+//        user.setName(request.getUserName());
+//        user.setEmail(request.getEmail());
+//        user.setUid(uid);
+//
+//        UserEntity savedUser = repository.save(user);
+//
+//        return UserResponseDTO.from(savedUser);
+//    }
+//
+//    @Transactional
+//    public UserResponseDTO deleteUserInfo(UUID userId, UserDeleteRequestDTO request) {
+//        UserEntity user = accessor.findById(userId);
+//
+//        user.setEmail(request.getEmail());
+//        user.setUid(request.getUid());
+//
+//        UserEntity savedUser = repository.save(user);
+//
+//        return UserResponseDTO.from(savedUser);
+//    }
 }
