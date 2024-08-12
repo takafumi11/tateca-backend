@@ -23,6 +23,7 @@ import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,21 +51,31 @@ public class GroupService {
 //        if (inta == 10) {
 //            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "失敗！");
 //        }
+
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
+        if (userGroups.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
+        }
+
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
 
         return GroupDetailsResponse.from(users, groupEntity, "");
     }
 
-    public GetGroupListResponse getGroupList(UUID userId) {
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByUserUuid(userId);
+    public GetGroupListResponse getGroupList(String uid) {
+        AuthUserEntity authUserEntity = authUserAccessor.findByUid(uid);
+        List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUserEntity.getUuid());
 
-        if (userGroups.size() == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UserGroups not found with user id: " + userId);
+        List<GroupEntity> groupEntityList = new ArrayList<>();
+        userAuthUserEntityList.forEach(userAuthUserEntity -> {
+            UserGroupEntity userGroupEntity = userGroupAccessor.findByUserUuid(userAuthUserEntity.getUserUuid()).get(0);
+            groupEntityList.add(userGroupEntity.getGroup());
+        });
+
+        if (groupEntityList.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found");
         }
-
-        List<GroupEntity> groupEntityList = userGroups.stream().map(UserGroupEntity::getGroup).toList();
 
         return GetGroupListResponse.from(groupEntityList);
     }
@@ -73,18 +84,9 @@ public class GroupService {
     public GroupDetailsResponse createGroup(String uid, CreateGroupRequest request) {
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
         AuthUserEntity authUser = authUserAccessor.findByUid(uid);
-        try {
-            List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUser.getUuid());
-
-            if (userAuthUserEntityList.size() >= 5) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
-            }
-        } catch (ResponseStatusException e) {
-            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                // Do nothing
-            } else {
-                throw e;
-            }
+        List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUser.getUuid());
+        if (userAuthUserEntityList.size() >= 5) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
         }
 
         // Create new records into users table

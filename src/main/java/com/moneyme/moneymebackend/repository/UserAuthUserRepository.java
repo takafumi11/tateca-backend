@@ -15,6 +15,6 @@ public interface UserAuthUserRepository extends JpaRepository<UserAuthUserEntity
     @Query("SELECT u FROM UserAuthUserEntity u WHERE u.userUuid = :userUuid")
     List<UserAuthUserEntity> findByUserUuid(UUID userUuid);
 
-    @Query("SELECT u FROM UserAuthUserEntity u WHERE u.userUuid = :authUserUuid")
+    @Query("SELECT u FROM UserAuthUserEntity u WHERE u.authUserUuid = :authUserUuid")
     List<UserAuthUserEntity> findByAuthUserUuid(UUID authUserUuid);
 }

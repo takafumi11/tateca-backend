@@ -44,11 +44,11 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/list/{userId}")
+    @GetMapping("/list")
     public ResponseEntity<GetGroupListResponse> getGroupList(
-            @PathVariable("userId") UUID userId
+            @UId String uid
     ) {
-        GetGroupListResponse response = service.getGroupList(userId);
+        GetGroupListResponse response = service.getGroupList(uid);
         return ResponseEntity.ok(response);
     }
 

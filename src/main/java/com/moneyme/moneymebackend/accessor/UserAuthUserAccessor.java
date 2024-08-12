@@ -18,13 +18,7 @@ public class UserAuthUserAccessor {
 
     public List<UserAuthUserEntity> findByAuthUserUuid(UUID uuid) {
         try {
-            List<UserAuthUserEntity> userAuthUserEntityList = repository.findByAuthUserUuid(uuid);
-
-            if (userAuthUserEntityList.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UserAuthUsers not found with authUser uuid: " + uuid);
-            } else {
-                return userAuthUserEntityList;
-            }
+            return repository.findByAuthUserUuid(uuid);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

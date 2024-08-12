@@ -22,13 +22,7 @@ public class UserGroupAccessor {
 
     public List<UserGroupEntity> findByGroupUuid(UUID groupId) {
         try {
-            List<UserGroupEntity> userGroupEntityList = repository.findByGroupUuid(groupId);
-
-            if (userGroupEntityList.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UserGroups not found with group id: " + groupId);
-            } else {
-                return userGroupEntityList;
-            }
+            return repository.findByGroupUuid(groupId);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
