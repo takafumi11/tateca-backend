@@ -1,9 +1,20 @@
+CREATE TABLE IF NOT EXISTS auth_users (
+    uuid BINARY(16) PRIMARY KEY,
+    uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
+    name VARCHAR(50),
+    email VARCHAR(255) UNIQUE,
+    auth_user_id VARCHAR(128),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS users (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     name VARCHAR(50) NOT NULL,
-    email VARCHAR(255) UNIQUE,
-    auth_user_id VARCHAR(128),
+    auth_user_uuid BINARY(16),
+    auth_user_uuid_text CHAR(36) AS (BIN_TO_UUID(auth_user_uuid)) VIRTUAL,
+    FOREIGN KEY (auth_user_uuid) REFERENCES auth_users(uuid),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
