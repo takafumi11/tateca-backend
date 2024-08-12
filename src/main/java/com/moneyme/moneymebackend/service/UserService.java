@@ -3,7 +3,9 @@ package com.moneyme.moneymebackend.service;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
+import com.moneyme.moneymebackend.dto.response.AuthUserResponseDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
+import com.moneyme.moneymebackend.entity.AuthUserEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -17,21 +19,7 @@ import java.util.UUID;
 public class UserService {
     private final UserAccessor accessor;
     private final UserRepository repository;
-
-    @Transactional
-    public UserResponseDTO createAuthedUser(String uid, UserRequestDTO request) {
-        UserEntity user = UserEntity.builder()
-                .uuid(UUID.randomUUID())
-                .name(request.getUserName())
-                .email(request.getEmail())
-                .uid(uid)
-                .build();
-
-        UserEntity savedUser = accessor.save(user);
-
-        return UserResponseDTO.from(savedUser);
-    }
-
+    
     @Transactional
     public UserResponseDTO updateUserInfo(UUID userId, UserRequestDTO request, String uid) {
         UserEntity user = accessor.findById(userId);
@@ -56,15 +44,4 @@ public class UserService {
 
         return UserResponseDTO.from(savedUser);
     }
-
-    public UserResponseDTO getUserInfo(String token, UUID userId) {
-        UserEntity user = repository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
-        return UserResponseDTO.from(user);
-    }
-
-    public UserResponseDTO getUserInfo(String uid) {
-        UserEntity user = accessor.findByUid(uid);
-        return UserResponseDTO.from(user);
-    }
-
 }
