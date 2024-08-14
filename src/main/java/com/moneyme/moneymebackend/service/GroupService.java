@@ -72,18 +72,16 @@ public class GroupService {
     }
 
     public GetGroupListResponse getGroupList(String uid) {
-        AuthUserEntity authUserEntity = authUserAccessor.findByUid(uid);
-//        List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUserEntity.getUuid());
+        List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
 
-        List<GroupEntity> groupEntityList = new ArrayList<>();
-//        userAuthUserEntityList.forEach(userAuthUserEntity -> {
-//            UserGroupEntity userGroupEntity = userGroupAccessor.findByUserUuid(userAuthUserEntity.getUserUuid()).get(0);
-//            groupEntityList.add(userGroupEntity.getGroup());
-//        });
-//
-//        if (groupEntityList.size() == 0) {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found");
-//        }
+        List<UUID> uuidList = userEntityList.stream().map(UserEntity::getUuid).toList();
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuidList(uuidList);
+
+        List<GroupEntity> groupEntityList = userGroupEntityList.stream().map(UserGroupEntity::getGroup).toList();
+
+        if (groupEntityList.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found");
+        }
 
         return GetGroupListResponse.from(groupEntityList);
     }

@@ -4,6 +4,7 @@ import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import com.moneyme.moneymebackend.entity.UserGroupId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,6 +18,9 @@ public interface UserGroupRepository extends JpaRepository<UserGroupEntity, User
 
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid = :userId")
     List<UserGroupEntity> findByUserUuid(UUID userId);
+
+    @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid IN :userUuidList")
+    List<UserGroupEntity> findByUserUuidList(@Param("userUuidList") List<UUID> userUuidList);
 
     void deleteByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid);
 }
