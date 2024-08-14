@@ -31,7 +31,7 @@ public class UserEntity {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "auth_user_uid", referencedColumnName = "uid")
     private AuthUserEntity authUser;
 
