@@ -22,7 +22,10 @@ import com.moneyme.moneymebackend.entity.UserAuthUserEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import jakarta.transaction.Transactional;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Data
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -45,7 +49,7 @@ public class GroupService {
     private final LoanAccessor loanAccessor;
     private final ObligationAccessor obligationAccessor;
 
-    public GroupDetailsResponse getGroupInfo(UUID groupId) {
+    public GroupDetailsResponse getGroupInfo(String uid, UUID groupId) {
 //        Integer inta = 10;
 //
 //        if (inta == 10) {
@@ -60,22 +64,26 @@ public class GroupService {
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
 
-        return GroupDetailsResponse.from(users, groupEntity, "");
+//        String userUuid = users.stream().map(UserEntity::getAuthUser).filter(authUser -> {
+//            return authUser.getUid().equals(uid);
+//        }).toString();
+
+        return GroupDetailsResponse.from(users, groupEntity);
     }
 
     public GetGroupListResponse getGroupList(String uid) {
         AuthUserEntity authUserEntity = authUserAccessor.findByUid(uid);
-        List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUserEntity.getUuid());
+//        List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUserEntity.getUuid());
 
         List<GroupEntity> groupEntityList = new ArrayList<>();
-        userAuthUserEntityList.forEach(userAuthUserEntity -> {
-            UserGroupEntity userGroupEntity = userGroupAccessor.findByUserUuid(userAuthUserEntity.getUserUuid()).get(0);
-            groupEntityList.add(userGroupEntity.getGroup());
-        });
-
-        if (groupEntityList.size() == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found");
-        }
+//        userAuthUserEntityList.forEach(userAuthUserEntity -> {
+//            UserGroupEntity userGroupEntity = userGroupAccessor.findByUserUuid(userAuthUserEntity.getUserUuid()).get(0);
+//            groupEntityList.add(userGroupEntity.getGroup());
+//        });
+//
+//        if (groupEntityList.size() == 0) {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found");
+//        }
 
         return GetGroupListResponse.from(groupEntityList);
     }
@@ -83,29 +91,18 @@ public class GroupService {
     @Transactional
     public GroupDetailsResponse createGroup(String uid, CreateGroupRequest request) {
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
-        AuthUserEntity authUser = authUserAccessor.findByUid(uid);
-        List<UserAuthUserEntity> userAuthUserEntityList = userAuthUserAccessor.findByAuthUserUuid(authUser.getUuid());
-        if (userAuthUserEntityList.size() >= 5) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
+        try {
+            List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
+            if (userEntityList.size() >= 5) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
+            }
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                // Do nothing
+            } else {
+                throw e;
+            }
         }
-
-        // Create new records into users table
-        List<UserEntity> userEntityList = new ArrayList<>();
-
-        UserEntity host = UserEntity.builder()
-                .uuid(UUID.randomUUID())
-                .name(request.getHostName())
-                .build();
-        userEntityList.add(host);
-
-        request.getParticipantsName().forEach(userName -> {
-            UserEntity user = UserEntity.builder()
-                    .uuid(UUID.randomUUID())
-                    .name(userName)
-                    .build();
-            userEntityList.add(user);
-        });
-        List<UserEntity> userEntityListSaved = userAccessor.saveAll(userEntityList);
 
         // Create new record into groups table.
         GroupEntity groupEntity = GroupEntity.builder()
@@ -114,6 +111,25 @@ public class GroupService {
                 .joinToken(UUID.randomUUID())
                 .build();
         GroupEntity groupEntitySaved = accessor.save(groupEntity);
+
+        // Create new records into users table
+        AuthUserEntity authUser = authUserAccessor.findByUid(uid);
+        List<UserEntity> userEntityList = new ArrayList<>();
+
+        UserEntity host = UserEntity.builder()
+                .uuid(UUID.randomUUID())
+                .name(request.getHostName())
+                .authUser(authUser)
+                .build();
+        userEntityList.add(host);
+        request.getParticipantsName().forEach(userName -> {
+            UserEntity user = UserEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .name(userName)
+                    .build();
+            userEntityList.add(user);
+        });
+        List<UserEntity> userEntityListSaved = userAccessor.saveAll(userEntityList);
 
         // Create new records into user_groups table
         List<UserGroupEntity> userGroupEntityList = new ArrayList<>();
@@ -128,16 +144,7 @@ public class GroupService {
         });
         userGroupAccessor.saveAll(userGroupEntityList);
 
-        // Link host in auth_user table with host in user table
-        UserAuthUserEntity userAuthUserEntity = UserAuthUserEntity.builder()
-                .authUserUuid(authUser.getUuid())
-                .userUuid(host.getUuid())
-                .authUser(authUser)
-                .user(host)
-                .build();
-        userAuthUserAccessor.save(userAuthUserEntity);
-
-        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved, host.getUuid().toString());
+        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved);
     }
 
 //    @Transactional

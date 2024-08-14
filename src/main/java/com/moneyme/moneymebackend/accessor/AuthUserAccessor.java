@@ -1,5 +1,6 @@
 package com.moneyme.moneymebackend.accessor;
 
+import com.google.api.Http;
 import com.moneyme.moneymebackend.entity.AuthUserEntity;
 import com.moneyme.moneymebackend.repository.AuthUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +18,8 @@ public class AuthUserAccessor {
 
     public AuthUserEntity findByUid(String uid) {
         try {
-            List<AuthUserEntity> authUserEntityList = repository.findByUid(uid);
-            if (authUserEntityList.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Auth user not found with uid: " + uid);
-            } else {
-                return authUserEntityList.get(0);
-            }
+            return repository.findById(uid)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auth User Not Found with uid:" + uid));
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

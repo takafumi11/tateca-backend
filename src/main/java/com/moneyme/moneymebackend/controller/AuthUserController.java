@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +26,9 @@ import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_AUTH_USERS;
 public class AuthUserController {
     private final AuthUserService service;
 
-    @GetMapping
+    @GetMapping("/{uid}")
     public ResponseEntity<AuthUserResponseDTO> getAuthUser(
-            @RequestParam("uid") String uid
+            @PathVariable("uid") String uid
     ) {
         AuthUserResponseDTO response = service.getAuthUserInfo(uid);
         return ResponseEntity.ok(response);

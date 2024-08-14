@@ -28,6 +28,19 @@ public class UserAccessor {
         }
     }
 
+    public List<UserEntity> findByAuthUserUid(String uid) {
+        try {
+            List<UserEntity> userEntityList = repository.findByAuthUserUid(uid);
+            if (userEntityList.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found with uid: " + uid);
+            } else {
+                return  userEntityList;
+            }
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
     public UserEntity save(UserEntity userEntity) throws ResponseStatusException {
         try {
             return repository.save(userEntity);

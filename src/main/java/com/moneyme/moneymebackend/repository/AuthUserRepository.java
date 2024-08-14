@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface AuthUserRepository extends JpaRepository<AuthUserEntity, UUID> {
-    @Query("SELECT u from AuthUserEntity u WHERE u.uid = :uid")
-    List<AuthUserEntity> findByUid(String uid);
+public interface AuthUserRepository extends JpaRepository<AuthUserEntity, String> {
+
 }

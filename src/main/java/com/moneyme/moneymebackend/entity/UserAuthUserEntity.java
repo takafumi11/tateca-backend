@@ -31,11 +31,11 @@ public class UserAuthUserEntity {
     @Column(name = "auth_user_uuid", columnDefinition = "BINARY(16)")
     private UUID authUserUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private UserEntity user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_user_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private AuthUserEntity authUser;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+//    private UserEntity user;
+//
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "auth_user_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+//    private AuthUserEntity authUser;
 }

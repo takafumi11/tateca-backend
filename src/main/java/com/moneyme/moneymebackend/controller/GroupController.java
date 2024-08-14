@@ -38,9 +38,10 @@ public class GroupController {
 
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupDetailsResponse> getGroupInfo(
+            @UId String uid,
             @PathVariable("groupId") UUID groupId
     ) {
-        GroupDetailsResponse response = service.getGroupInfo(groupId);
+        GroupDetailsResponse response = service.getGroupInfo(uid, groupId);
         return ResponseEntity.ok(response);
     }
 

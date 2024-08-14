@@ -23,10 +23,9 @@ public class AuthUserService {
     @Transactional
     public AuthUserResponseDTO createAuthUser(String uid, AuthUserRequestDTO request) {
         AuthUserEntity authUser = AuthUserEntity.builder()
-                .uuid(UUID.randomUUID())
+                .uid(uid)
                 .name(request.getName())
                 .email(request.getEmail())
-                .uid(uid)
                 .build();
 
         AuthUserEntity createdAuthUser = accessor.save(authUser);

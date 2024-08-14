@@ -22,17 +22,14 @@ import java.util.UUID;
 @Table(name = "`auth_users`")
 public class AuthUserEntity {
     @Id
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID uuid;
+    @Column(name = "uid", unique = true, nullable = false, length = 128)
+    private String uid;
 
     @Column(name = "name", length = 50)
     private String name;
 
     @Column(name = "email", unique = true, length = 255)
     private String email;
-
-    @Column(name = "uid", unique = true, nullable = false)
-    private String uid;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
