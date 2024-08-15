@@ -89,18 +89,7 @@ public class GroupService {
     @Transactional
     public GroupDetailsResponse createGroup(String uid, CreateGroupRequest request) {
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
-        try {
-            List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
-            if (userEntityList.size() >= 5) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
-            }
-        } catch (ResponseStatusException e) {
-            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                // Do nothing
-            } else {
-                throw e;
-            }
-        }
+        validateMaxGroupCount(uid);
 
         // Create new record into groups table.
         GroupEntity groupEntity = GroupEntity.builder()
@@ -145,70 +134,29 @@ public class GroupService {
         return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved);
     }
 
-//    @Transactional
-//    public GroupDetailsResponse joinGroup(JoinGroupRequest request, UUID groupId, String token) {
-//        List<UserGroupEntity> userGroupEntityList2 = userGroupAccessor.findByUserUuid(UUID.fromString(request.getActualUserId()));
-//        if (userGroupEntityList2.size() >= 5) {
-//            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 5 groups");
-//        }
-//
-//        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuid(groupId);
-//
-//        long emptyUserEntityCount = userGroupEntityList.stream()
-//                .filter(userGroupEntity -> userGroupEntity.getUser().getUid() == null)
-//                .count();
-//
-//        if (emptyUserEntityCount == 0) {
-//            throw new ResponseStatusException(HttpStatus.CONFLICT, "The group is full");
-//        }
-//
-//        UUID tmpUserId = UUID.fromString(request.getTmpUserId());
-//        UUID actualUserId = UUID.fromString(request.getActualUserId());
-//
-//        userGroupAccessor.delete(tmpUserId, groupId);
-//
-//        GroupEntity group = accessor.findById(groupId);
-//        UserEntity actualUser = userAccessor.findById(actualUserId);
-//        createUserGroup(actualUser, group);
-//
-//        // repayment, loanの修正が必要
-//        List<RepaymentEntity> repaymentList = repaymentAccessor.findByGroupId(groupId);
-//        for (RepaymentEntity repayment : repaymentList) {
-//            if (repayment.getPayer().getUuid().equals(tmpUserId)) {
-//                repayment.setPayer(actualUser);
-//            }
-//
-//            if (repayment.getRecipientUser().getUuid().equals(tmpUserId)) {
-//                repayment.setRecipientUser(actualUser);
-//            }
-//
-//            repaymentAccessor.save(repayment);
-//        }
-//
-//        List<ObligationEntity> obligationList = obligationAccessor.findByGroupId(groupId);
-//        for (ObligationEntity obligation : obligationList) {
-//            if (obligation.getUser().getUuid().equals(tmpUserId)) {
-//                obligation.setUser(actualUser);
-//            }
-//            obligationAccessor.save(obligation);
-//        }
-//
-//        List<LoanEntity> loanList = loanAccessor.findByGroupId(groupId);
-//        for (LoanEntity loan : loanList) {
-//            if (loan.getPayer().getUuid().equals(tmpUserId)) {
-//                loan.setPayer(actualUser);
-//            }
-//
-//            loanAccessor.save(loan);
-//        }
-//
-//        List<UserGroupEntity> updatedUserGroupList = userGroupAccessor.findByGroupUuid(groupId);
-//
-//        List<UserEntity> users = updatedUserGroupList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-//        GroupEntity groupEntity = updatedUserGroupList.stream().map(UserGroupEntity::getGroup).toList().get(0);
-//
-//        return GroupDetailsResponse.from(users, groupEntity);
-//    }
+    @Transactional
+    public GroupDetailsResponse joinGroup(JoinGroupRequest request, UUID groupId, String uid) {
+        // check if token is valid or not
+        GroupEntity groupEntity = accessor.findById(groupId);
+        if (!groupEntity.getJoinToken().equals(request.getJoinToken())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.getJoinToken());
+        }
+
+        // validation to check if exceeds max group count(=how many users are linked with auth_user)
+        validateMaxGroupCount(uid);
+
+        // Update users.auth_user_uid to link authUser and user
+        UserEntity userEntity = userAccessor.findById(request.getUserUuid());
+        AuthUserEntity authUserEntity = authUserAccessor.findByUid(uid);
+        userEntity.setAuthUser(authUserEntity);
+        userAccessor.save(userEntity);
+
+        // Build response
+        List<UserGroupEntity> updatedUserGroupList = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserEntity> users = updatedUserGroupList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+
+        return GroupDetailsResponse.from(users, groupEntity);
+    }
 
     private void createUserGroup(UserEntity user, GroupEntity group) {
         UserGroupEntity userGroup = UserGroupEntity.builder()
@@ -218,5 +166,21 @@ public class GroupService {
                 .group(group)
                 .build();
         userGroupAccessor.save(userGroup);
+    }
+
+    @Transactional
+    private void validateMaxGroupCount(String uid) {
+        try {
+            List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
+            if (userEntityList.size() >= 5) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
+            }
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                // Do nothing
+            } else {
+                throw e;
+            }
+        }
     }
 }

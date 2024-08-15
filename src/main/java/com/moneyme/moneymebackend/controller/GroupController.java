@@ -7,6 +7,7 @@ import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
 import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.service.GroupService;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.guieffect.qual.UI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,14 +54,14 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-//    @PostMapping("/{groupId}")
-//    public ResponseEntity<GroupDetailsResponse> joinGroup(
-//            @RequestBody JoinGroupRequest request,
-//            @PathVariable("groupId") UUID groupId,
-//            @RequestHeader("token") String token
-//    ) {
-//        GroupDetailsResponse response = service.joinGroup(request, groupId, token);
-//        return ResponseEntity.ok(response);
-//    }
+    @PostMapping("/{groupId}")
+    public ResponseEntity<GroupDetailsResponse> joinGroup(
+            @RequestBody JoinGroupRequest request,
+            @PathVariable("groupId") UUID groupId,
+            @UId String uid
+    ) {
+        GroupDetailsResponse response = service.joinGroup(request, groupId, uid);
+        return ResponseEntity.ok(response);
+    }
 
 }

@@ -16,8 +16,12 @@ public class GroupAccessor {
     private final GroupRepository groupRepository;
 
     public GroupEntity findById(UUID id) {
-        return groupRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("group not found"));
+        try {
+            return groupRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "group not found: " + id));
+        } catch(DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error at groupRepo.save", e);
+        }
     }
 
     public GroupEntity save(GroupEntity groupEntity) {
