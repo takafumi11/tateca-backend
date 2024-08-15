@@ -55,12 +55,12 @@ public class GroupController {
     }
 
     @PostMapping("/{groupId}")
-    public ResponseEntity<GroupDetailsResponse> joinGroup(
+    public ResponseEntity<GroupDetailsResponse> joinGroupInvited(
             @RequestBody JoinGroupRequest request,
             @PathVariable("groupId") UUID groupId,
             @UId String uid
     ) {
-        GroupDetailsResponse response = service.joinGroup(request, groupId, uid);
+        GroupDetailsResponse response = service.joinGroupInvited(request, groupId, uid);
         return ResponseEntity.ok(response);
     }
 

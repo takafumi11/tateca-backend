@@ -33,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -78,10 +79,6 @@ public class GroupService {
         List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuidList(uuidList);
 
         List<GroupEntity> groupEntityList = userGroupEntityList.stream().map(UserGroupEntity::getGroup).toList();
-
-        if (groupEntityList.size() == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found");
-        }
 
         return GetGroupListResponse.from(groupEntityList);
     }
@@ -135,11 +132,17 @@ public class GroupService {
     }
 
     @Transactional
-    public GroupDetailsResponse joinGroup(JoinGroupRequest request, UUID groupId, String uid) {
+    public GroupDetailsResponse joinGroupInvited(JoinGroupRequest request, UUID groupId, String uid) {
         // check if token is valid or not
         GroupEntity groupEntity = accessor.findById(groupId);
         if (!groupEntity.getJoinToken().equals(request.getJoinToken())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.getJoinToken());
+        }
+
+        // Check if user has already joined this group.
+        Optional<UserGroupEntity> userGroupEntityOpt = userGroupAccessor.findByIds(request.getUserUuid(), groupId);
+        if (userGroupEntityOpt.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User has already joined this group");
         }
 
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
@@ -152,8 +155,9 @@ public class GroupService {
         userAccessor.save(userEntity);
 
         // Build response
-        List<UserGroupEntity> updatedUserGroupList = userGroupAccessor.findByGroupUuid(groupId);
-        List<UserEntity> users = updatedUserGroupList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        // Check if user has already in the group requested.
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
 
         return GroupDetailsResponse.from(users, groupEntity);
     }
@@ -170,17 +174,9 @@ public class GroupService {
 
     @Transactional
     private void validateMaxGroupCount(String uid) {
-        try {
-            List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
-            if (userEntityList.size() >= 5) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
-            }
-        } catch (ResponseStatusException e) {
-            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                // Do nothing
-            } else {
-                throw e;
-            }
+        List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
+        if (userEntityList.size() >= 5) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
         }
     }
 }

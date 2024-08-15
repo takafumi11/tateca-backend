@@ -23,4 +23,6 @@ public interface UserGroupRepository extends JpaRepository<UserGroupEntity, User
     List<UserGroupEntity> findByUserUuidList(@Param("userUuidList") List<UUID> userUuidList);
 
     void deleteByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid);
+
+    Optional<UserGroupEntity> findByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid);
 }
