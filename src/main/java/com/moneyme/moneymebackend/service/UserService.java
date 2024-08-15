@@ -32,16 +32,5 @@ public class UserService {
 //
 //        return UserResponseDTO.from(savedUser);
 //    }
-//
-//    @Transactional
-//    public UserResponseDTO deleteUserInfo(UUID userId, UserDeleteRequestDTO request) {
-//        UserEntity user = accessor.findById(userId);
-//
-//        user.setEmail(request.getEmail());
-//        user.setUid(request.getUid());
-//
-//        UserEntity savedUser = repository.save(user);
-//
-//        return UserResponseDTO.from(savedUser);
-//    }
+
 }

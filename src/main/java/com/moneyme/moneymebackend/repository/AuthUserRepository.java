@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface AuthUserRepository extends JpaRepository<AuthUserEntity, String> {
-
+    boolean existsByEmail(String email);
 }
