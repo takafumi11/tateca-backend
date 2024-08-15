@@ -20,9 +20,10 @@ import java.util.UUID;
 public class UserGroupAccessor {
     private final UserGroupRepository repository;
 
-    public Optional<UserGroupEntity> findByIds(UUID useruuid, UUID groupUuid) {
+    public UserGroupEntity findByIds(UUID useruuid, UUID groupUuid) {
         try {
-            return repository.findByUserUuidAndGroupUuid(useruuid, groupUuid);
+            return repository.findByUserUuidAndGroupUuid(useruuid, groupUuid)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User Group Not Found"));
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

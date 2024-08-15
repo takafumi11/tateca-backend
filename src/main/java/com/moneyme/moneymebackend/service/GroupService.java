@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -140,8 +141,14 @@ public class GroupService {
         }
 
         // Check if user has already joined this group.
-        Optional<UserGroupEntity> userGroupEntityOpt = userGroupAccessor.findByIds(request.getUserUuid(), groupId);
-        if (userGroupEntityOpt.isPresent()) {
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuid(groupId);
+        boolean exists = userGroupEntityList.stream()
+                .anyMatch(userGroupEntity -> {
+                    AuthUserEntity authUser = userGroupEntity.getUser().getAuthUser();
+                    return authUser != null && uid.equals(authUser.getUid());
+                });
+
+        if (exists) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User has already joined this group");
         }
 
@@ -156,7 +163,6 @@ public class GroupService {
 
         // Build response
         // Check if user has already in the group requested.
-        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuid(groupId);
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
 
         return GroupDetailsResponse.from(users, groupEntity);
