@@ -149,7 +149,7 @@ public class GroupService {
                 });
 
         if (exists) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User has already joined this group");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already joined this group");
         }
 
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
