@@ -61,11 +61,9 @@ public class RepaymentController {
 
     @DeleteMapping("/{repaymentId}")
     public ResponseEntity<Void> deleteRepayment(
-            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
-            @PathVariable("groupId") UUID groupId,
             @PathVariable("repaymentId") UUID repaymentId
     ) {
-        service.deleteRepayment(groupId, repaymentId);
+        service.deleteRepayment(repaymentId);
         return ResponseEntity.noContent().build();
     }
 }
