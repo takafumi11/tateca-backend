@@ -1,13 +1,11 @@
 package com.moneyme.moneymebackend.service;
 
-import com.google.api.Http;
 import com.moneyme.moneymebackend.accessor.AuthUserAccessor;
 import com.moneyme.moneymebackend.accessor.GroupAccessor;
 import com.moneyme.moneymebackend.accessor.LoanAccessor;
 import com.moneyme.moneymebackend.accessor.ObligationAccessor;
 import com.moneyme.moneymebackend.accessor.RepaymentAccessor;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
-import com.moneyme.moneymebackend.accessor.UserAuthUserAccessor;
 import com.moneyme.moneymebackend.accessor.UserGroupAccessor;
 import com.moneyme.moneymebackend.dto.request.CreateGroupRequest;
 import com.moneyme.moneymebackend.dto.request.JoinGroupRequest;
@@ -15,26 +13,17 @@ import com.moneyme.moneymebackend.dto.response.GetGroupListResponse;
 import com.moneyme.moneymebackend.dto.response.GroupDetailsResponse;
 import com.moneyme.moneymebackend.entity.AuthUserEntity;
 import com.moneyme.moneymebackend.entity.GroupEntity;
-import com.moneyme.moneymebackend.entity.LoanEntity;
-import com.moneyme.moneymebackend.entity.ObligationEntity;
-import com.moneyme.moneymebackend.entity.RepaymentEntity;
-import com.moneyme.moneymebackend.entity.UserAuthUserEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import com.moneyme.moneymebackend.entity.UserGroupEntity;
 import jakarta.transaction.Transactional;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,7 +35,6 @@ public class GroupService {
     private final UserAccessor userAccessor;
     private final AuthUserAccessor authUserAccessor;
     private final UserGroupAccessor userGroupAccessor;
-    private final UserAuthUserAccessor userAuthUserAccessor;
     private final RepaymentAccessor repaymentAccessor;
     private final LoanAccessor loanAccessor;
     private final ObligationAccessor obligationAccessor;
