@@ -3,7 +3,10 @@ package com.moneyme.moneymebackend.accessor;
 import com.moneyme.moneymebackend.entity.ObligationEntity;
 import com.moneyme.moneymebackend.repository.ObligationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,7 +25,11 @@ public class ObligationAccessor {
     }
 
     public List<ObligationEntity> findByLoanId(UUID id) {
-        return repository.findByLoanId(id);
+        try {
+            return repository.findByLoanId(id);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
     }
 
     public List<ObligationEntity> findByGroupId(UUID id) {
@@ -31,5 +38,13 @@ public class ObligationAccessor {
 
     public void deleteAll(List<ObligationEntity> obligationEntityList) {
         repository.deleteAll(obligationEntityList);
+    }
+
+    public void deleteAllById(List<UUID> loanIdList) {
+        try {
+            repository.deleteAllById(loanIdList);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
     }
 }
