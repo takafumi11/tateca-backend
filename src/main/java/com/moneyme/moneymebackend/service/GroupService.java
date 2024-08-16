@@ -40,12 +40,6 @@ public class GroupService {
     private final ObligationAccessor obligationAccessor;
 
     public GroupDetailsResponse getGroupInfo(String uid, UUID groupId) {
-//        Integer inta = 10;
-//
-//        if (inta == 10) {
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "失敗！");
-//        }
-
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
         if (userGroups.size() == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
@@ -53,10 +47,6 @@ public class GroupService {
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
-
-//        String userUuid = users.stream().map(UserEntity::getAuthUser).filter(authUser -> {
-//            return authUser.getUid().equals(uid);
-//        }).toString();
 
         return GroupDetailsResponse.from(users, groupEntity);
     }

@@ -18,19 +18,4 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
     private final UserAccessor accessor;
-    private final UserRepository repository;
-
-//    @Transactional
-//    public UserResponseDTO updateUserInfo(UUID userId, UserRequestDTO request, String uid) {
-//        UserEntity user = accessor.findById(userId);
-//
-//        user.setName(request.getUserName());
-//        user.setEmail(request.getEmail());
-//        user.setUid(uid);
-//
-//        UserEntity savedUser = repository.save(user);
-//
-//        return UserResponseDTO.from(savedUser);
-//    }
-
 }

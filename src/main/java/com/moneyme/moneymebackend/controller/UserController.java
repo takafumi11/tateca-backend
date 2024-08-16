@@ -29,17 +29,5 @@ import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_USERS;
 @RestController
 public class UserController {
     private final UserService service;
-    private final AuthUserService authUserService;
-
-    // TODO: Add ENUM or cretae new endpoint
-//    @PatchMapping("/{userId}")
-//    public ResponseEntity<UserResponseDTO> updateUserInfo(
-//            @UId String uid,
-//            @PathVariable("userId") UUID uuid,
-//            @RequestBody UserRequestDTO request) {
-//        UserResponseDTO response = service.updateUserInfo(uuid, request, uid);
-//        return ResponseEntity.ok(response);
-//    }
-//
 }
 

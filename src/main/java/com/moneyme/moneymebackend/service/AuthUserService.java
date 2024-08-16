@@ -3,9 +3,7 @@ package com.moneyme.moneymebackend.service;
 import com.moneyme.moneymebackend.accessor.AuthUserAccessor;
 import com.moneyme.moneymebackend.accessor.UserAccessor;
 import com.moneyme.moneymebackend.dto.request.AuthUserRequestDTO;
-import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
 import com.moneyme.moneymebackend.dto.response.AuthUserResponseDTO;
-import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.entity.AuthUserEntity;
 import com.moneyme.moneymebackend.entity.UserEntity;
 import jakarta.transaction.Transactional;
@@ -13,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
