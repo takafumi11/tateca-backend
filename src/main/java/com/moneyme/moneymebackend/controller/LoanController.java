@@ -61,11 +61,9 @@ public class LoanController {
     
     @DeleteMapping("/{loanId}")
     public ResponseEntity<Void> deleteLoan(
-            @RequestHeader(HEADER_AUTHORIZATION) String idToken,
-            @PathVariable("groupId") UUID groupId,
             @PathVariable("loanId") UUID loanId
     ) {
-        service.deleteLoan(groupId, loanId);
+        service.deleteLoan(loanId);
         return ResponseEntity.noContent().build();
     }
 }

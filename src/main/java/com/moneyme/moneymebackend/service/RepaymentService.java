@@ -82,11 +82,8 @@ public class RepaymentService {
     }
 
     @Transactional
-    public void deleteRepayment(UUID groupId, UUID repaymentId) {
-        RepaymentEntity repayment = accessor.findById(repaymentId);
-        accessor.delete(repayment);
-
-//        updateBalancesInRedis(groupId.toString(), repayment.getPayer().getUuid().toString(), repayment.getRecipientUser().getUuid().toString(), 0, BigDecimal.ZERO, repayment.getAmount(), repayment.getCurrencyRate());
+    public void deleteRepayment(UUID repaymentId) {
+        accessor.deleteById(repaymentId);
     }
 
     private void updateBalancesInRedis(String groupId, String payerId, String recipientId, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {

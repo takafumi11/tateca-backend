@@ -146,27 +146,14 @@ public class LoanService {
     }
 
     @Transactional
-    public void deleteLoan(UUID groupId, UUID loanId) {
-        LoanEntity loan = accessor.findById(loanId);
+    public void deleteLoan(UUID loanId) {
+        // Delete Obligations
+        List<ObligationEntity> obligationEntityList = obligationAccessor.findByLoanId(loanId);
+        List<UUID> uuidList = obligationEntityList.stream().map(ObligationEntity::getUuid).toList();
+        obligationAccessor.deleteAllById(uuidList);
 
-        List<ObligationEntity> obligations = obligationAccessor.findByLoanId(loanId);
-
-        obligationAccessor.deleteAll(obligations);
-        accessor.delete(loan);
-
-        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
-
-        for (ObligationEntity obligationEntity : obligations) {
-            BigDecimal amountAdded = calculateAmount(obligationEntity.getAmount(), loan.getCurrencyRate());
-            balanceUpdates.put(obligationEntity.getUser().getUuid().toString(), amountAdded.negate());
-            totalAmount = totalAmount.add(amountAdded);
-        }
-
-        // Subtract the total amount from the payer's balance
-        balanceUpdates.put(loan.getPayer().getUuid().toString(), totalAmount);
-
-//        redisService.updateBalances(groupId.toString(), balanceUpdates);
+        // Delete Loan
+        accessor.deleteById(loanId);
     }
 
 }

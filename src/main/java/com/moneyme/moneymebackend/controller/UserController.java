@@ -2,8 +2,10 @@ package com.moneyme.moneymebackend.controller;
 
 import com.moneyme.moneymebackend.annotation.UId;
 import com.moneyme.moneymebackend.dto.request.UserDeleteRequestDTO;
+import com.moneyme.moneymebackend.dto.response.AuthUserResponseDTO;
 import com.moneyme.moneymebackend.dto.response.UserResponseDTO;
 import com.moneyme.moneymebackend.dto.request.UserRequestDTO;
+import com.moneyme.moneymebackend.service.AuthUserService;
 import com.moneyme.moneymebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,39 +29,5 @@ import static com.moneyme.moneymebackend.constants.ApiConstants.PATH_USERS;
 @RestController
 public class UserController {
     private final UserService service;
-
-    @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(
-            @UId String uid,
-            @RequestBody UserRequestDTO request) {
-        UserResponseDTO response = service.createUser(uid, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<UserResponseDTO> getUserInfo(
-            @RequestParam("uid") String uid
-    ) {
-        UserResponseDTO response = service.getUserInfo(uid);
-        return ResponseEntity.ok(response);
-    }
-
-    // TODO: Add ENUM or cretae new endpoint
-    @PatchMapping("/{userId}")
-    public ResponseEntity<UserResponseDTO> updateUserInfo(
-            @UId String uid,
-            @PathVariable("userId") UUID uuid,
-            @RequestBody UserRequestDTO request) {
-        UserResponseDTO response = service.updateUserInfo(uuid, request, uid);
-        return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<UserResponseDTO> deleteUserInfo(
-            @PathVariable("userId") UUID uuid,
-            @RequestBody UserDeleteRequestDTO request) {
-        UserResponseDTO response = service.deleteUserInfo(uuid, request);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
-    }
 }
 

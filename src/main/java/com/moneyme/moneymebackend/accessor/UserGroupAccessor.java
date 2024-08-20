@@ -20,15 +20,18 @@ import java.util.UUID;
 public class UserGroupAccessor {
     private final UserGroupRepository repository;
 
+    public UserGroupEntity findByIds(UUID useruuid, UUID groupUuid) {
+        try {
+            return repository.findByUserUuidAndGroupUuid(useruuid, groupUuid)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User Group Not Found"));
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
     public List<UserGroupEntity> findByGroupUuid(UUID groupId) {
         try {
-            List<UserGroupEntity> userGroupEntityList = repository.findByGroupUuid(groupId);
-
-            if (userGroupEntityList.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UserGroups not found with group id: " + groupId);
-            } else {
-                return userGroupEntityList;
-            }
+            return repository.findByGroupUuid(groupId);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
@@ -37,6 +40,14 @@ public class UserGroupAccessor {
     public List<UserGroupEntity> findByUserUuid(UUID userId) {
         try {
             return repository.findByUserUuid(userId);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
+    public List<UserGroupEntity> findByUserUuidList(List<UUID> userUuidList) {
+        try {
+            return repository.findByUserUuidList(userUuidList);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

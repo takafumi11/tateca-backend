@@ -3,8 +3,10 @@ package com.moneyme.moneymebackend.dto.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class JoinGroupRequest {
-    @JsonProperty("tmp_user_id") String tmpUserId;
-    @JsonProperty("actual_user_id") String actualUserId;
+    @JsonProperty("user_uuid") UUID userUuid;
+    @JsonProperty("join_token") UUID joinToken;
 }
