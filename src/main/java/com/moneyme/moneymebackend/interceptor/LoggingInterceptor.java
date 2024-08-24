@@ -56,8 +56,8 @@ public class LoggingInterceptor implements HandlerInterceptor {
         logger.info("Request: [{}] UID: {} {} {} - RequestTime: {} - Body: {}",
                 requestId, uid, request.getMethod(), request.getRequestURI(), formatter.format(requestTime), requestBody);
 
-        logger.info("Response: [{}] {} - ProcessingTime: {}ms - Body: {}",
-                requestId, response.getStatus(), processingTimeMs, responseBody);
+        logger.info("Response: [{}] {} - ProcessingTime: {}ms",
+                requestId, response.getStatus(), processingTimeMs);
 
         if (responseWrapper != null) {
             responseWrapper.copyBodyToResponse();
