@@ -20,19 +20,10 @@ public class BearerTokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String uid = request.getHeader(X_UID_HEADER);
-
-        request.setAttribute(UID_ATTRIBUTE, uid);
-
-        if (uid == null || uid.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing x-uid header");
-        }
 
         try {
             FirebaseToken firebaseToken = FirebaseAuthHelper.verifyIdToken(bearerToken);
-            if (!uid.equals(firebaseToken.getUid())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid x-uid header");
-            }
+            request.setAttribute(UID_ATTRIBUTE, firebaseToken.getUid());
         } catch (FirebaseAuthException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid bearer token");
         }
