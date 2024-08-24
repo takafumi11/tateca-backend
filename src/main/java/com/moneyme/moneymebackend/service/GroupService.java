@@ -159,8 +159,8 @@ public class GroupService {
     @Transactional
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
-        if (userEntityList.size() >= 5) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 6 groups");
+        if (userEntityList.size() >= 9) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 10 groups");
         }
     }
 }
