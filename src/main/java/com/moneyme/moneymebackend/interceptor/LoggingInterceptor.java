@@ -48,20 +48,11 @@ public class LoggingInterceptor implements HandlerInterceptor {
         long processingTimeMs = responseTime.toEpochMilli() - requestTime.toEpochMilli();
 
         ContentCachingRequestWrapper requestWrapper = getWrapper(request, ContentCachingRequestWrapper.class);
-        ContentCachingResponseWrapper responseWrapper = getWrapper(response, ContentCachingResponseWrapper.class);
 
         String requestBody = requestWrapper != null ? getRequestBody(requestWrapper) : "N/A";
-        String responseBody = responseWrapper != null ? getResponseBody(responseWrapper) : "N/A";
 
-        logger.info("Request: [{}] UID: {} {} {} - RequestTime: {} - Body: {}",
-                requestId, uid, request.getMethod(), request.getRequestURI(), formatter.format(requestTime), requestBody);
-
-        logger.info("Response: [{}] {} - ProcessingTime: {}ms",
-                requestId, response.getStatus(), processingTimeMs);
-
-        if (responseWrapper != null) {
-            responseWrapper.copyBodyToResponse();
-        }
+        logger.info("Request: Method: {} - Path: {} - UID: {} - Body: {} - RequestTime: {} - RequestId: [{}]", request.getMethod(), request.getRequestURI(), uid, requestBody, formatter.format(requestTime), requestId);
+        logger.info("Response: Status: {} - ProcessingTime: {}ms - RequestId: [{}]", response.getStatus(), processingTimeMs, requestId);
     }
 
     private <T> T getWrapper(Object obj, Class<T> wrapper) {
