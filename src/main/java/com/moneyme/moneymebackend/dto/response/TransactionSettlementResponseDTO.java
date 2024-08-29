@@ -15,5 +15,5 @@ public class TransactionSettlementResponseDTO {
     UserResponseDTO from;
     @JsonProperty("to")
     UserResponseDTO to;
-    @JsonProperty("amount") int amount;
+    @JsonProperty("amount") long amount;
 }
