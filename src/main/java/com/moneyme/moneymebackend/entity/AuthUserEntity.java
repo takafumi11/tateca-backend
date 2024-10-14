@@ -37,6 +37,12 @@ public class AuthUserEntity {
     @Column(name = "updated_at", nullable = false)
     private ZonedDateTime updatedAt;
 
+    @Column(name = "last_login_time")
+    private ZonedDateTime lastLoginTime;
+
+    @Column(name = "total_login_count")
+    private Integer totalLoginCount;
+
     @PrePersist
     protected void onCreate() {
         ZonedDateTime now = ZonedDateTime.now();
