@@ -18,6 +18,7 @@ public class AuthUserAccessor {
 
     public AuthUserEntity findByUid(String uid) {
         try {
+            System.out.println("aaaaa");
             return repository.findById(uid)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auth User Not Found with uid:" + uid));
         } catch (DataAccessException e) {
