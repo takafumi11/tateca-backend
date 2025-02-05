@@ -1,13 +1,16 @@
-version: '3.4'
+version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
       - "5005:5005"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_PORT: ${DB_PORT}
@@ -15,9 +18,12 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n"
+    restart: always
 
   db:
-    build: ./mysql
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
     ports:
       - "3306:3306"
     restart: always
