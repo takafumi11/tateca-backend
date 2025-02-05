@@ -6,24 +6,27 @@ import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Service
 public class FirebaseService {
 
     @PostConstruct
     public void initialize() {
-        try (FileInputStream serviceAccount = new FileInputStream("/app/serviceAccountKey.json")) {
+        try {
+            String serviceAccountKey = System.getenv("FIREBASE_SERVICE_ACCOUNT_KEY");
+            InputStream serviceAccountStream = new ByteArrayInputStream(serviceAccountKey.getBytes());
+
             FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
                     .build();
 
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize Firebase", e);
+            FirebaseApp.initializeApp(options);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
