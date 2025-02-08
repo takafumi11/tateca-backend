@@ -18,6 +18,7 @@ public class FirebaseService {
     public void initialize() {
         try {
             String serviceAccountKey = System.getenv("FIREBASE_SERVICE_ACCOUNT_KEY");
+            System.out.println("FIREBASE_SERVICE_ACCOUNT_KEY: " + serviceAccountKey);
             InputStream serviceAccountStream = new ByteArrayInputStream(serviceAccountKey.getBytes());
 
             FirebaseOptions options = new FirebaseOptions.Builder()
