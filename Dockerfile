@@ -17,9 +17,19 @@
 #ENTRYPOINT ["java", "-Xms64m", "-Xmx128m", "-jar", "app.jar"]
 
 
-FROM takafumi11/tateca-backend:latest AS app
+#FROM takafumi11/tateca-backend:latest AS app
+#WORKDIR /app
+#
+#EXPOSE 8080
+#
+#ENTRYPOINT ["java", "-Xms64m", "-Xmx128m", "-jar", "app.jar"]
+
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
+
+# Docker Hubからイメージをプル
+COPY --from=takafumi11/tateca-backend:latest /app/app.jar
 
 EXPOSE 8080
 
