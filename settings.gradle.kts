@@ -1,1 +1,1 @@
-rootProject.name = "money-me-backend"
+rootProject.name = "tateca-backend"

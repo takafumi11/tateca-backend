@@ -1,0 +1,27 @@
+package com.tateca.tatecabackend.dto.response;
+
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tateca.tatecabackend.entity.GroupEntity;
+import com.tateca.tatecabackend.entity.UserEntity;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@Builder
+public class GroupDetailsResponse {
+    @JsonProperty("group")
+    GroupResponseDTO groupResponseDTO;
+
+    @JsonProperty("users")
+    List<UserResponseDTO> userResponseDTOS;
+
+    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity) {
+        return GroupDetailsResponse.builder()
+                .groupResponseDTO(GroupResponseDTO.from(groupEntity))
+                .userResponseDTOS(userEntityList.stream().map(UserResponseDTO::from).toList())
+                .build();
+    }
+}
