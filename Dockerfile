@@ -14,4 +14,4 @@ COPY --from=builder workspace/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Xms128m", "-Xmx256m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms64m", "-Xmx128m", "-jar", "app.jar"]
