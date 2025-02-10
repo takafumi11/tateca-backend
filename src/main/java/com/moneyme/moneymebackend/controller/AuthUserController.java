@@ -34,7 +34,6 @@ public class AuthUserController {
     public ResponseEntity<AuthUserResponseDTO> getAuthUser(
             @PathVariable("uid") String uid
     ) {
-        System.out.println("testtt");
         AuthUserResponseDTO response = service.getAuthUserInfo(uid);
         return ResponseEntity.ok(response);
     }
