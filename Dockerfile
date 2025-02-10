@@ -28,9 +28,8 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-# Docker Hubからイメージをプル
-COPY --from=takafumi11/tateca-backend:latest /app/app.jar
+COPY --from=takafumi11/tateca-backend:latest /app/*.jar /app/app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Xms64m", "-Xmx128m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms64m", "-Xmx128m", "-jar", "/app/app.jar"]
