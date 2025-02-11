@@ -1,22 +1,20 @@
 package com.tateca.tatecabackend.service;
 
+import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
-import com.tateca.tatecabackend.accessor.RepaymentAccessor;
+import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponse;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponse;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
-import com.tateca.tatecabackend.entity.LoanEntity;
 import com.tateca.tatecabackend.entity.ObligationEntity;
 import com.tateca.tatecabackend.entity.RepaymentEntity;
+import com.tateca.tatecabackend.entity.TransactionEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
-import com.tateca.tatecabackend.repository.LoanRepository;
-import com.tateca.tatecabackend.repository.RepaymentRepository;
 import com.tateca.tatecabackend.repository.UserGroupRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,35 +26,21 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
-    private final LoanRepository loanRepository;
-    private final RepaymentRepository repaymentRepository;
     private final UserGroupRepository userGroupRepository;
 
     private final ObligationAccessor obligationAccessor;
-    private final RepaymentAccessor repaymentAccessor;
+    private final UserAccessor userAccessor;
+    private final GroupAccessor groupAccessor;
+    private final TransactionAccessor accessor;
 
     public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
-        List<LoanEntity> loans = loanRepository.getLoansByGroup(groupId, PageRequest.of(0, count));
-        List<RepaymentEntity> repayments = repaymentRepository.getRepaymentsByGroup(groupId, PageRequest.of(0, count));
+        List<TransactionEntity> transactionEntityList = accessor.findTransactionHistoryList(groupId, count);
 
-        List<TransactionHistoryResponseDTO> transactionsResponses = loans.stream().map(TransactionHistoryResponseDTO::from).toList();
-        List<TransactionHistoryResponseDTO> transactionsResponses2 = repayments.stream().map(TransactionHistoryResponseDTO::from).toList();
-
-        List<TransactionHistoryResponseDTO> combinedResponses = Stream.concat(transactionsResponses.stream(), transactionsResponses2.stream())
-                .toList()
-                .stream()
-                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
-                .limit(count)
-                .toList();
-
-        return TransactionsHistoryResponse.builder()
-                .transactionsHistory(combinedResponses)
-                .build();
+        return TransactionsHistoryResponse.buildResponse(transactionEntityList);
     }
 
     public TransactionsSettlementResponse getSettlements(UUID groupId) {

@@ -1,8 +1,7 @@
 package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tateca.tatecabackend.entity.LoanEntity;
-import com.tateca.tatecabackend.entity.RepaymentEntity;
+import com.tateca.tatecabackend.entity.TransactionEntity;
 import com.tateca.tatecabackend.model.TransactionType;
 import lombok.Builder;
 import lombok.Data;
@@ -28,33 +27,18 @@ public class TransactionHistoryResponseDTO {
     UserResponseDTO targetUser;
     @JsonProperty("created_at") String createdAt;
 
-    public static TransactionHistoryResponseDTO from(LoanEntity loan) {
+    public static TransactionHistoryResponseDTO from(TransactionEntity transaction) {
         return TransactionHistoryResponseDTO.builder()
-                .id(loan.getUuid().toString())
-                .transactionType(TransactionType.LOAN)
-                .title(loan.getTitle())
-                .amount(loan.getAmount())
-                .currencyCode(loan.getCurrencyCode())
-                .currencyRate(loan.getCurrencyRate())
-                .date(convertToTokyoTime(loan.getDate()))
-                .payer(UserResponseDTO.from(loan.getPayer()))
-                .targetUser(null)
-                .createdAt(convertToTokyoTime(loan.getCreatedAt()))
-                .build();
-    }
-
-    public static TransactionHistoryResponseDTO from(RepaymentEntity repayment) {
-        return TransactionHistoryResponseDTO.builder()
-                .id(repayment.getUuid().toString())
-                .transactionType(TransactionType.REPAYMENT)
-                .title(repayment.getTitle())
-                .amount(repayment.getAmount())
-                .currencyCode(repayment.getCurrencyCode())
-                .currencyRate(repayment.getCurrencyRate())
-                .date(convertToTokyoTime(repayment.getDate()))
-                .payer(UserResponseDTO.from(repayment.getPayer()))
-                .targetUser(UserResponseDTO.from(repayment.getRecipientUser()))
-                .createdAt(convertToTokyoTime(repayment.getCreatedAt()))
+                .id(transaction.getUuid().toString())
+                .transactionType(transaction.getTransactionType())
+                .title(transaction.getTitle())
+                .amount(transaction.getAmount())
+                .currencyCode(transaction.getCurrencyCode())
+                .currencyRate(transaction.getCurrencyRate())
+                .date(convertToTokyoTime(transaction.getDate()))
+                .payer(UserResponseDTO.from(transaction.getPayer()))
+                .targetUser(UserResponseDTO.from(transaction.getRecipient()))
+                .createdAt(convertToTokyoTime(transaction.getCreatedAt()))
                 .build();
     }
 }

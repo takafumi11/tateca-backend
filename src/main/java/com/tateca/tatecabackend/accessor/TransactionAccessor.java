@@ -1,8 +1,6 @@
 package com.tateca.tatecabackend.accessor;
 
 import com.tateca.tatecabackend.entity.TransactionEntity;
-import com.tateca.tatecabackend.repository.LoanRepository;
-import com.tateca.tatecabackend.repository.RepaymentRepository;
 import com.tateca.tatecabackend.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -10,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -37,6 +36,14 @@ public class TransactionAccessor {
     public void deleteById(UUID id) {
         try {
             repository.deleteById(id);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
+    public List<TransactionEntity> findTransactionHistoryList(UUID groupId, int limit) {
+        try {
+            return repository.findTransactionsByGroupOrderByCreatedAtDesc(groupId, limit);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

@@ -2,9 +2,7 @@ package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
-import com.tateca.tatecabackend.accessor.LoanAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
-import com.tateca.tatecabackend.accessor.RepaymentAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequest;
