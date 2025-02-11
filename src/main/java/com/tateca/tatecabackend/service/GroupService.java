@@ -35,7 +35,7 @@ public class GroupService {
     private final UserGroupAccessor userGroupAccessor;
     private final ObligationAccessor obligationAccessor;
 
-    public GroupDetailsResponse getGroupInfo(String uid, UUID groupId) {
+    public GroupDetailsResponse getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
         if (userGroups.size() == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);

@@ -20,10 +20,6 @@ public class ObligationAccessor {
         return repository.saveAll(obligationEntityList);
     }
 
-    public ObligationEntity save(ObligationEntity obligationEntity) {
-        return repository.save(obligationEntity);
-    }
-
     public List<ObligationEntity> findByLoanId(UUID id) {
         try {
             return repository.findByLoanId(id);
@@ -34,10 +30,6 @@ public class ObligationAccessor {
 
     public List<ObligationEntity> findByGroupId(UUID id) {
         return repository.findByGroupId(id);
-    }
-
-    public void deleteAll(List<ObligationEntity> obligationEntityList) {
-        repository.deleteAll(obligationEntityList);
     }
 
     public void deleteAllById(List<UUID> loanIdList) {

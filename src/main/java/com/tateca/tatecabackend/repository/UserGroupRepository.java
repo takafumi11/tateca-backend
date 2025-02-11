@@ -16,13 +16,7 @@ public interface UserGroupRepository extends JpaRepository<UserGroupEntity, User
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.groupUuid = :groupUuid")
     List<UserGroupEntity> findByGroupUuid(UUID groupUuid);
 
-    @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid = :userId")
-    List<UserGroupEntity> findByUserUuid(UUID userId);
-
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid IN :userUuidList")
     List<UserGroupEntity> findByUserUuidList(@Param("userUuidList") List<UUID> userUuidList);
 
-    void deleteByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid);
-
-    Optional<UserGroupEntity> findByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid);
 }
