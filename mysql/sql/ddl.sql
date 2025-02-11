@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS transaction_history (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid),
     FOREIGN KEY (payer_id) REFERENCES users(uuid),
-    FOREIGN KEY (recipient_user_id) REFERENCES users(uuid)
+    FOREIGN KEY (recipient_id) REFERENCES users(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS loan_obligations (
