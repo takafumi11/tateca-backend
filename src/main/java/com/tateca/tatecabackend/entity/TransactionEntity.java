@@ -99,18 +99,20 @@ public class TransactionEntity {
                 .build();
     }
 
-//    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity user, GroupEntity group) {
-//        return TransactionEntity.builder()
-//                .uuid(UUID.randomUUID())
-//                .group(group)
-//                .transactionType(TransactionType.LOAN)
-//                .title(request.getRepaymentRequestDTO().getTitle())
-//                .amount(request.getRepaymentRequestDTO().getAmount())
-//                .currencyCode(request.getRepaymentRequestDTO().getCurrencyCode())
-//                .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
-//                .date(TimeHelper.convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
-//                .payer(user)
-//                .recipient(request.)
-//                .build();
-//    }
+    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity payer, UserEntity recipient, GroupEntity group) {
+        return TransactionEntity.builder()
+                .uuid(UUID.randomUUID())
+                .group(group)
+                .transactionType(TransactionType.REPAYMENT)
+                .title(request.getRepaymentRequestDTO().getTitle())
+                .amount(request.getRepaymentRequestDTO().getAmount())
+                .currencyCode(request.getRepaymentRequestDTO().getCurrencyCode())
+                .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
+                .date(TimeHelper.convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
+                .payer(payer)
+                .recipient(recipient)
+                .build();
+    }
+
+
 }
