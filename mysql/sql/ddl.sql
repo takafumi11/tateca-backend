@@ -74,3 +74,23 @@ CREATE TABLE IF NOT EXISTS loan_obligations (
     FOREIGN KEY (transaction_uuid) REFERENCES transaction_history(uuid),
     FOREIGN KEY (user_uuid) REFERENCES users(uuid)
 );
+
+CREATE TABLE IF NOT EXISTS currency_names (
+    currency_code CHAR(3) PRIMARY KEY,  -- 通貨コード (例: USD, EUR)
+    jp_display_name VARCHAR(50) NOT NULL, -- 日本語表示名 (例: "米ドル", "ユーロ")
+    eng_display_name VARCHAR(50) NOT NULL, -- 英語表示名 (例: "United States Dollar", "Euro")
+    jp_country_name VARCHAR(50) NOT NULL, -- 日本語の国名 (例: "アメリカ合衆国", "日本")
+    eng_country_name VARCHAR(50) NOT NULL  -- 英語の国名 (例: "United States", "Japan")
+);
+
+CREATE TABLE IF NOT EXISTS exchange_rates (
+    date DATE NOT NULL,                      -- 為替レートが適用される日付 (yyyy-mm-dd)
+    currency_code CHAR(3) NOT NULL,          -- 通貨コード (例: "USD", "EUR")
+    exchange_rate DECIMAL(18, 6) NOT NULL,   -- 換算レート (JPY に対するレート)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- レコード作成時刻
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- レコード更新時刻
+    PRIMARY KEY (date, currency_code),        -- 複合主キー: 日付と通貨コードの組み合わせ
+    FOREIGN KEY (currency_code)               -- 外部キー制約: 通貨コードがcurrency_namesテーブルに存在することを保証
+    REFERENCES currency_names (currency_code)
+    ON DELETE CASCADE                         -- 通貨名が削除されると、関連する為替レートも削除
+);
