@@ -33,8 +33,6 @@ public class GroupService {
     private final UserAccessor userAccessor;
     private final AuthUserAccessor authUserAccessor;
     private final UserGroupAccessor userGroupAccessor;
-    private final RepaymentAccessor repaymentAccessor;
-    private final LoanAccessor loanAccessor;
     private final ObligationAccessor obligationAccessor;
 
     public GroupDetailsResponse getGroupInfo(String uid, UUID groupId) {

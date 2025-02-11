@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.accessor;
 
 import com.tateca.tatecabackend.entity.TransactionEntity;
+import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -43,7 +44,15 @@ public class TransactionAccessor {
 
     public List<TransactionEntity> findTransactionHistoryList(UUID groupId, int limit) {
         try {
-            return repository.findTransactionsByGroupOrderByCreatedAtDesc(groupId, limit);
+            return repository.findTransactionsByGroupOrderByCreatedAtDescWithLimit(groupId, limit);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
+    public List<TransactionEntity> findByGroup(UUID groupId, TransactionType type) {
+        try {
+            return repository.findTransactionsByGroup(groupId, type);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

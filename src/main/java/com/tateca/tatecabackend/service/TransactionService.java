@@ -1,19 +1,17 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserAccessor;
+import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponse;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponse;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.ObligationEntity;
-import com.tateca.tatecabackend.entity.RepaymentEntity;
 import com.tateca.tatecabackend.entity.TransactionEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
-import com.tateca.tatecabackend.repository.UserGroupRepository;
+import com.tateca.tatecabackend.model.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,12 +28,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
-    private final UserGroupRepository userGroupRepository;
-
-    private final ObligationAccessor obligationAccessor;
-    private final UserAccessor userAccessor;
-    private final GroupAccessor groupAccessor;
+    private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor accessor;
+    private final ObligationAccessor obligationAccessor;
 
     public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
         List<TransactionEntity> transactionEntityList = accessor.findTransactionHistoryList(groupId, count);
@@ -44,14 +39,14 @@ public class TransactionService {
     }
 
     public TransactionsSettlementResponse getSettlements(UUID groupId) {
-        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuid(groupId);
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
                 .map(UUID::toString)
                 .toList();
 
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
-        List<RepaymentEntity> repaymentEntityList = repaymentAccessor.findByGroupId(groupId);
+        List<TransactionEntity> repaymentEntityList = accessor.findByGroup(groupId, TransactionType.REPAYMENT);
 
         Map<String, BigDecimal> balances = new HashMap<>();
 
@@ -72,9 +67,9 @@ public class TransactionService {
                 }
             }
 
-            for (RepaymentEntity repayment : repaymentEntityList) {
+            for (TransactionEntity repayment : repaymentEntityList) {
                 UUID payerId = repayment.getPayer().getUuid();
-                UUID recipientId = repayment.getRecipientUser().getUuid();
+                UUID recipientId = repayment.getRecipient().getUuid();
                 BigDecimal repaymentAmount = BigDecimal.valueOf(repayment.getAmount()).multiply(repayment.getCurrencyRate());
 
                 if (recipientId.toString().equals(userId)) {
