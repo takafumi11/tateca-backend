@@ -11,7 +11,7 @@ import java.util.List;
 public class TransactionsHistoryResponse {
     @JsonProperty("transactions_history")
     List<TransactionHistoryResponseDTO> transactionsHistory;
-
+  
     public static TransactionsHistoryResponse buildResponse(List<TransactionEntity> entityList) {
         List<TransactionHistoryResponseDTO> transactionHistoryResponseDTOList = entityList.stream().map(TransactionHistoryResponseDTO::from).toList();
 

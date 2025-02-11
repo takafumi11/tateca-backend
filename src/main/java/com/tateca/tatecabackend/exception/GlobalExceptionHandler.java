@@ -29,5 +29,4 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
         return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
     }
-
 }

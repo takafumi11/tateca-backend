@@ -46,5 +46,4 @@ public class RepaymentService {
     public void deleteRepayment(UUID repaymentId) {
         accessor.deleteById(repaymentId);
     }
-
 }

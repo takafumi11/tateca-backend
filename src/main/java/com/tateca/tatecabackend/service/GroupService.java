@@ -141,7 +141,7 @@ public class GroupService {
 
         return GroupDetailsResponse.from(users, groupEntity);
     }
-
+  
     @Transactional
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);

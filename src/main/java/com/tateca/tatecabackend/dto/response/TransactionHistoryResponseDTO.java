@@ -26,7 +26,7 @@ public class TransactionHistoryResponseDTO {
     @JsonProperty("target_user")
     UserResponseDTO targetUser;
     @JsonProperty("created_at") String createdAt;
-
+  
     public static TransactionHistoryResponseDTO from(TransactionEntity transaction) {
         TransactionHistoryResponseDTOBuilder transactionHistoryResponseDTOBuilder = TransactionHistoryResponseDTO.builder()
                 .id(transaction.getUuid().toString())

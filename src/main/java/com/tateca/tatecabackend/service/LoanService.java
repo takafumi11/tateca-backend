@@ -39,7 +39,7 @@ public class LoanService {
         UUID userId = UUID.fromString(request.getLoanRequestDTO().getPayerId());
         UserEntity user = userAccessor.findById(userId);
         GroupEntity group = groupAccessor.findById(groupId);
-
+      
         TransactionEntity savedLoan = accessor.save(TransactionEntity.from(request, user, group));
 
         List<ObligationEntity> obligationEntityList = request.getObligationRequestDTOs().stream()
@@ -57,7 +57,7 @@ public class LoanService {
                 .collect(Collectors.toList());
 
         List<ObligationEntity> savedObligations = obligationAccessor.saveAll(obligationEntityList);
-
+      
         return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
 
@@ -67,7 +67,7 @@ public class LoanService {
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByLoanId(loanId);
         List<UUID> uuidList = obligationEntityList.stream().map(ObligationEntity::getUuid).toList();
         obligationAccessor.deleteAllById(uuidList);
-
+      
         accessor.deleteById(loanId);
     }
 
