@@ -46,7 +46,7 @@ public class TransactionService {
                 .toList();
 
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
-        List<TransactionEntity> repaymentEntityList = accessor.findByGroup(groupId, TransactionType.REPAYMENT);
+        List<TransactionEntity> repaymentList = accessor.findByGroup(groupId, TransactionType.REPAYMENT);
 
         Map<String, BigDecimal> balances = new HashMap<>();
 
@@ -67,7 +67,7 @@ public class TransactionService {
                 }
             }
 
-            for (TransactionEntity repayment : repaymentEntityList) {
+            for (TransactionEntity repayment : repaymentList) {
                 UUID payerId = repayment.getPayer().getUuid();
                 UUID recipientId = repayment.getRecipient().getUuid();
                 BigDecimal repaymentAmount = BigDecimal.valueOf(repayment.getAmount()).multiply(repayment.getCurrencyRate());
