@@ -52,13 +52,13 @@ CREATE TABLE IF NOT EXISTS transaction_history (
     date DATETIME NOT NULL,
     payer_id BINARY(16) NOT NULL,
     payer_id_text CHAR(36) AS (BIN_TO_UUID(payer_id)) VIRTUAL,
-    recipient_user_id BINARY(16) NULL,
-    recipient_user_id_text CHAR(36) AS (BIN_TO_UUID(recipient_user_id)) VIRTUAL,
+    recipient_id BINARY(16) NULL,
+    recipient_id_text CHAR(36) AS (BIN_TO_UUID(recipient_id)) VIRTUAL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid),
     FOREIGN KEY (payer_id) REFERENCES users(uuid),
-    FOREIGN KEY (recipient_user_id) REFERENCES users(uuid)
+    FOREIGN KEY (recipient_id) REFERENCES users(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS loan_obligations (

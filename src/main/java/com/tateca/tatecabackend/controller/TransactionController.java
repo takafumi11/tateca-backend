@@ -26,7 +26,7 @@ public class TransactionController {
 
     @GetMapping(PATH_HISTORY)
     public ResponseEntity<TransactionsHistoryResponse> getTransactions(
-            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(defaultValue = "5") int count,
             @PathVariable UUID groupId) {
         TransactionsHistoryResponse response = service.getTransactions(count, groupId);
         return ResponseEntity.ok(response);

@@ -28,7 +28,7 @@ public class TransactionHistoryResponseDTO {
     @JsonProperty("created_at") String createdAt;
 
     public static TransactionHistoryResponseDTO from(TransactionEntity transaction) {
-        return TransactionHistoryResponseDTO.builder()
+        TransactionHistoryResponseDTOBuilder transactionHistoryResponseDTOBuilder = TransactionHistoryResponseDTO.builder()
                 .id(transaction.getUuid().toString())
                 .transactionType(transaction.getTransactionType())
                 .title(transaction.getTitle())
@@ -37,8 +37,13 @@ public class TransactionHistoryResponseDTO {
                 .currencyRate(transaction.getCurrencyRate())
                 .date(convertToTokyoTime(transaction.getDate()))
                 .payer(UserResponseDTO.from(transaction.getPayer()))
-                .targetUser(UserResponseDTO.from(transaction.getRecipient()))
-                .createdAt(convertToTokyoTime(transaction.getCreatedAt()))
-                .build();
+                .createdAt(convertToTokyoTime(transaction.getCreatedAt()));
+
+        if (transaction.getRecipient() != null) {
+            transactionHistoryResponseDTOBuilder = transactionHistoryResponseDTOBuilder
+                    .targetUser(UserResponseDTO.from(transaction.getRecipient()));
+        }
+
+        return transactionHistoryResponseDTOBuilder.build();
     }
 }
