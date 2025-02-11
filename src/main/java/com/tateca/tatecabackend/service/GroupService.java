@@ -2,9 +2,7 @@ package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
-import com.tateca.tatecabackend.accessor.LoanAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
-import com.tateca.tatecabackend.accessor.RepaymentAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequest;
@@ -35,8 +33,6 @@ public class GroupService {
     private final UserAccessor userAccessor;
     private final AuthUserAccessor authUserAccessor;
     private final UserGroupAccessor userGroupAccessor;
-    private final RepaymentAccessor repaymentAccessor;
-    private final LoanAccessor loanAccessor;
     private final ObligationAccessor obligationAccessor;
 
     public GroupDetailsResponse getGroupInfo(String uid, UUID groupId) {
@@ -144,16 +140,6 @@ public class GroupService {
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
 
         return GroupDetailsResponse.from(users, groupEntity);
-    }
-
-    private void createUserGroup(UserEntity user, GroupEntity group) {
-        UserGroupEntity userGroup = UserGroupEntity.builder()
-                .userUuid(user.getUuid())
-                .groupUuid(group.getUuid())
-                .user(user)
-                .group(group)
-                .build();
-        userGroupAccessor.save(userGroup);
     }
 
     @Transactional

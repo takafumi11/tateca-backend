@@ -1,9 +1,13 @@
 package com.tateca.tatecabackend.entity;
 
 import com.tateca.tatecabackend.dto.request.LoanCreationRequest;
+import com.tateca.tatecabackend.dto.request.RepaymentCreationRequest;
+import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.service.util.TimeHelper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -20,18 +24,20 @@ import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "`loans`")
-public class LoanEntity {
+@Table(name = "transaction_history")
+public class TransactionEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_type", nullable = false)
+    private TransactionType transactionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_uuid", nullable = false, updatable = false)
@@ -41,12 +47,12 @@ public class LoanEntity {
     private String title;
 
     @Column(name = "amount", nullable = false)
-    private Integer amount;
+    private int amount;
 
-    @Column(name = "currency_code", nullable = false)
+    @Column(name = "currency_code", length = 3, nullable = false)
     private String currencyCode;
 
-    @Column(name = "currency_rate", nullable = false)
+    @Column(name = "currency_rate", precision = 9, scale = 6, nullable = false)
     private BigDecimal currencyRate;
 
     @Column(name = "date", nullable = false)
@@ -55,6 +61,10 @@ public class LoanEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false)
     private UserEntity payer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_id")
+    private UserEntity recipient;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
@@ -74,16 +84,35 @@ public class LoanEntity {
         updatedAt = ZonedDateTime.now();
     }
 
-    public static LoanEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group) {
-        return LoanEntity.builder()
+    public static TransactionEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group) {
+        return TransactionEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
+                .transactionType(TransactionType.LOAN)
                 .title(request.getLoanRequestDTO().getTitle())
                 .amount(request.getLoanRequestDTO().getAmount())
                 .currencyCode(request.getLoanRequestDTO().getCurrencyCode())
                 .currencyRate(request.getLoanRequestDTO().getCurrencyRate())
                 .date(TimeHelper.convertToTokyoTime(request.getLoanRequestDTO().getDate()))
                 .payer(user)
+                .recipient(null)
                 .build();
     }
+
+    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity payer, UserEntity recipient, GroupEntity group) {
+        return TransactionEntity.builder()
+                .uuid(UUID.randomUUID())
+                .group(group)
+                .transactionType(TransactionType.REPAYMENT)
+                .title(request.getRepaymentRequestDTO().getTitle())
+                .amount(request.getRepaymentRequestDTO().getAmount())
+                .currencyCode(request.getRepaymentRequestDTO().getCurrencyCode())
+                .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
+                .date(TimeHelper.convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
+                .payer(payer)
+                .recipient(recipient)
+                .build();
+    }
+
+
 }

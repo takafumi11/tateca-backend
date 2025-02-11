@@ -29,8 +29,8 @@ public class ObligationEntity {
     private UUID uuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "loan_uuid", nullable = false, updatable = false)
-    private LoanEntity loan;
+    @JoinColumn(name = "transaction_uuid", nullable = false, updatable = false)
+    private TransactionEntity loan;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_uuid", nullable = false)

@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tateca.tatecabackend.entity.RepaymentEntity;
+import com.tateca.tatecabackend.entity.TransactionEntity;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -25,7 +25,7 @@ public class RepaymentCreationResponse {
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static RepaymentCreationResponse from(RepaymentEntity repayment) {
+    public static RepaymentCreationResponse from(TransactionEntity repayment) {
         return RepaymentCreationResponse.builder()
                 .uuid(repayment.getUuid().toString())
                 .group(GroupResponseDTO.from(repayment.getGroup()))
@@ -35,7 +35,7 @@ public class RepaymentCreationResponse {
                 .currencyRate(repayment.getCurrencyRate())
                 .date(convertToTokyoTime(repayment.getDate()))
                 .payer(UserResponseDTO.from(repayment.getPayer()))
-                .recipient(UserResponseDTO.from(repayment.getRecipientUser()))
+                .recipient(UserResponseDTO.from(repayment.getRecipient()))
                 .createdAt(convertToTokyoTime(repayment.getCreatedAt()))
                 .updatedAt(convertToTokyoTime(repayment.getUpdatedAt()))
                 .build();

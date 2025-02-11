@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,17 +41,6 @@ public class RepaymentController {
             @PathVariable("repaymentId") UUID repaymentId
     ) {
         RepaymentCreationResponse response = service.getRepayment(repaymentId);
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{repaymentId}")
-    public ResponseEntity<RepaymentCreationResponse> updateRepayment(
-            @RequestHeader(ApiConstants.HEADER_AUTHORIZATION) String idToken,
-            @PathVariable("groupId") UUID groupId,
-            @PathVariable("repaymentId") UUID repaymentId,
-            @RequestBody RepaymentCreationRequest request
-    ) {
-        RepaymentCreationResponse response = service.updateRepayment(groupId, repaymentId, request);
         return ResponseEntity.ok(response);
     }
 
