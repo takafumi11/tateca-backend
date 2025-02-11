@@ -1,23 +1,22 @@
-package com.tateca.tatecabackend.service;
+package com.tateca.tatecabackend.api.client;
 
+
+import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
 import com.google.api.client.util.Value;
-import com.tateca.tatecabackend.dto.response.ExchangeRateResponse;
-import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Service
-public class ExchangeRateService {
+@Component
+@RequiredArgsConstructor
+public class ExchangeRateApiClient {
 
     private final String apiUrl = "https://v6.exchangerate-api.com/v6/{api_key}/latest/JPY";
 
     @Value("${exchange.rate.api.key}")
-    private String apiKey; // application.propertiesにAPIキーを格納
+    private String apiKey;
 
     private final RestTemplate restTemplate;
-
-    public ExchangeRateService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
 
     public ExchangeRateResponse fetchExchangeRate() {
         String url = apiUrl.replace("{api_key}", apiKey);

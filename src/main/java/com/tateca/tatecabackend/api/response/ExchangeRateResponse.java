@@ -1,4 +1,4 @@
-package com.tateca.tatecabackend.dto.response;
+package com.tateca.tatecabackend.api.response;
 
 import lombok.Data;
 
