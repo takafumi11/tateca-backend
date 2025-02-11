@@ -146,16 +146,6 @@ public class GroupService {
         return GroupDetailsResponse.from(users, groupEntity);
     }
 
-    private void createUserGroup(UserEntity user, GroupEntity group) {
-        UserGroupEntity userGroup = UserGroupEntity.builder()
-                .userUuid(user.getUuid())
-                .groupUuid(group.getUuid())
-                .user(user)
-                .group(group)
-                .build();
-        userGroupAccessor.save(userGroup);
-    }
-
     @Transactional
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
