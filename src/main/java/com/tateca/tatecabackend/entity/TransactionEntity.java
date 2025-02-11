@@ -113,6 +113,4 @@ public class TransactionEntity {
                 .recipient(recipient)
                 .build();
     }
-
-
 }
