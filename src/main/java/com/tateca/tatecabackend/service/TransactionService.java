@@ -33,8 +33,6 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
-    private final RedisService service;
-
     private final LoanRepository loanRepository;
     private final RepaymentRepository repaymentRepository;
     private final UserGroupRepository userGroupRepository;

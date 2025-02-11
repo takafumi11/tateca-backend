@@ -44,17 +44,6 @@ public class LoanController {
         LoanCreationResponse response = service.getLoan(loanId);
         return ResponseEntity.ok(response);
     }
-
-    @PatchMapping("/{loanId}")
-    public ResponseEntity<LoanCreationResponse> updateLoan(
-            @RequestHeader(ApiConstants.HEADER_AUTHORIZATION) String idToken,
-            @RequestBody LoanCreationRequest request,
-            @PathVariable("groupId") UUID groupId,
-            @PathVariable("loanId") UUID loanId
-    ) {
-        LoanCreationResponse response = service.updateLoan(groupId, loanId, request);
-        return ResponseEntity.ok(response);
-    }
     
     @DeleteMapping("/{loanId}")
     public ResponseEntity<Void> deleteLoan(

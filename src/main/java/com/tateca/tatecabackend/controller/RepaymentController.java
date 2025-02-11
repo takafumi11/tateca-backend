@@ -45,17 +45,6 @@ public class RepaymentController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{repaymentId}")
-    public ResponseEntity<RepaymentCreationResponse> updateRepayment(
-            @RequestHeader(ApiConstants.HEADER_AUTHORIZATION) String idToken,
-            @PathVariable("groupId") UUID groupId,
-            @PathVariable("repaymentId") UUID repaymentId,
-            @RequestBody RepaymentCreationRequest request
-    ) {
-        RepaymentCreationResponse response = service.updateRepayment(groupId, repaymentId, request);
-        return ResponseEntity.ok(response);
-    }
-
     @DeleteMapping("/{repaymentId}")
     public ResponseEntity<Void> deleteRepayment(
             @PathVariable("repaymentId") UUID repaymentId

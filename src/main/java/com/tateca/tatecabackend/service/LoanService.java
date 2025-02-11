@@ -35,7 +35,6 @@ public class LoanService {
     private final UserAccessor userAccessor;
     private final GroupAccessor groupAccessor;
     private final ObligationAccessor obligationAccessor;
-    private final RedisService redisService;
 
     @Transactional
     public LoanCreationResponse getLoan(UUID loanId) {
@@ -80,68 +79,6 @@ public class LoanService {
 
         // Subtract the total amount from the payer's balance
         balanceUpdates.put(user.getUuid().toString(), totalAmount.negate());
-
-//        redisService.updateBalances(groupId.toString(), balanceUpdates);
-
-        return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
-    }
-
-    @Transactional
-    public LoanCreationResponse updateLoan(UUID groupId, UUID loanId, LoanCreationRequest request) {
-        LoanEntity loan = accessor.findById(loanId);
-
-        LoanRequestDTO loanRequestDTO = request.getLoanRequestDTO();
-        loan.setTitle(loanRequestDTO.getTitle());
-        loan.setAmount(loanRequestDTO.getAmount());
-        loan.setDate(TimeHelper.convertToTokyoTime(loanRequestDTO.getDate()));
-
-        LoanEntity savedLoan = accessor.save(loan);
-
-        // Fetch previous obligations to calculate balance updates correctly
-        List<ObligationEntity> existingObligations = obligationAccessor.findByLoanId(loanId);
-
-        Map<UUID, Integer> previousAmounts = existingObligations.stream()
-                .collect(Collectors.toMap(obligation -> obligation.getUser().getUuid(), ObligationEntity::getAmount));
-
-        Map<UUID, BigDecimal> previousRates = existingObligations.stream()
-                .collect(Collectors.toMap(
-                        obligation -> obligation.getUser().getUuid(),
-                        obligation -> obligation.getLoan().getCurrencyRate()
-                ));
-
-        List<ObligationEntity> updatedObligations = existingObligations.stream().map(existingObligation -> {
-            ObligationRequestDTO matchingRequestDTO = request.getObligationRequestDTOs().stream()
-                    .filter(reqDTO -> reqDTO.getUserUuid().equals(existingObligation.getUser().getUuid().toString()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Matching ObligationRequestDTO not found for existing obligation"));
-
-            existingObligation.setAmount(matchingRequestDTO.getAmount());
-            return existingObligation;
-        }).collect(toList());
-
-        List<ObligationEntity> savedObligations = obligationAccessor.saveAll(updatedObligations);
-
-        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        BigDecimal prevTotalAmount = BigDecimal.ZERO;
-
-        for (ObligationEntity obligation : savedObligations) {
-            UUID uuid = obligation.getUser().getUuid();
-            int prevAmountTmp = previousAmounts.getOrDefault(uuid, 0);
-            BigDecimal prevRateTmp = previousRates.getOrDefault(uuid, BigDecimal.ZERO);
-
-            BigDecimal prevAmount = AmountHelper.calculateAmount(prevAmountTmp, prevRateTmp);
-            BigDecimal amount = AmountHelper.calculateAmount(obligation.getAmount(), request.getLoanRequestDTO().getCurrencyRate());
-
-            balanceUpdates.put(uuid.toString(), prevAmount.negate().add(amount));
-            totalAmount = totalAmount.add(amount);
-            prevTotalAmount = prevTotalAmount.add(prevAmount);
-        }
-
-        // Adjust the payer's balance considering the previous loan amount
-        balanceUpdates.put(savedLoan.getPayer().getUuid().toString(), prevTotalAmount.add(totalAmount.negate()));
-
-//        redisService.updateBalances(groupId.toString(), balanceUpdates);
 
         return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }

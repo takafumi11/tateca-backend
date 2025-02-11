@@ -28,7 +28,6 @@ public class RepaymentService {
     private final RepaymentAccessor accessor;
     private final UserAccessor userAccessor;
     private final GroupAccessor groupAccessor;
-    private final RedisService redisService;
 
     @Transactional
     public RepaymentCreationResponse getRepayment(UUID repaymentId) {
@@ -59,43 +58,12 @@ public class RepaymentService {
                 .build();
 
         RepaymentEntity savedRepayment = accessor.save(repaymentEntity);
-//        updateBalancesInRedis(groupId.toString(), payerId, recipientId, savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), 0, BigDecimal.ZERO);
-
         return RepaymentCreationResponse.from(savedRepayment);
-    }
-
-    @Transactional
-    public RepaymentCreationResponse updateRepayment(UUID groupId, UUID repaymentId, RepaymentCreationRequest request) {
-        RepaymentEntity repayment = accessor.findById(repaymentId);
-
-        int prevAmount = repayment.getAmount();
-        BigDecimal prevCurrencyRate = repayment.getCurrencyRate();
-
-        repayment.setTitle(request.getRepaymentRequestDTO().getTitle());
-        repayment.setAmount(request.getRepaymentRequestDTO().getAmount());
-        repayment.setDate(TimeHelper.convertToTokyoTime(request.getRepaymentRequestDTO().getDate()));
-
-        RepaymentEntity savedRepayment = accessor.save(repayment);
-
-//        updateBalancesInRedis(groupId.toString(), savedRepayment.getPayer().getUuid().toString(), savedRepayment.getRecipientUser().getUuid().toString(), savedRepayment.getAmount(), savedRepayment.getCurrencyRate(), prevAmount, prevCurrencyRate);
-
-        return RepaymentCreationResponse.from(repayment);
     }
 
     @Transactional
     public void deleteRepayment(UUID repaymentId) {
         accessor.deleteById(repaymentId);
-    }
-
-    private void updateBalancesInRedis(String groupId, String payerId, String recipientId, int newAmountInt, BigDecimal newCurrencyRate, int oldAmountInt, BigDecimal oldCurrencyRate) {
-        Map<String, BigDecimal> balanceUpdates = new HashMap<>();
-
-        BigDecimal oldAmount = AmountHelper.calculateAmount(oldAmountInt, oldCurrencyRate);
-        BigDecimal newAmount = AmountHelper.calculateAmount(newAmountInt, newCurrencyRate);
-
-        balanceUpdates.put(payerId, oldAmount.subtract(newAmount));
-        balanceUpdates.put(recipientId, newAmount.subtract(oldAmount));
-//        redisService.updateBalances(groupId, balanceUpdates);
     }
 
 }
