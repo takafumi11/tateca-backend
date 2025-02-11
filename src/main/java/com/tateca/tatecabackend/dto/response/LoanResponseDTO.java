@@ -2,6 +2,7 @@ package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tateca.tatecabackend.entity.LoanEntity;
+import com.tateca.tatecabackend.entity.TransactionEntity;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -23,7 +24,7 @@ public class LoanResponseDTO {
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static LoanResponseDTO from(LoanEntity loan) {
+    public static LoanResponseDTO from(TransactionEntity loan) {
         return LoanResponseDTO.builder()
                 .uuid(loan.getUuid().toString())
                 .group(GroupResponseDTO.from(loan.getGroup()))

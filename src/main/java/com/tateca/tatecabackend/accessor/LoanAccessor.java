@@ -29,9 +29,6 @@ public class LoanAccessor {
         }
     }
 
-    public List<LoanEntity> findByGroupId(UUID id) {
-        return repository.findByGroupId(id);
-    }
 
     public void deleteById(UUID loanId) {
         try {
