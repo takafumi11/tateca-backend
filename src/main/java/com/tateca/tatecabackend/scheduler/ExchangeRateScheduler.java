@@ -1,11 +1,11 @@
 package com.tateca.tatecabackend.scheduler;
 
+import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
+import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
-import com.tateca.tatecabackend.repository.CurrencyNameRepository;
-import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,9 +19,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ExchangeRateScheduler {
-    // TODO: replace with accessor
-    private final ExchangeRateRepository exchangeRateRepository;
-    private final CurrencyNameRepository currencyNameRepository;
+    private final ExchangeRateAccessor exchangeRateAccessor;
+    private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
     @Scheduled(cron = "0 0 3 * * ?")
@@ -30,7 +29,7 @@ public class ExchangeRateScheduler {
 
         List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
 
-        List<CurrencyNameEntity> currencyNameEntities = currencyNameRepository.findAllById(currencyCodes);
+        List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
 
         List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
 
@@ -51,6 +50,6 @@ public class ExchangeRateScheduler {
             exchangeRateEntities.add(exchangeRateEntity);
         });
 
-        exchangeRateRepository.saveAll(exchangeRateEntities);
+        exchangeRateAccessor.saveAll(exchangeRateEntities);
     }
 }
