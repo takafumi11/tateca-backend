@@ -1,11 +1,14 @@
 package com.tateca.tatecabackend.service.util;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class TimeHelper {
     private static final ZoneId TOKYO_ZONE_ID = ZoneId.of("Asia/Tokyo");
+    public static final ZoneId UTC_ZONE_ID = ZoneId.of("UTC");
+    public static final String UTC_STRING = "UTC";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     public static String convertToTokyoTime(ZonedDateTime dateTime) {
