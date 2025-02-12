@@ -6,7 +6,6 @@ import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
-import com.tateca.tatecabackend.service.util.TimeHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,11 +26,9 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-//    @Scheduled(cron = "0 1 15 * * *", zone = UTC_STRING)
-    @Scheduled(cron = "0 58 15 * * *", zone = UTC_STRING)
+    @Scheduled(cron = "0 1 15 * * *", zone = UTC_STRING)
     public void fetchAndStoreExchangeRate() {
         LocalDate currentDate = LocalDate.now(UTC_ZONE_ID);
-
 
         ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchExchangeRate();
 
