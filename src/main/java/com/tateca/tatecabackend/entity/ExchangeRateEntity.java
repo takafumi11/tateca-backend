@@ -3,6 +3,7 @@ package com.tateca.tatecabackend.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -20,11 +21,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@IdClass(ExchangeRateId.class)
 @Table(name = "exchange_rates")
 public class ExchangeRateEntity {
     @Id
+    @Column(name = "currency_code", nullable = false)
+    private String currencyCode;
+
     @ManyToOne
-    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false)
+    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, insertable = false, updatable = false)
     private CurrencyNameEntity currencyNames;
 
     @Id
