@@ -21,7 +21,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -56,7 +56,7 @@ public class TransactionEntity {
     private BigDecimal currencyRate;
 
     @Column(name = "date", nullable = false)
-    private ZonedDateTime date;
+    private Instant date;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false)
@@ -67,21 +67,21 @@ public class TransactionEntity {
     private UserEntity recipient;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private ZonedDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private ZonedDateTime updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        ZonedDateTime now = ZonedDateTime.now();
+        Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = ZonedDateTime.now();
+        updatedAt = Instant.now();
     }
 
     public static TransactionEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group) {
@@ -93,7 +93,7 @@ public class TransactionEntity {
                 .amount(request.getLoanRequestDTO().getAmount())
                 .currencyCode(request.getLoanRequestDTO().getCurrencyCode())
                 .currencyRate(request.getLoanRequestDTO().getCurrencyRate())
-                .date(TimeHelper.convertToTokyoTime(request.getLoanRequestDTO().getDate()))
+                .date(TimeHelper.convertToUtc(request.getLoanRequestDTO().getDate()))
                 .payer(user)
                 .recipient(null)
                 .build();
@@ -108,7 +108,7 @@ public class TransactionEntity {
                 .amount(request.getRepaymentRequestDTO().getAmount())
                 .currencyCode(request.getRepaymentRequestDTO().getCurrencyCode())
                 .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
-                .date(TimeHelper.convertToTokyoTime(request.getRepaymentRequestDTO().getDate()))
+                .date(TimeHelper.convertToUtc(request.getRepaymentRequestDTO().getDate()))
                 .payer(payer)
                 .recipient(recipient)
                 .build();

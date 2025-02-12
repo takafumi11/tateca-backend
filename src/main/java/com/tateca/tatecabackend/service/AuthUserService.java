@@ -10,7 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -22,7 +22,7 @@ public class AuthUserService {
     public AuthUserResponseDTO getAuthUserInfo(String uid) {
         AuthUserEntity authUser = accessor.findByUid(uid);
 
-        authUser.setLastLoginTime(ZonedDateTime.now());
+        authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
         AuthUserEntity updatedAuthUser = accessor.save(authUser);
 
@@ -37,7 +37,7 @@ public class AuthUserService {
                 .uid(uid)
                 .name(request.getName())
                 .email(request.getEmail())
-                .lastLoginTime(ZonedDateTime.now())
+                .lastLoginTime(Instant.now())
                 .totalLoginCount(1)
                 .build();
 

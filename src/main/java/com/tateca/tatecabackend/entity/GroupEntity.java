@@ -11,7 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Entity
@@ -32,25 +33,25 @@ public class GroupEntity {
     private UUID joinToken;
 
     @Column(name = "token_expires", nullable = false)
-    private ZonedDateTime tokenExpires;
+    private Instant tokenExpires;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private ZonedDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private ZonedDateTime updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
         // TODO: now + 1
-        ZonedDateTime now = ZonedDateTime.now();
-        tokenExpires = now.plusDays(1);
+        Instant now = Instant.now();
+        tokenExpires = now.plus(1, ChronoUnit.DAYS);
         createdAt = now;
         updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = ZonedDateTime.now();
+        updatedAt = Instant.now();
     }
 }

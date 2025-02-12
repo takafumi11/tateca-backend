@@ -1,19 +1,24 @@
 package com.tateca.tatecabackend.service.util;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class TimeHelper {
-    private static final ZoneId TOKYO_ZONE_ID = ZoneId.of("Asia/Tokyo");
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+    public static final ZoneId TOKYO_ZONE_ID = ZoneId.of("Asia/Tokyo");
+    public static final String UTC_STRING = "UTC";
+    public static final ZoneId UTC_ZONE_ID = ZoneId.of(UTC_STRING);
 
-    public static String convertToTokyoTime(ZonedDateTime dateTime) {
-        return dateTime.withZoneSameInstant(TOKYO_ZONE_ID).format(formatter);
+    public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
+    public static String convertToTokyoTime(Instant instant) {
+        ZonedDateTime tokyoDateTime = instant.atZone(UTC_ZONE_ID)
+                .withZoneSameInstant(TOKYO_ZONE_ID);
+        return tokyoDateTime.format(formatter);
     }
 
-    public static ZonedDateTime convertToTokyoTime(String dateTimeStr) {
-        return ZonedDateTime.parse(dateTimeStr, formatter).withZoneSameInstant(TOKYO_ZONE_ID);
+    public static Instant convertToUtc(String dateTimeStr) {
+        return Instant.parse(dateTimeStr);
     }
-
 }

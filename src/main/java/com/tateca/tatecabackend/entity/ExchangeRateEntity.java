@@ -2,8 +2,8 @@ package com.tateca.tatecabackend.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
@@ -14,30 +14,32 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
+import java.time.LocalDate;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "`loan_obligations`")
-public class ObligationEntity {
+@IdClass(ExchangeRateId.class)
+@Table(name = "exchange_rates")
+public class ExchangeRateEntity {
     @Id
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID uuid;
+    @Column(name = "currency_code", nullable = false)
+    private String currencyCode;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_uuid", nullable = false, updatable = false)
-    private TransactionEntity loan;
+    @ManyToOne
+    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, insertable = false, updatable = false)
+    private CurrencyNameEntity currencyNames;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_uuid", nullable = false)
-    private UserEntity user;
+    @Id
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
 
-    @Column(name = "amount", nullable = false)
-    private int amount;
+    @Column(name = "exchange_rate", nullable = false)
+    private BigDecimal exchangeRate;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -46,15 +48,14 @@ public class ObligationEntity {
     private Instant updatedAt;
 
     @PrePersist
-    protected void onCreate() {
+    public void prePersist() {
         Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
+    public void preUpdate() {
+        this.updatedAt = Instant.now();
     }
-
 }
