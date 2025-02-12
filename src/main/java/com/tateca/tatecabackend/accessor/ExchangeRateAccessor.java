@@ -25,7 +25,6 @@ public class ExchangeRateAccessor {
         }
     }
 
-
     public Optional<ExchangeRateEntity> findByCurrencyCodeAndDate(String currencyCode, LocalDate date) {
         try {
             return repository.findByCurrencyCodeAndDate(currencyCode, date);
