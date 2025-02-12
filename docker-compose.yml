@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: examplepassword
-      MYSQL_DATABASE: tateca
+      MYSQL_DATABASE: railway
       MYSQL_USER: a
       MYSQL_PASSWORD: a
       TZ: Asia/Tokyo
