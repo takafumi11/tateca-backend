@@ -7,8 +7,8 @@ import java.time.format.DateTimeFormatter;
 
 public class TimeHelper {
     public static final ZoneId TOKYO_ZONE_ID = ZoneId.of("Asia/Tokyo");
-    public static final ZoneId UTC_ZONE_ID = ZoneId.of("UTC");
     public static final String UTC_STRING = "UTC";
+    public static final ZoneId UTC_ZONE_ID = ZoneId.of(UTC_STRING);
 
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
