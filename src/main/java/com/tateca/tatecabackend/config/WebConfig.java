@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.config;
 
 import com.tateca.tatecabackend.annotation.UIdArgumentResolver;
-import com.tateca.tatecabackend.annotation.RequestTimeArgumentResolver;
 import com.tateca.tatecabackend.interceptor.BearerTokenInterceptor;
 import com.tateca.tatecabackend.interceptor.LoggingInterceptor;
 
@@ -29,13 +28,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     private final UIdArgumentResolver UIdArgumentResolver;
-    private final RequestTimeArgumentResolver requestTimeArgumentResolver;
     private final BearerTokenInterceptor bearerTokenInterceptor;
     private final LoggingInterceptor loggingInterceptor;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(requestTimeArgumentResolver);
         resolvers.add(UIdArgumentResolver);
     }
 

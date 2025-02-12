@@ -12,20 +12,17 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_ID_ATTRIBUTE;
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
 import static com.tateca.tatecabackend.constants.AttributeConstants.UID_ATTRIBUTE;
+import static com.tateca.tatecabackend.service.util.TimeHelper.TOKYO_ZONE_ID;
+import static com.tateca.tatecabackend.service.util.TimeHelper.formatter;
 
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
-
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-            .withZone(ZoneId.of("Asia/Tokyo"));
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -42,6 +39,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
         String requestId = (String) request.getAttribute(REQUEST_ID_ATTRIBUTE);
         Instant requestTime = (Instant) request.getAttribute(REQUEST_TIME_ATTRIBUTE);
         String uid = (String) request.getAttribute(UID_ATTRIBUTE);
+
         uid = (uid != null) ? uid : "unknown";
 
         Instant responseTime = Instant.now();
@@ -51,7 +49,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         String requestBody = requestWrapper != null ? getRequestBody(requestWrapper) : "N/A";
 
-        logger.info("Request: Method: {} - Path: {} - UID: {} - Body: {} - RequestTime: {} - RequestId: [{}]", request.getMethod(), request.getRequestURI(), uid, requestBody, formatter.format(requestTime), requestId);
+        logger.info("Request: Method: {} - Path: {} - UID: {} - Body: {} - RequestTime: {} - RequestId: [{}]", request.getMethod(), request.getRequestURI(), uid, requestBody, formatter.withZone(TOKYO_ZONE_ID).format(requestTime), requestId);
         logger.info("Response: Status: {} - ProcessingTime: {}ms - RequestId: [{}]", response.getStatus(), processingTimeMs, requestId);
     }
 
@@ -70,6 +68,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
         return "";
     }
 
+    // TODO: Want to use
     private String getResponseBody(ContentCachingResponseWrapper response) throws IOException {
         byte[] buf = response.getContentAsByteArray();
         if (buf.length > 0) {

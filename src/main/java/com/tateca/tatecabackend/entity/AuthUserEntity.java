@@ -11,8 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
-import java.util.UUID;
+import java.time.Instant;
 
 @Entity
 @Data
@@ -32,26 +31,26 @@ public class AuthUserEntity {
     private String email;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private ZonedDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private ZonedDateTime updatedAt;
+    private Instant updatedAt;
 
     @Column(name = "last_login_time")
-    private ZonedDateTime lastLoginTime;
+    private Instant lastLoginTime;
 
     @Column(name = "total_login_count")
     private Integer totalLoginCount;
 
     @PrePersist
     protected void onCreate() {
-        ZonedDateTime now = ZonedDateTime.now();
+        Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = ZonedDateTime.now();
+        updatedAt = Instant.now();
     }
 }
