@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @EnableScheduling
 public class AppConfig {
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
