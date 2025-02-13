@@ -11,7 +11,7 @@ import com.tateca.tatecabackend.entity.ObligationEntity;
 import com.tateca.tatecabackend.entity.TransactionEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
-import com.tateca.tatecabackend.model.TransactionType;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -46,43 +46,8 @@ public class TransactionService {
                 .toList();
 
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
-        List<TransactionEntity> repaymentList = accessor.findByGroup(groupId, TransactionType.REPAYMENT);
 
-        Map<String, BigDecimal> balances = new HashMap<>();
-
-        for (String userId : userIds) {
-            BigDecimal balance = BigDecimal.ZERO;
-
-            for (ObligationEntity obligation : obligationEntityList) {
-                UUID obligationUserUuid = obligation.getUser().getUuid();
-                UUID loanPayerUuid = obligation.getLoan().getPayer().getUuid();
-                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getLoan().getCurrencyRate());
-
-                if (obligationUserUuid.toString().equals(userId)) {
-                    balance = balance.add(obligationAmount);
-                }
-
-                if (loanPayerUuid.toString().equals(userId)) {
-                    balance = balance.subtract(obligationAmount);
-                }
-            }
-
-            for (TransactionEntity repayment : repaymentList) {
-                UUID payerId = repayment.getPayer().getUuid();
-                UUID recipientId = repayment.getRecipient().getUuid();
-                BigDecimal repaymentAmount = BigDecimal.valueOf(repayment.getAmount()).multiply(repayment.getCurrencyRate());
-
-                if (recipientId.toString().equals(userId)) {
-                    balance = balance.add(repaymentAmount);
-                }
-
-                if (payerId.toString().equals(userId)) {
-                    balance = balance.subtract(repaymentAmount);
-                }
-            }
-
-            balances.put(userId, balance);
-        }
+        Map<String, BigDecimal> balances = getUserBalances(userIds, obligationEntityList);
 
         List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
 
@@ -90,6 +55,33 @@ public class TransactionService {
                 .transactionsSettlement(transactions)
                 .build();
     }
+
+    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<ObligationEntity> obligationEntityList) {
+        Map<String, BigDecimal> balances = new HashMap<>();
+
+        for (String userId : userIds) {
+            BigDecimal balance = BigDecimal.ZERO;
+
+            for (ObligationEntity obligation : obligationEntityList) {
+                String obligationUserId = obligation.getUser().getUuid().toString();
+                String payerId = obligation.getTransaction().getPayer().getUuid().toString();
+                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getTransaction().getCurrencyRate());
+
+                if (obligationUserId.equals(userId)) {
+                    balance = balance.add(obligationAmount);
+                }
+
+                if (payerId.equals(userId)) {
+                    balance = balance.subtract(obligationAmount);
+                }
+            }
+
+            balances.put(userId, balance);
+        }
+
+        return balances;
+    }
+
     private List<TransactionSettlementResponseDTO> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
         List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
         PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
@@ -142,4 +134,13 @@ public class TransactionService {
         }
     }
 
+    @Transactional
+    public void deleteTransaction(UUID transactionId) {
+        // Delete Obligations first
+        List<ObligationEntity> obligationEntityList = obligationAccessor.findByTransactionId(transactionId);
+        List<UUID> uuidList = obligationEntityList.stream().map(ObligationEntity::getUuid).toList();
+        obligationAccessor.deleteAllById(uuidList);
+
+        accessor.deleteById(transactionId);
+    }
 }

@@ -62,10 +62,6 @@ public class TransactionEntity {
     @JoinColumn(name = "payer_id", nullable = false)
     private UserEntity payer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_id")
-    private UserEntity recipient;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -95,7 +91,6 @@ public class TransactionEntity {
                 .currencyRate(request.getLoanRequestDTO().getCurrencyRate())
                 .date(TimeHelper.convertToUtc(request.getLoanRequestDTO().getDate()))
                 .payer(user)
-                .recipient(null)
                 .build();
     }
 
@@ -110,7 +105,6 @@ public class TransactionEntity {
                 .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
                 .date(TimeHelper.convertToUtc(request.getRepaymentRequestDTO().getDate()))
                 .payer(payer)
-                .recipient(recipient)
                 .build();
     }
 }
