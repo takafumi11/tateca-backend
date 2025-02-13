@@ -22,7 +22,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "`loan_obligations`")
+@Table(name = "`transaction_obligations`")
 public class ObligationEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
@@ -30,7 +30,7 @@ public class ObligationEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_uuid", nullable = false, updatable = false)
-    private TransactionEntity loan;
+    private TransactionEntity transaction;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_uuid", nullable = false)
@@ -57,4 +57,14 @@ public class ObligationEntity {
         updatedAt = Instant.now();
     }
 
+    public static ObligationEntity from(TransactionEntity transaction, UserEntity recipient) {
+        return ObligationEntity.builder()
+                .uuid(UUID.randomUUID())
+                .transaction(transaction)
+                .user(recipient)
+                .amount(transaction.getAmount())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+    }
 }

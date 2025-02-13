@@ -16,13 +16,25 @@ import java.util.UUID;
 public class ObligationAccessor {
     private final ObligationRepository repository;
 
-    public List<ObligationEntity> saveAll(List<ObligationEntity> obligationEntityList) {
-        return repository.saveAll(obligationEntityList);
+    public ObligationEntity save(ObligationEntity obligationEntity) {
+        try {
+            return repository.save(obligationEntity);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
     }
 
-    public List<ObligationEntity> findByLoanId(UUID id) {
+    public List<ObligationEntity> saveAll(List<ObligationEntity> obligationEntityList) {
         try {
-            return repository.findByLoanId(id);
+            return repository.saveAll(obligationEntityList);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
+    public List<ObligationEntity> findByTransactionId(UUID id) {
+        try {
+            return repository.findByTransactionId(id);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

@@ -10,9 +10,9 @@ import java.util.UUID;
 
 @Repository
 public interface ObligationRepository extends JpaRepository<ObligationEntity, UUID> {
-    @Query("SELECT o FROM ObligationEntity o WHERE o.loan.uuid = :loanId")
-    List<ObligationEntity> findByLoanId(UUID loanId);
+    @Query("SELECT o FROM ObligationEntity o WHERE o.transaction.uuid = :loanId")
+    List<ObligationEntity> findByTransactionId(UUID loanId);
 
-    @Query("SELECT o FROM ObligationEntity o WHERE o.loan.group.uuid = :groupId")
+    @Query("SELECT o FROM ObligationEntity o WHERE o.transaction.group.uuid = :groupId")
     List<ObligationEntity> findByGroupId(UUID groupId);
 }

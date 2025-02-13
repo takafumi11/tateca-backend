@@ -29,7 +29,7 @@ public class LoanService {
     @Transactional
     public LoanCreationResponse getLoan(UUID loanId) {
         TransactionEntity loan = accessor.findById(loanId);
-        List<ObligationEntity> obligations = obligationAccessor.findByLoanId(loan.getUuid());
+        List<ObligationEntity> obligations = obligationAccessor.findByTransactionId(loan.getUuid());
 
         return LoanCreationResponse.buildResponse(loan, obligations);
     }
@@ -49,7 +49,7 @@ public class LoanService {
 
                     return ObligationEntity.builder()
                             .uuid(UUID.randomUUID())
-                            .loan(savedLoan)
+                            .transaction(savedLoan)
                             .user(obligationUser)
                             .amount(obligation.getAmount())
                             .build();
@@ -64,7 +64,7 @@ public class LoanService {
     @Transactional
     public void deleteLoan(UUID loanId) {
         // Delete Obligations first
-        List<ObligationEntity> obligationEntityList = obligationAccessor.findByLoanId(loanId);
+        List<ObligationEntity> obligationEntityList = obligationAccessor.findByTransactionId(loanId);
         List<UUID> uuidList = obligationEntityList.stream().map(ObligationEntity::getUuid).toList();
         obligationAccessor.deleteAllById(uuidList);
       
