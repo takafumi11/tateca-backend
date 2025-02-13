@@ -46,7 +46,6 @@ public class TransactionService {
                 .toList();
 
         List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
-        List<TransactionEntity> repaymentList = accessor.findByGroup(groupId, TransactionType.REPAYMENT);
 
         Map<String, BigDecimal> balances = new HashMap<>();
 
@@ -55,30 +54,16 @@ public class TransactionService {
 
             for (ObligationEntity obligation : obligationEntityList) {
                 UUID obligationUserUuid = obligation.getUser().getUuid();
-                UUID loanPayerUuid = obligation.getLoan().getPayer().getUuid();
-                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getLoan().getCurrencyRate());
+                UUID payerUuid = obligation.getTransaction().getPayer().getUuid();
+                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getTransaction().getCurrencyRate());
 
-                if (obligationUserUuid.toString().equals(userId)) {
-                    balance = balance.add(obligationAmount);
-                }
+                    if (obligationUserUuid.toString().equals(userId)) {
+                        balance = balance.add(obligationAmount);
+                    }
 
-                if (loanPayerUuid.toString().equals(userId)) {
-                    balance = balance.subtract(obligationAmount);
-                }
-            }
-
-            for (TransactionEntity repayment : repaymentList) {
-                UUID payerId = repayment.getPayer().getUuid();
-                UUID recipientId = repayment.getRecipient().getUuid();
-                BigDecimal repaymentAmount = BigDecimal.valueOf(repayment.getAmount()).multiply(repayment.getCurrencyRate());
-
-                if (recipientId.toString().equals(userId)) {
-                    balance = balance.add(repaymentAmount);
-                }
-
-                if (payerId.toString().equals(userId)) {
-                    balance = balance.subtract(repaymentAmount);
-                }
+                    if (payerUuid.toString().equals(userId)) {
+                        balance = balance.subtract(obligationAmount);
+                    }
             }
 
             balances.put(userId, balance);
