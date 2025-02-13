@@ -95,3 +95,37 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
     REFERENCES currency_names (currency_code)
     ON DELETE CASCADE                         -- 通貨名が削除されると、関連する為替レートも削除
 );
+
+
+CREATE TABLE IF NOT EXISTS transaction_history (
+    uuid BINARY(16) PRIMARY KEY,
+    uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
+    transaction_type ENUM('LOAN', 'REPAYMENT') NOT NULL,
+    group_uuid BINARY(16),
+    group_uuid_text CHAR(36) AS (BIN_TO_UUID(group_uuid)) VIRTUAL,
+    title VARCHAR(50),
+    amount INT NOT NULL,
+    currency_code CHAR(3) NOT NULL,
+    currency_rate DECIMAL(9, 6) NOT NULL,
+    date TIMESTAMP NOT NULL,
+    payer_id BINARY(16) NOT NULL,
+    payer_id_text CHAR(36) AS (BIN_TO_UUID(payer_id)) VIRTUAL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid),
+    FOREIGN KEY (payer_id) REFERENCES users(uuid),
+);
+
+CREATE TABLE IF NOT EXISTS transaction_obligations (
+    uuid BINARY(16) PRIMARY KEY,
+    uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
+    transaction_uuid BINARY(16) NOT NULL,
+    transaction_uuid_text CHAR(36) AS (BIN_TO_UUID(transaction_uuid)) VIRTUAL,
+    user_uuid BINARY(16) NOT NULL,
+    user_uuid_text CHAR(36) AS (BIN_TO_UUID(user_uuid)) VIRTUAL,
+    amount INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (transaction_uuid) REFERENCES transaction_history(uuid),
+    FOREIGN KEY (user_uuid) REFERENCES users(uuid)
+);
