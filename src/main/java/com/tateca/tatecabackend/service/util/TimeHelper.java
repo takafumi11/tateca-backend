@@ -10,7 +10,7 @@ public class TimeHelper {
     public static final String UTC_STRING = "UTC";
     public static final ZoneId UTC_ZONE_ID = ZoneId.of(UTC_STRING);
 
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXXXX");
 
     public static String convertToTokyoTime(Instant instant) {
         ZonedDateTime tokyoDateTime = instant.atZone(UTC_ZONE_ID)
