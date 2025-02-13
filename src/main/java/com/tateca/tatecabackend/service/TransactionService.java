@@ -81,7 +81,7 @@ public class TransactionService {
 
         return balances;
     }
-    
+
     private List<TransactionSettlementResponseDTO> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
         List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
         PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
