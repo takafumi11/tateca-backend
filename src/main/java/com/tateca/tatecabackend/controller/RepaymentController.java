@@ -4,6 +4,7 @@ import com.tateca.tatecabackend.dto.request.RepaymentCreationRequest;
 import com.tateca.tatecabackend.dto.response.RepaymentCreationResponse;
 import com.tateca.tatecabackend.service.RepaymentService;
 import com.tateca.tatecabackend.constants.ApiConstants;
+import com.tateca.tatecabackend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RepaymentController {
     private final RepaymentService service;
+    private final TransactionService transactionService;
 
     @PostMapping
     public ResponseEntity<RepaymentCreationResponse> createRepayment(
@@ -48,7 +50,7 @@ public class RepaymentController {
     public ResponseEntity<Void> deleteRepayment(
             @PathVariable("repaymentId") UUID repaymentId
     ) {
-        service.deleteRepayment(repaymentId);
+        transactionService.deleteTransaction(repaymentId);
         return ResponseEntity.noContent().build();
     }
 }

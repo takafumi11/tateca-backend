@@ -4,6 +4,7 @@ import com.tateca.tatecabackend.dto.request.LoanCreationRequest;
 import com.tateca.tatecabackend.dto.response.LoanCreationResponse;
 import com.tateca.tatecabackend.service.LoanService;
 import com.tateca.tatecabackend.constants.ApiConstants;
+import com.tateca.tatecabackend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LoanController {
     private final LoanService service;
+    private final TransactionService transactionService;
 
     @PostMapping
     public ResponseEntity<LoanCreationResponse> createLoan(
@@ -48,7 +50,7 @@ public class LoanController {
     public ResponseEntity<Void> deleteLoan(
             @PathVariable("loanId") UUID loanId
     ) {
-        service.deleteLoan(loanId);
+        transactionService.deleteTransaction(loanId);
         return ResponseEntity.noContent().build();
     }
 }

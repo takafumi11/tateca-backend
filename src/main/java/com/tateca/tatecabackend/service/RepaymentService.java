@@ -55,9 +55,4 @@ public class RepaymentService {
 
         return RepaymentCreationResponse.from(savedObligation);
     }
-
-    @Transactional
-    public void deleteRepayment(UUID repaymentId) {
-        accessor.deleteById(repaymentId);
-    }
 }

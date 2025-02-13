@@ -60,15 +60,4 @@ public class LoanService {
       
         return LoanCreationResponse.buildResponse(savedLoan, savedObligations);
     }
-
-    @Transactional
-    public void deleteLoan(UUID loanId) {
-        // Delete Obligations first
-        List<ObligationEntity> obligationEntityList = obligationAccessor.findByTransactionId(loanId);
-        List<UUID> uuidList = obligationEntityList.stream().map(ObligationEntity::getUuid).toList();
-        obligationAccessor.deleteAllById(uuidList);
-      
-        accessor.deleteById(loanId);
-    }
-
 }
