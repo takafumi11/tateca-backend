@@ -44,7 +44,7 @@ public class LoanService {
         UUID userId = UUID.fromString(request.getLoanRequestDTO().getPayerId());
         UserEntity user = userAccessor.findById(userId);
         GroupEntity group = groupAccessor.findById(groupId);
-        ExchangeRateEntity exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getLoanRequestDTO().getCurrencyCode(), convertToLocalDateInUtc(request.getLoanRequestDTO().getDate()));
+        ExchangeRateEntity exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate("JPY", convertToLocalDateInUtc(request.getLoanRequestDTO().getDate()));
       
         TransactionEntity savedLoan = accessor.save(TransactionEntity.from(request, user, group, exchangeRate));
 

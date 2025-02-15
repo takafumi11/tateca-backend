@@ -27,7 +27,7 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-    @Scheduled(cron = "0 4 17 * * *", zone = UTC_STRING)
+    @Scheduled(cron = "0 1 0 * * *", zone = UTC_STRING)
 
     public void fetchAndStoreExchangeRate() {
         ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchLatestExchangeRate();
