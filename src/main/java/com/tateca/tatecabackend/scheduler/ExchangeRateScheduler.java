@@ -7,6 +7,8 @@ import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -26,49 +28,119 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-    @Scheduled(cron = "0 1 15 * * *", zone = UTC_STRING)
+    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
+
+
+//    @Scheduled(cron = "0 1 15 * * *", zone = UTC_STRING)
+//    public void fetchAndStoreExchangeRate() {
+//        LocalDate currentDate = LocalDate.now(UTC_ZONE_ID);
+//
+//        ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchExchangeRate();
+//
+//        List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
+//
+//        List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
+//
+//        List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
+//
+//        exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
+//            CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
+//                    .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
+//                    .findFirst()
+//                    .orElse(null);
+//
+//            if (currencyNameEntity == null) {
+//                System.out.println("Currency not found: " + currencyCode);
+//                return;
+//            }
+//
+//            ExchangeRateEntity exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, currentDate)
+//                    .orElse(null);
+//
+//            if (exchangeRateEntity == null) {
+//                exchangeRateEntity = ExchangeRateEntity.builder()
+//                        .currencyCode(currencyNameEntity.getCurrencyCode())
+//                        .currencyNames(currencyNameEntity)
+//                        .date(currentDate)
+//                        .exchangeRate(BigDecimal.valueOf(exchangeRate))
+//                        .createdAt(Instant.now())
+//                        .updatedAt(Instant.now())
+//                        .build();
+//            } else {
+//                exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
+//                exchangeRateEntity.setUpdatedAt(Instant.now());
+//            }
+//
+//            exchangeRateEntities.add(exchangeRateEntity);
+//        });
+//
+//        exchangeRateAccessor.saveAll(exchangeRateEntities);
+//    }
+
+    @Scheduled(cron = "0 20 9 * * *", zone = UTC_STRING)
     public void fetchAndStoreExchangeRate() {
-        LocalDate currentDate = LocalDate.now(UTC_ZONE_ID);
+        LocalDate startDate = LocalDate.of(2025, 2, 12);
+        LocalDate endDate = LocalDate.of(2024, 1, 1);
 
-        ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchExchangeRate();
+        List<String> failedDates = new ArrayList<>();
 
-        List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
+        // 2025-02-12から2025-01-01まで1日ずつループ
+        for (LocalDate date = startDate; !date.isBefore(endDate); date = date.minusDays(1)) {
+            System.out.println("on going date: " + date);
+            try {
+                // APIから為替レートを取得
+                ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchExchangeRateByDate(date);
 
-        List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
+                List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
+                List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
+                List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
 
-        List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
+                // 取得した為替レート情報を処理
+                LocalDate finalDate = date;
+                exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
+                    CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
+                            .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
+                            .findFirst()
+                            .orElse(null);
 
-        exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
-            CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
-                    .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
-                    .findFirst()
-                    .orElse(null);
+                    if (currencyNameEntity == null) {
+                        System.out.println("Currency not found: " + currencyCode);
+                        return;
+                    }
 
-            if (currencyNameEntity == null) {
-                System.out.println("Currency not found: " + currencyCode);
-                return;
+                    ExchangeRateEntity exchangeRateEntity = null;
+                    try {
+                        exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, finalDate);
+                        // 既存の為替レート情報を更新
+                        exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
+                        exchangeRateEntity.setUpdatedAt(Instant.now());
+                    } catch (Exception e) {
+                        // 新規に為替レートエンティティを作成
+                        exchangeRateEntity = ExchangeRateEntity.builder()
+                                .currencyCode(currencyNameEntity.getCurrencyCode())
+                                .currencyNames(currencyNameEntity)
+                                .date(finalDate)
+                                .exchangeRate(BigDecimal.valueOf(exchangeRate))
+                                .createdAt(Instant.now())
+                                .updatedAt(Instant.now())
+                                .build();
+                    } finally {
+                        exchangeRateEntities.add(exchangeRateEntity);
+                    }
+                });
+
+                // データを保存
+                exchangeRateAccessor.saveAll(exchangeRateEntities);
+            } catch (Exception e) {
+                // API呼び出しに失敗した場合、その日を記録
+                System.out.println("error cause:  " + e);
+                failedDates.add(date.toString());
             }
+        }
 
-            ExchangeRateEntity exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, currentDate)
-                    .orElse(null);
-
-            if (exchangeRateEntity == null) {
-                exchangeRateEntity = ExchangeRateEntity.builder()
-                        .currencyCode(currencyNameEntity.getCurrencyCode())
-                        .currencyNames(currencyNameEntity)
-                        .date(currentDate)
-                        .exchangeRate(BigDecimal.valueOf(exchangeRate))
-                        .createdAt(Instant.now())
-                        .updatedAt(Instant.now())
-                        .build();
-            } else {
-                exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
-                exchangeRateEntity.setUpdatedAt(Instant.now());
-            }
-
-            exchangeRateEntities.add(exchangeRateEntity);
-        });
-
-        exchangeRateAccessor.saveAll(exchangeRateEntities);
+        // 失敗した日のログ出力
+        if (!failedDates.isEmpty()) {
+            logger.error("Failed to fetch exchange rates for the following dates: {}", String.join(", ", failedDates));
+        }
     }
 }

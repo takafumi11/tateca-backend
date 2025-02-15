@@ -15,7 +15,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_RATE_API_URL;
+import java.time.LocalDate;
+
+import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_CUSTOM_DATE_RATE_API_URL;
+import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_LATEST_RATE_API_URL;
 
 @Component
 @Setter
@@ -28,8 +31,31 @@ public class ExchangeRateApiClient {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
     private final RestTemplate restTemplate;
 
-    public ExchangeRateResponse fetchExchangeRate() {
-        String url = EXCHANGE_RATE_API_URL.replace("{api_key}", apiKey);
+    public ExchangeRateResponse fetchLatestExchangeRate() {
+        String url = EXCHANGE_LATEST_RATE_API_URL.replace("{api_key}", apiKey);
+        try {
+            return restTemplate.getForObject(url, ExchangeRateResponse.class);
+        } catch (RestClientException e) {
+            logger.error("Failed to fetch exchange rate, detail: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred in scheduled task, detail: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    public ExchangeRateResponse fetchExchangeRateByDate(LocalDate date) {
+        String year = String.valueOf(date.getYear());
+        String month = String.valueOf(date.getMonthValue());
+        String day = String.valueOf(date.getDayOfMonth());
+
+        String url = EXCHANGE_CUSTOM_DATE_RATE_API_URL
+                .replace("{api_key}", apiKey)
+                .replace("{year}", year)
+                .replace("{month}", month)
+                .replace("{day}", day);
+
+
         try {
             return restTemplate.getForObject(url, ExchangeRateResponse.class);
         } catch (RestClientException e) {
