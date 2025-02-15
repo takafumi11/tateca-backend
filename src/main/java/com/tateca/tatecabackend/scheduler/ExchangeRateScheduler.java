@@ -27,7 +27,8 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-    @Scheduled(cron = "0 2 17 * * *", zone = UTC_STRING)
+    @Scheduled(cron = "0 4 17 * * *", zone = UTC_STRING)
+
     public void fetchAndStoreExchangeRate() {
         ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchLatestExchangeRate();
         LocalDate date = timeStampToLocalDateInUtc(exchangeRateResponse.getTimeLastUpdateUnix());
@@ -45,11 +46,9 @@ public class ExchangeRateScheduler {
     }
 
     private void updateExchangeRateEntities(ExchangeRateResponse exchangeRateResponse, List<ExchangeRateEntity> exchangeRateEntities, LocalDate date) {
-        // for today
         List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
 
         List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
-
         exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
             CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
                     .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
