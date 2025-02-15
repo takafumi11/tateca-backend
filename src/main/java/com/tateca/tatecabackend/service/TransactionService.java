@@ -65,7 +65,7 @@ public class TransactionService {
             for (ObligationEntity obligation : obligationEntityList) {
                 String obligationUserId = obligation.getUser().getUuid().toString();
                 String payerId = obligation.getTransaction().getPayer().getUuid().toString();
-                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getTransaction().getCurrencyRate());
+                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getTransaction().getExchangeRate().getExchangeRate());
 
                 if (obligationUserId.equals(userId)) {
                     balance = balance.add(obligationAmount);

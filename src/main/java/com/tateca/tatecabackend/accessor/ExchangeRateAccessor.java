@@ -28,7 +28,7 @@ public class ExchangeRateAccessor {
     public ExchangeRateEntity findByCurrencyCodeAndDate(String currencyCode, LocalDate date) {
         try {
             return repository.findByCurrencyCodeAndDate(currencyCode, date)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exchange rate not found with ID: " + currencyCode));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exchange rate Not Found with code and date:" + currencyCode));
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

@@ -18,7 +18,7 @@ import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_ID_A
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
 import static com.tateca.tatecabackend.constants.AttributeConstants.UID_ATTRIBUTE;
 import static com.tateca.tatecabackend.service.util.TimeHelper.TOKYO_ZONE_ID;
-import static com.tateca.tatecabackend.service.util.TimeHelper.formatter;
+import static com.tateca.tatecabackend.service.util.TimeHelper.DATE_TIME_FORMATTER;
 
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
@@ -49,7 +49,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         String requestBody = requestWrapper != null ? getRequestBody(requestWrapper) : "N/A";
 
-        logger.info("Request: Method: {} - Path: {} - UID: {} - Body: {} - RequestTime: {} - RequestId: [{}]", request.getMethod(), request.getRequestURI(), uid, requestBody, formatter.withZone(TOKYO_ZONE_ID).format(requestTime), requestId);
+        logger.info("Request: Method: {} - Path: {} - UID: {} - Body: {} - RequestTime: {} - RequestId: [{}]", request.getMethod(), request.getRequestURI(), uid, requestBody, DATE_TIME_FORMATTER.withZone(TOKYO_ZONE_ID).format(requestTime), requestId);
         logger.info("Response: Status: {} - ProcessingTime: {}ms - RequestId: [{}]", response.getStatus(), processingTimeMs, requestId);
     }
 

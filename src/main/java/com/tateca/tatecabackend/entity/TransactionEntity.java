@@ -3,7 +3,6 @@ package com.tateca.tatecabackend.entity;
 import com.tateca.tatecabackend.dto.request.LoanCreationRequest;
 import com.tateca.tatecabackend.dto.request.RepaymentCreationRequest;
 import com.tateca.tatecabackend.model.TransactionType;
-import com.tateca.tatecabackend.service.util.TimeHelper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -20,7 +20,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -49,14 +48,12 @@ public class TransactionEntity {
     @Column(name = "amount", nullable = false)
     private int amount;
 
-    @Column(name = "currency_code", length = 3, nullable = false)
-    private String currencyCode;
-
-    @Column(name = "currency_rate", precision = 9, scale = 6, nullable = false)
-    private BigDecimal currencyRate;
-
-    @Column(name = "date", nullable = false)
-    private Instant date;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumns({
+            @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, updatable = false),
+            @JoinColumn(name = "date", referencedColumnName = "date", nullable = false, updatable = false)
+    })
+    private ExchangeRateEntity exchangeRate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false)
@@ -80,30 +77,26 @@ public class TransactionEntity {
         updatedAt = Instant.now();
     }
 
-    public static TransactionEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group) {
+    public static TransactionEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group, ExchangeRateEntity exchangeRate) {
         return TransactionEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
                 .transactionType(TransactionType.LOAN)
                 .title(request.getLoanRequestDTO().getTitle())
                 .amount(request.getLoanRequestDTO().getAmount())
-                .currencyCode(request.getLoanRequestDTO().getCurrencyCode())
-                .currencyRate(request.getLoanRequestDTO().getCurrencyRate())
-                .date(TimeHelper.convertToUtc(request.getLoanRequestDTO().getDate()))
+                .exchangeRate(exchangeRate)
                 .payer(user)
                 .build();
     }
 
-    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity payer, UserEntity recipient, GroupEntity group) {
+    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
         return TransactionEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
                 .transactionType(TransactionType.REPAYMENT)
                 .title(request.getRepaymentRequestDTO().getTitle())
                 .amount(request.getRepaymentRequestDTO().getAmount())
-                .currencyCode(request.getRepaymentRequestDTO().getCurrencyCode())
-                .currencyRate(request.getRepaymentRequestDTO().getCurrencyRate())
-                .date(TimeHelper.convertToUtc(request.getRepaymentRequestDTO().getDate()))
+                .exchangeRate(exchangeRate)
                 .payer(payer)
                 .build();
     }
