@@ -53,7 +53,7 @@ public class RepaymentService {
         UserEntity payer = userAccessor.findById(UUID.fromString(payerId));
         UserEntity recipient = userAccessor.findById(UUID.fromString(recipientId));
         GroupEntity group = groupAccessor.findById(groupId);
-        ExchangeRateEntity exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getRepaymentRequestDTO().getCurrencyCode(), convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()));
+        ExchangeRateEntity exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate("JPY", convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()));
 
         TransactionEntity savedTransaction = accessor.save(TransactionEntity.from(request, payer, group, exchangeRate));
 
