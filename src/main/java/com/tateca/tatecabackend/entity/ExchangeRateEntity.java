@@ -35,7 +35,7 @@ public class ExchangeRateEntity {
     private LocalDate date;
 
     @ManyToOne
-    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, updatable = false)
+    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, insertable = false, updatable = false)
     private CurrencyNameEntity currencyNames;
 
     @Column(name = "exchange_rate", nullable = false)
