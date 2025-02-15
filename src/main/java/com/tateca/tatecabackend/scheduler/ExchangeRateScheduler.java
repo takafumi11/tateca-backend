@@ -31,62 +31,32 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
-  
-    @Scheduled(cron = "0 1 0 * * *", zone = UTC_STRING)
+    @Scheduled(cron = "0 20 16 * * *", zone = UTC_STRING)
     public void fetchAndStoreExchangeRate() {
         ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchLatestExchangeRate();
         LocalDate date = timeStampToLocalDateInUtc(exchangeRateResponse.getTimeLastUpdateUnix());
 
-        // 2025-02-12から2025-01-01まで1日ずつループ
-        for (LocalDate date = startDate; !date.isBefore(endDate); date = date.minusDays(1)) {
-            System.out.println("on going date: " + date);
-            try {
-                // APIから為替レートを取得
-                ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchExchangeRateByDate(date);
+        List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
 
-                List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
-                List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
-                List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
+        List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
 
-                // 取得した為替レート情報を処理
-                LocalDate finalDate = date;
-                exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
-                    CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
-                            .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
-                            .findFirst()
-                            .orElse(null);
+        List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
 
-                    if (currencyNameEntity == null) {
-                        System.out.println("Currency not found: " + currencyCode);
-                        return;
-                    }
+        exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
+            CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
+                    .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
+                    .findFirst()
+                    .orElse(null);
 
-                    ExchangeRateEntity exchangeRateEntity = null;
-                    try {
-                        exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, finalDate);
-                        // 既存の為替レート情報を更新
-                        exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
-                        exchangeRateEntity.setUpdatedAt(Instant.now());
-                    } catch (Exception e) {
-                        // 新規に為替レートエンティティを作成
-                        exchangeRateEntity = ExchangeRateEntity.builder()
-                                .currencyCode(currencyNameEntity.getCurrencyCode())
-                                .currencyNames(currencyNameEntity)
-                                .date(finalDate)
-                                .exchangeRate(BigDecimal.valueOf(exchangeRate))
-                                .createdAt(Instant.now())
-                                .updatedAt(Instant.now())
-                                .build();
-                    } finally {
-                        exchangeRateEntities.add(exchangeRateEntity);
-                    }
-                });
+            if (currencyNameEntity == null) {
+                System.out.println("Currency not found: " + currencyCode);
+                return;
+            }
 
             ExchangeRateEntity exchangeRateEntity = null;
 
             try {
-                exchangeRateEntity= exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, date);
+                exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, date);
 
                 exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
                 exchangeRateEntity.setUpdatedAt(Instant.now());
