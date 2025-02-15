@@ -6,7 +6,11 @@ import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
+import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +22,7 @@ import java.util.List;
 
 import static com.tateca.tatecabackend.service.util.TimeHelper.UTC_STRING;
 import static com.tateca.tatecabackend.service.util.TimeHelper.UTC_ZONE_ID;
+import static com.tateca.tatecabackend.service.util.TimeHelper.timeStampToLocalDateInUtc;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +31,12 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-    @Scheduled(cron = "0 1 15 * * *", zone = UTC_STRING)
-    public void fetchAndStoreExchangeRate() {
-        LocalDate currentDate = LocalDate.now(UTC_ZONE_ID);
+    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
 
-        ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchExchangeRate();
+    @Scheduled(cron = "0 1 0 * * *", zone = UTC_STRING)
+    public void fetchAndStoreExchangeRate() {
+        ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchLatestExchangeRate();
+        LocalDate date = timeStampToLocalDateInUtc(exchangeRateResponse.getTimeLastUpdateUnix());
 
         List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
 
@@ -49,24 +55,25 @@ public class ExchangeRateScheduler {
                 return;
             }
 
-            ExchangeRateEntity exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, currentDate)
-                    .orElse(null);
+            ExchangeRateEntity exchangeRateEntity = null;
 
-            if (exchangeRateEntity == null) {
+            try {
+                exchangeRateEntity= exchangeRateAccessor.findByCurrencyCodeAndDate(currencyCode, date);
+
+                exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
+                exchangeRateEntity.setUpdatedAt(Instant.now());
+            } catch (Exception e) {
                 exchangeRateEntity = ExchangeRateEntity.builder()
                         .currencyCode(currencyNameEntity.getCurrencyCode())
                         .currencyNames(currencyNameEntity)
-                        .date(currentDate)
+                        .date(date)
                         .exchangeRate(BigDecimal.valueOf(exchangeRate))
                         .createdAt(Instant.now())
                         .updatedAt(Instant.now())
                         .build();
-            } else {
-                exchangeRateEntity.setExchangeRate(BigDecimal.valueOf(exchangeRate));
-                exchangeRateEntity.setUpdatedAt(Instant.now());
+            } finally {
+                exchangeRateEntities.add(exchangeRateEntity);
             }
-
-            exchangeRateEntities.add(exchangeRateEntity);
         });
 
         exchangeRateAccessor.saveAll(exchangeRateEntities);

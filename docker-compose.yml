@@ -10,7 +10,6 @@ services:
       MYSQL_DATABASE: railway
       MYSQL_USER: a
       MYSQL_PASSWORD: a
-      TZ: Asia/Tokyo
     ports:
       - "3306:3306"
     volumes:

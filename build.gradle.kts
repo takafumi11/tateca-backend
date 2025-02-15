@@ -20,6 +20,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation ("com.google.firebase:firebase-admin:9.2.0")
+	implementation ("io.github.resilience4j:resilience4j-retry:1.7.0")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("com.mysql:mysql-connector-j")

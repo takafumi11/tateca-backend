@@ -23,18 +23,21 @@ public class LoanResponseDTO {
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static LoanResponseDTO from(TransactionEntity loan) {
+    public static LoanResponseDTO from(TransactionEntity transaction) {
         return LoanResponseDTO.builder()
-                .uuid(loan.getUuid().toString())
-                .group(GroupResponseDTO.from(loan.getGroup()))
-                .title(loan.getTitle())
-                .amount(loan.getAmount())
-                .currencyCode(loan.getCurrencyCode())
-                .currencyRate(loan.getCurrencyRate())
-                .date(convertToTokyoTime(loan.getDate()))
-                .payer(UserResponseDTO.from(loan.getPayer()))
-                .createdAt(convertToTokyoTime(loan.getCreatedAt()))
-                .updatedAt(convertToTokyoTime(loan.getUpdatedAt()))
+                .uuid(transaction.getUuid().toString())
+                .group(GroupResponseDTO.from(transaction.getGroup()))
+                .title(transaction.getTitle())
+                .amount(transaction.getAmount())
+                // TODO: It is not correct. Needs to be updated.
+                .currencyCode("JPY")
+                // TODO: It is not correct. Needs to be updated.
+                .currencyRate(BigDecimal.ONE)
+                // TODO: It is not correct. Needs to be updated.
+                .date(convertToTokyoTime(transaction.getCreatedAt()))
+                .payer(UserResponseDTO.from(transaction.getPayer()))
+                .createdAt(convertToTokyoTime(transaction.getCreatedAt()))
+                .updatedAt(convertToTokyoTime(transaction.getUpdatedAt()))
                 .build();
     }
 }

@@ -30,13 +30,13 @@ public class ExchangeRateEntity {
     @Column(name = "currency_code", nullable = false)
     private String currencyCode;
 
-    @ManyToOne
-    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, insertable = false, updatable = false)
-    private CurrencyNameEntity currencyNames;
-
     @Id
     @Column(name = "date", nullable = false)
     private LocalDate date;
+
+    @ManyToOne
+    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, updatable = false)
+    private CurrencyNameEntity currencyNames;
 
     @Column(name = "exchange_rate", nullable = false)
     private BigDecimal exchangeRate;
