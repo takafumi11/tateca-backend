@@ -15,7 +15,6 @@ public class TimeHelper {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXXXX");
 
-
     public static String convertToTokyoTime(Instant instant) {
         ZonedDateTime tokyoDateTime = instant.atZone(UTC_ZONE_ID)
                 .withZoneSameInstant(TOKYO_ZONE_ID);
