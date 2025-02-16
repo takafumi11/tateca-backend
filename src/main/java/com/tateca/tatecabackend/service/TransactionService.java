@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -65,7 +66,8 @@ public class TransactionService {
             for (ObligationEntity obligation : obligationEntityList) {
                 String obligationUserId = obligation.getUser().getUuid().toString();
                 String payerId = obligation.getTransaction().getPayer().getUuid().toString();
-                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount()).multiply(obligation.getTransaction().getExchangeRate().getExchangeRate());
+                BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount())
+                        .divide(obligation.getTransaction().getExchangeRate().getExchangeRate(), 7, RoundingMode.HALF_UP);
 
                 if (obligationUserId.equals(userId)) {
                     balance = balance.add(obligationAmount);
