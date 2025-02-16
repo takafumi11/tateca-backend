@@ -15,6 +15,7 @@ public class TimeHelper {
     public static final ZoneId UTC_ZONE_ID = ZoneId.of(UTC_STRING);
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXXXX");
+    
 
     public static String convertToTokyoTime(Instant instant) {
         ZonedDateTime tokyoDateTime = instant.atZone(UTC_ZONE_ID)
@@ -28,6 +29,11 @@ public class TimeHelper {
         return localDateTime.atOffset(ZoneOffset.UTC).format(DATE_TIME_FORMATTER);
     }
 
+    public static Instant dateStringToInstant(String dateStr) {
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateStr, DATE_TIME_FORMATTER);
+        return offsetDateTime.toInstant();
+    }
+
     public static LocalDate timeStampToLocalDateInUtc(String timestampStr) {
         long timestamp = Long.parseLong(timestampStr);
         Instant instant = Instant.ofEpochSecond(timestamp);
@@ -38,10 +44,7 @@ public class TimeHelper {
     public static LocalDate convertToLocalDateInUtc(String dateTimeStr) {
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER);
 
-        return offsetDateTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDate();
-    }
-
-    public static Instant convertToUtc(String dateTimeStr) {
-        return Instant.parse(dateTimeStr);
+        Instant instant = offsetDateTime.toInstant();
+        return instant.atZone(ZoneOffset.UTC).toLocalDate();
     }
 }

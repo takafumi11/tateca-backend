@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS transaction_history (
     title VARCHAR(50),
     amount INT NOT NULL,
     currency_code CHAR(3) NOT NULL,
-    date DATE NOT NULL,
+    date TIMESTAMP NOT NULL,
     payer_id BINARY(16) NOT NULL,
     payer_id_text CHAR(36) AS (BIN_TO_UUID(payer_id)) VIRTUAL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

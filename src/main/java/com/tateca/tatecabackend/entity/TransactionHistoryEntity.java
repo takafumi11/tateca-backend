@@ -2,6 +2,7 @@ package com.tateca.tatecabackend.entity;
 
 import com.tateca.tatecabackend.model.TransactionType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -53,6 +54,10 @@ public class TransactionHistoryEntity {
     })
     private ExchangeRateEntity exchangeRate;
 
+    @Column(name = "date", insertable = false, updatable = false, nullable = false)
+    @Convert(converter = InstantToLocalDateConverter.class)
+    private Instant date;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false)
     private UserEntity payer;
@@ -75,13 +80,14 @@ public class TransactionHistoryEntity {
         updatedAt = Instant.now();
     }
 
-    public static TransactionHistoryEntity from(TransactionType transactionType, String title, int amount, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
+    public static TransactionHistoryEntity from(TransactionType transactionType, String title, int amount, Instant date, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
         return TransactionHistoryEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
                 .transactionType(transactionType)
                 .title(title)
                 .amount(amount)
+                .date(date)
                 .exchangeRate(exchangeRate)
                 .payer(payer)
                 .build();
