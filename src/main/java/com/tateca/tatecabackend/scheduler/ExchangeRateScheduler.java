@@ -71,7 +71,7 @@ public class ExchangeRateScheduler {
                 exchangeRateEntity = ExchangeRateEntity.builder()
                         .currencyCode(currencyNameEntity.getCurrencyCode())
                         .date(date)
-                        .currencyNames(currencyNameEntity)
+                        .currencyName(currencyNameEntity)
                         .exchangeRate(BigDecimal.valueOf(exchangeRate))
                         .createdAt(Instant.now())
                         .updatedAt(Instant.now())

@@ -17,6 +17,14 @@ import java.util.Optional;
 public class ExchangeRateAccessor {
     private final ExchangeRateRepository repository;
 
+    public ExchangeRateEntity save(ExchangeRateEntity entity) {
+        try {
+            return repository.save(entity);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
     public void saveAll(List<ExchangeRateEntity> entityList) {
         try {
             repository.saveAll(entityList);

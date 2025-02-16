@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
+import static com.tateca.tatecabackend.service.util.TimeHelper.convertToLocalDateInUtc;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -36,7 +38,7 @@ public class ExchangeRateEntity {
 
     @ManyToOne
     @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, insertable = false, updatable = false)
-    private CurrencyNameEntity currencyNames;
+    private CurrencyNameEntity currencyName;
 
     @Column(name = "exchange_rate", nullable = false)
     private BigDecimal exchangeRate;
@@ -57,5 +59,16 @@ public class ExchangeRateEntity {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    public static ExchangeRateEntity getJPYForToday(LocalDate date, CurrencyNameEntity currencyName) {
+         return ExchangeRateEntity.builder()
+                .currencyCode("JPY")
+                .date(date)
+                .currencyName(currencyName)
+                .exchangeRate(BigDecimal.ONE)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
     }
 }
