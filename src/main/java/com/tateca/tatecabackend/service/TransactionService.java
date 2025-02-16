@@ -30,6 +30,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,6 +42,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.tateca.tatecabackend.service.util.TimeHelper.convertToLocalDateInUtc;
+import static com.tateca.tatecabackend.service.util.TimeHelper.dateStringToInstant;
 
 @Service
 @RequiredArgsConstructor
@@ -174,7 +176,7 @@ public class TransactionService {
 
         UserEntity payer = userAccessor.findById(request.getPayerId());
         GroupEntity group = groupAccessor.findById(groupId);
-        TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.getTransactionType(), request.getTitle(), request.getAmount(), payer, group, exchangeRate));
+        TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.getTransactionType(), request.getTitle(), request.getAmount(), dateStringToInstant(request.getDateStr()), payer, group, exchangeRate));
 
         // Save into transaction_obligations
         if (request.getTransactionType() == TransactionType.LOAN) {

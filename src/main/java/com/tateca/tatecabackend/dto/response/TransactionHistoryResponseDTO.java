@@ -6,9 +6,6 @@ import com.tateca.tatecabackend.model.TransactionType;
 import lombok.Builder;
 import lombok.Data;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
-import static com.tateca.tatecabackend.service.util.TimeHelper.localDateToTokyoTime;
-
 @Data
 @Builder
 public class TransactionHistoryResponseDTO {
@@ -21,15 +18,13 @@ public class TransactionHistoryResponseDTO {
     @JsonProperty("date") String date;
 
     public static TransactionHistoryResponseDTO from(TransactionHistoryEntity transaction) {
-        String date = transaction.getDate().toString();
-        System.out.println("date::" + date);
         return TransactionHistoryResponseDTO.builder()
                 .id(transaction.getUuid().toString())
                 .transactionType(transaction.getTransactionType())
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
                 .currencyCode(transaction.getExchangeRate().getCurrencyCode())
-                .date(date)
+                .date(transaction.getExchangeRate().getDate().toString())
                 .build();
     }
 }

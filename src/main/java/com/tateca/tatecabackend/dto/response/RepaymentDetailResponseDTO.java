@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 public class RepaymentDetailResponseDTO {
-    @JsonProperty("obligation") UserResponseDTO recipient;
+    @JsonProperty("recipient") UserResponseDTO recipient;
 
     public static RepaymentDetailResponseDTO from(UserEntity recipientEntity) {
         return RepaymentDetailResponseDTO.builder()
