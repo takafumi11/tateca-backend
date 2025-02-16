@@ -6,8 +6,6 @@ import com.tateca.tatecabackend.service.util.TimeHelper;
 import lombok.Builder;
 import lombok.Data;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
-
 @Builder
 @Data
 public class AuthUserResponseDTO {

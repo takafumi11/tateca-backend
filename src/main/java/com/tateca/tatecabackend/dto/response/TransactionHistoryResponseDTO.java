@@ -6,6 +6,8 @@ import com.tateca.tatecabackend.model.TransactionType;
 import lombok.Builder;
 import lombok.Data;
 
+import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
+
 @Data
 @Builder
 public class TransactionHistoryResponseDTO {
@@ -24,7 +26,7 @@ public class TransactionHistoryResponseDTO {
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
                 .currencyCode(transaction.getExchangeRate().getCurrencyCode())
-                .date(transaction.getExchangeRate().getDate().toString())
+                .date(convertToTokyoTime(transaction.getDate()))
                 .build();
     }
 }

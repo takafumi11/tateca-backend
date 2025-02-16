@@ -9,8 +9,7 @@ import lombok.Data;
 
 import java.util.List;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.localDateToTokyoTime;
-
+import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Data
 @Builder
@@ -48,7 +47,7 @@ public class TransactionDetailResponseDTO {
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
                 .payer(UserResponseDTO.from(transaction.getPayer()))
-                .dateStr(localDateToTokyoTime(transaction.getExchangeRate().getDate()))
+                .dateStr(convertToTokyoTime(transaction.getDate()))
                 .currency(CurrencyResponseDTO.from(transaction.getExchangeRate()));
     }
 }

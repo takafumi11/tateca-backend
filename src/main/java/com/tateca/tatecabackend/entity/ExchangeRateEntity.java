@@ -18,8 +18,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToLocalDateInUtc;
-
 @Entity
 @Data
 @NoArgsConstructor
