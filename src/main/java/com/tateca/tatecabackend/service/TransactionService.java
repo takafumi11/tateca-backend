@@ -1,22 +1,36 @@
 package com.tateca.tatecabackend.service;
 
+import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
+import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
+import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
+import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
+import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponse;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponse;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
-import com.tateca.tatecabackend.entity.ObligationEntity;
-import com.tateca.tatecabackend.entity.TransactionEntity;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.ExchangeRateEntity;
+import com.tateca.tatecabackend.entity.GroupEntity;
+import com.tateca.tatecabackend.entity.TransactionObligationEntity;
+import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
+import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
+import com.tateca.tatecabackend.model.TransactionType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -26,17 +40,23 @@ import java.util.PriorityQueue;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.tateca.tatecabackend.service.util.TimeHelper.convertToLocalDateInUtc;
+
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
+    private final UserAccessor userAccessor;
+    private final GroupAccessor groupAccessor;
     private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor accessor;
     private final ObligationAccessor obligationAccessor;
+    private final ExchangeRateAccessor exchangeRateAccessor;
+    private final CurrencyNameAccessor currencyNameAccessor;
 
-    public TransactionsHistoryResponse getTransactions(int count, UUID groupId) {
-        List<TransactionEntity> transactionEntityList = accessor.findTransactionHistoryList(groupId, count);
+    public TransactionsHistoryResponse getTransactionHistory(int count, UUID groupId) {
+        List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionHistory(groupId, count);
 
-        return TransactionsHistoryResponse.buildResponse(transactionEntityList);
+        return TransactionsHistoryResponse.buildResponse(transactionHistoryEntityList);
     }
 
     public TransactionsSettlementResponse getSettlements(UUID groupId) {
@@ -46,9 +66,9 @@ public class TransactionService {
                 .map(UUID::toString)
                 .toList();
 
-        List<ObligationEntity> obligationEntityList = obligationAccessor.findByGroupId(groupId);
+        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByGroupId(groupId);
 
-        Map<String, BigDecimal> balances = getUserBalances(userIds, obligationEntityList);
+        Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList);
 
         List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
 
@@ -57,13 +77,13 @@ public class TransactionService {
                 .build();
     }
 
-    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<ObligationEntity> obligationEntityList) {
+    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList) {
         Map<String, BigDecimal> balances = new HashMap<>();
 
         for (String userId : userIds) {
             BigDecimal balance = BigDecimal.ZERO;
 
-            for (ObligationEntity obligation : obligationEntityList) {
+            for (TransactionObligationEntity obligation : transactionObligationEntityList) {
                 String obligationUserId = obligation.getUser().getUuid().toString();
                 String payerId = obligation.getTransaction().getPayer().getUuid().toString();
                 BigDecimal obligationAmount = BigDecimal.valueOf(obligation.getAmount())
@@ -137,10 +157,70 @@ public class TransactionService {
     }
 
     @Transactional
+    public TransactionDetailResponseDTO createTransaction(UUID groupId, TransactionCreationRequestDTO request) {
+        // Save into transaction_history
+        ExchangeRateEntity exchangeRate = null;
+        LocalDate date = convertToLocalDateInUtc(request.getDateStr());
+
+        try {
+            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), date);
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                CurrencyNameEntity currencyName = currencyNameAccessor.findForJPY();
+                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYEntity(date, currencyName);
+                exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
+            }
+        }
+
+        UserEntity payer = userAccessor.findById(request.getPayerId());
+        GroupEntity group = groupAccessor.findById(groupId);
+        TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.getTransactionType(), request.getTitle(), request.getAmount(), payer, group, exchangeRate));
+
+        // Save into transaction_obligations
+        if (request.getTransactionType() == TransactionType.LOAN) {
+            List<TransactionObligationEntity> transactionObligationEntityList = request.getLoanRequest().getObligationRequestDTOs().stream()
+                    .map(obligation -> {
+                        UserEntity obligationUser = userAccessor.findById(obligation.getUserUuid());
+
+                        return TransactionObligationEntity.builder()
+                                .uuid(UUID.randomUUID())
+                                .transaction(savedTransaction)
+                                .user(obligationUser)
+                                .amount(obligation.getAmount())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            List<TransactionObligationEntity> savedObligations = obligationAccessor.saveAll(transactionObligationEntityList);
+
+            return TransactionDetailResponseDTO.from(savedTransaction, savedObligations);
+        } else {
+            UserEntity recipient = userAccessor.findById(request.getRepaymentRequest().getRecipientId());
+
+            TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
+
+            return TransactionDetailResponseDTO.from(savedTransaction, savedObligation);
+        }
+    }
+
+    public TransactionDetailResponseDTO getTransactionDetail(UUID transactionId) {
+        TransactionHistoryEntity transaction = accessor.findById(transactionId);
+        TransactionType transactionType = transaction.getTransactionType();
+
+        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByTransactionId(transactionId);
+
+        if (transactionType == TransactionType.LOAN) {
+           return TransactionDetailResponseDTO.from(transaction, transactionObligationEntityList);
+        } else {
+            return TransactionDetailResponseDTO.from(transaction, transactionObligationEntityList.get(0));
+        }
+    }
+
+    @Transactional
     public void deleteTransaction(UUID transactionId) {
         // Delete Obligations first
-        List<ObligationEntity> obligationEntityList = obligationAccessor.findByTransactionId(transactionId);
-        List<UUID> uuidList = obligationEntityList.stream().map(ObligationEntity::getUuid).toList();
+        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByTransactionId(transactionId);
+        List<UUID> uuidList = transactionObligationEntityList.stream().map(TransactionObligationEntity::getUuid).toList();
         obligationAccessor.deleteAllById(uuidList);
 
         accessor.deleteById(transactionId);

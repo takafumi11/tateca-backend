@@ -1,7 +1,5 @@
 package com.tateca.tatecabackend.entity;
 
-import com.tateca.tatecabackend.dto.request.LoanCreationRequest;
-import com.tateca.tatecabackend.dto.request.RepaymentCreationRequest;
 import com.tateca.tatecabackend.model.TransactionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +27,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "transaction_history")
-public class TransactionEntity {
+public class TransactionHistoryEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
@@ -77,25 +75,13 @@ public class TransactionEntity {
         updatedAt = Instant.now();
     }
 
-    public static TransactionEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group, ExchangeRateEntity exchangeRate) {
-        return TransactionEntity.builder()
+    public static TransactionHistoryEntity from(TransactionType transactionType, String title, int amount, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
+        return TransactionHistoryEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
-                .transactionType(TransactionType.LOAN)
-                .title(request.getLoanRequestDTO().getTitle())
-                .amount(request.getLoanRequestDTO().getAmount())
-                .exchangeRate(exchangeRate)
-                .payer(user)
-                .build();
-    }
-
-    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
-        return TransactionEntity.builder()
-                .uuid(UUID.randomUUID())
-                .group(group)
-                .transactionType(TransactionType.REPAYMENT)
-                .title(request.getRepaymentRequestDTO().getTitle())
-                .amount(request.getRepaymentRequestDTO().getAmount())
+                .transactionType(transactionType)
+                .title(title)
+                .amount(amount)
                 .exchangeRate(exchangeRate)
                 .payer(payer)
                 .build();

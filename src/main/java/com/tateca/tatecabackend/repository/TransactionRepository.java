@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.repository;
 
-import com.tateca.tatecabackend.entity.TransactionEntity;
+import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.model.TransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<TransactionEntity, UUID> {
+public interface TransactionRepository extends JpaRepository<TransactionHistoryEntity, UUID> {
     @Query(value = "SELECT * FROM transaction_history t WHERE t.group_uuid = :groupId ORDER BY t.created_at DESC LIMIT :limit", nativeQuery = true)
-    List<TransactionEntity> findTransactionsByGroupOrderByCreatedAtDescWithLimit(@Param("groupId") UUID groupId, @Param("limit") int limit);
+    List<TransactionHistoryEntity> findTransactionsByGroupOrderByCreatedAtDescWithLimit(@Param("groupId") UUID groupId, @Param("limit") int limit);
 
 
-    @Query("SELECT t FROM TransactionEntity t WHERE t.group.uuid = :groupId AND t.transactionType = :type")
-    List<TransactionEntity> findTransactionsByGroup(@Param("groupId") UUID groupId, @Param("type") TransactionType type);
+    @Query("SELECT t FROM TransactionHistoryEntity t WHERE t.group.uuid = :groupId AND t.transactionType = :type")
+    List<TransactionHistoryEntity> findTransactionsByGroup(@Param("groupId") UUID groupId, @Param("type") TransactionType type);
 }

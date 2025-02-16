@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.accessor;
 
-import com.tateca.tatecabackend.entity.ObligationEntity;
+import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.repository.ObligationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -16,23 +16,23 @@ import java.util.UUID;
 public class ObligationAccessor {
     private final ObligationRepository repository;
 
-    public ObligationEntity save(ObligationEntity obligationEntity) {
+    public TransactionObligationEntity save(TransactionObligationEntity transactionObligationEntity) {
         try {
-            return repository.save(obligationEntity);
+            return repository.save(transactionObligationEntity);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
 
-    public List<ObligationEntity> saveAll(List<ObligationEntity> obligationEntityList) {
+    public List<TransactionObligationEntity> saveAll(List<TransactionObligationEntity> transactionObligationEntityList) {
         try {
-            return repository.saveAll(obligationEntityList);
+            return repository.saveAll(transactionObligationEntityList);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
 
-    public List<ObligationEntity> findByTransactionId(UUID id) {
+    public List<TransactionObligationEntity> findByTransactionId(UUID id) {
         try {
             return repository.findByTransactionId(id);
         } catch (DataAccessException e) {
@@ -40,7 +40,7 @@ public class ObligationAccessor {
         }
     }
 
-    public List<ObligationEntity> findByGroupId(UUID id) {
+    public List<TransactionObligationEntity> findByGroupId(UUID id) {
         return repository.findByGroupId(id);
     }
 
