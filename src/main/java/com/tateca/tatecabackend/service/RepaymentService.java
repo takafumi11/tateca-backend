@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,20 +61,14 @@ public class RepaymentService {
         GroupEntity group = groupAccessor.findById(groupId);
 
         ExchangeRateEntity exchangeRate = null;
+        LocalDate date = convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate());
         try {
-            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getRepaymentRequestDTO().getCurrencyCode(), convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()));
+            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getRepaymentRequestDTO().getCurrencyCode(), date);
         } catch (ResponseStatusException e) {
             CurrencyNameEntity currencyName = currencyNameAccessor.findById("JPY");
 
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.builder()
-                        .currencyCode("JPY")
-                        .date(convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()))
-                        .currencyName(currencyName)
-                        .exchangeRate(BigDecimal.ONE)
-                        .createdAt(Instant.now())
-                        .updatedAt(Instant.now())
-                        .build();
+                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYForToday(date, currencyName);
                 exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
             }
         }
