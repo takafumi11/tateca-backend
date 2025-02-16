@@ -61,7 +61,7 @@ public class ExchangeRateEntity {
         this.updatedAt = Instant.now();
     }
 
-    public static ExchangeRateEntity getJPYForToday(LocalDate date, CurrencyNameEntity currencyName) {
+    public static ExchangeRateEntity getJPYEntity(LocalDate date, CurrencyNameEntity currencyName) {
          return ExchangeRateEntity.builder()
                 .currencyCode("JPY")
                 .date(date)

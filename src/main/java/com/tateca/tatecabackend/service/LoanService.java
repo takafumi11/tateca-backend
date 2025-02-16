@@ -60,7 +60,7 @@ public class LoanService {
             CurrencyNameEntity currencyName = currencyNameAccessor.findById("JPY");
 
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYForToday(date, currencyName);
+                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYEntity(date, currencyName);
                 exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
             }
         }
