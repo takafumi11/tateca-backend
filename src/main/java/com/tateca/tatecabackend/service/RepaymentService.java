@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.service;
 
+import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
@@ -8,6 +9,7 @@ import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.RepaymentCreationRequest;
 import com.tateca.tatecabackend.dto.request.RepaymentRequestDTO;
 import com.tateca.tatecabackend.dto.response.RepaymentCreationResponse;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.ObligationEntity;
@@ -19,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +36,7 @@ public class RepaymentService {
     private final UserAccessor userAccessor;
     private final GroupAccessor groupAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
+    private final CurrencyNameAccessor currencyNameAccessor;
 
     @Transactional
     public RepaymentCreationResponse getRepayment(UUID repaymentId) {
@@ -53,7 +58,25 @@ public class RepaymentService {
         UserEntity payer = userAccessor.findById(UUID.fromString(payerId));
         UserEntity recipient = userAccessor.findById(UUID.fromString(recipientId));
         GroupEntity group = groupAccessor.findById(groupId);
-        ExchangeRateEntity exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate("JPY", convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()));
+
+        ExchangeRateEntity exchangeRate = null;
+        try {
+            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getRepaymentRequestDTO().getCurrencyCode(), convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()));
+        } catch (ResponseStatusException e) {
+            CurrencyNameEntity currencyName = currencyNameAccessor.findById("JPY");
+
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.builder()
+                        .currencyCode("JPY")
+                        .date(convertToLocalDateInUtc(request.getRepaymentRequestDTO().getDate()))
+                        .currencyName(currencyName)
+                        .exchangeRate(BigDecimal.ONE)
+                        .createdAt(Instant.now())
+                        .updatedAt(Instant.now())
+                        .build();
+                exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
+            }
+        }
 
         TransactionEntity savedTransaction = accessor.save(TransactionEntity.from(request, payer, group, exchangeRate));
 

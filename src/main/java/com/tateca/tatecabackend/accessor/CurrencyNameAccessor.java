@@ -15,6 +15,15 @@ import java.util.List;
 public class CurrencyNameAccessor {
     private final CurrencyNameRepository repository;
 
+    public CurrencyNameEntity findById(String currencyCode) {
+        try {
+            return repository.findById(currencyCode)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Currency Name not found with code: " + currencyCode));
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
     public List<CurrencyNameEntity> findAllById(List<String> currencyCodes) {
         try {
             return repository.findAllById(currencyCodes);
