@@ -9,6 +9,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
+import static com.tateca.tatecabackend.service.util.TimeHelper.localDateToTokyoTime;
 
 @Data
 @Builder
@@ -35,8 +36,7 @@ public class TransactionHistoryResponseDTO {
                 .amount(transaction.getAmount())
                 .currencyCode(transaction.getExchangeRate().getCurrencyCode())
                 .currencyRate(transaction.getExchangeRate().getExchangeRate())
-                // TODO: It it wrong info. Can be removed.
-                .date(convertToTokyoTime(transaction.getCreatedAt()))
+                .date(localDateToTokyoTime(transaction.getExchangeRate().getDate()))
                 .payer(UserResponseDTO.from(transaction.getPayer()))
                 // TODO: It can be removed if client doesn't require.
                 .targetUser(null)
