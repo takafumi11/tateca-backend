@@ -1,9 +1,8 @@
 package com.tateca.tatecabackend.entity;
 
-import com.tateca.tatecabackend.dto.request.LoanCreationRequest;
-import com.tateca.tatecabackend.dto.request.RepaymentCreationRequest;
 import com.tateca.tatecabackend.model.TransactionType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,7 +28,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "transaction_history")
-public class TransactionEntity {
+public class TransactionHistoryEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
@@ -55,6 +54,10 @@ public class TransactionEntity {
     })
     private ExchangeRateEntity exchangeRate;
 
+    @Column(name = "date", insertable = false, updatable = false, nullable = false)
+    @Convert(converter = InstantToLocalDateConverter.class)
+    private Instant date;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false)
     private UserEntity payer;
@@ -77,25 +80,14 @@ public class TransactionEntity {
         updatedAt = Instant.now();
     }
 
-    public static TransactionEntity from(LoanCreationRequest request, UserEntity user, GroupEntity group, ExchangeRateEntity exchangeRate) {
-        return TransactionEntity.builder()
+    public static TransactionHistoryEntity from(TransactionType transactionType, String title, int amount, Instant date, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
+        return TransactionHistoryEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
-                .transactionType(TransactionType.LOAN)
-                .title(request.getLoanRequestDTO().getTitle())
-                .amount(request.getLoanRequestDTO().getAmount())
-                .exchangeRate(exchangeRate)
-                .payer(user)
-                .build();
-    }
-
-    public static TransactionEntity from(RepaymentCreationRequest request, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
-        return TransactionEntity.builder()
-                .uuid(UUID.randomUUID())
-                .group(group)
-                .transactionType(TransactionType.REPAYMENT)
-                .title(request.getRepaymentRequestDTO().getTitle())
-                .amount(request.getRepaymentRequestDTO().getAmount())
+                .transactionType(transactionType)
+                .title(title)
+                .amount(amount)
+                .date(date)
                 .exchangeRate(exchangeRate)
                 .payer(payer)
                 .build();

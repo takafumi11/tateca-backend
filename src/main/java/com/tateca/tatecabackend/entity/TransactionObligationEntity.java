@@ -23,14 +23,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "`transaction_obligations`")
-public class ObligationEntity {
+public class TransactionObligationEntity {
     @Id
     @Column(columnDefinition = "BINARY(16)")
     private UUID uuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_uuid", nullable = false, updatable = false)
-    private TransactionEntity transaction;
+    private TransactionHistoryEntity transaction;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_uuid", nullable = false)
@@ -57,8 +57,8 @@ public class ObligationEntity {
         updatedAt = Instant.now();
     }
 
-    public static ObligationEntity from(TransactionEntity transaction, UserEntity recipient) {
-        return ObligationEntity.builder()
+    public static TransactionObligationEntity from(TransactionHistoryEntity transaction, UserEntity recipient) {
+        return TransactionObligationEntity.builder()
                 .uuid(UUID.randomUUID())
                 .transaction(transaction)
                 .user(recipient)

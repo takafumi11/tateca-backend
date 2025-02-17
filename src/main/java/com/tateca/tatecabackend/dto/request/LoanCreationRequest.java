@@ -7,8 +7,6 @@ import java.util.List;
 
 @Data
 public class LoanCreationRequest {
-    @JsonProperty("loan")
-    LoanRequestDTO loanRequestDTO;
     @JsonProperty("obligations")
     List<ObligationRequestDTO> obligationRequestDTOs;
 }

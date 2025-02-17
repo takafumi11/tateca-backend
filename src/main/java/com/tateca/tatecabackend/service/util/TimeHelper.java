@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.service.util;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -22,10 +21,9 @@ public class TimeHelper {
         return tokyoDateTime.format(DATE_TIME_FORMATTER);
     }
 
-    public static String localDateToTokyoTime(LocalDate localDate) {
-        LocalDateTime localDateTime = localDate.atStartOfDay();
-
-        return localDateTime.atOffset(ZoneOffset.UTC).format(DATE_TIME_FORMATTER);
+    public static Instant dateStringToInstant(String dateStr) {
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateStr, DATE_TIME_FORMATTER);
+        return offsetDateTime.toInstant();
     }
 
     public static LocalDate timeStampToLocalDateInUtc(String timestampStr) {
@@ -38,10 +36,7 @@ public class TimeHelper {
     public static LocalDate convertToLocalDateInUtc(String dateTimeStr) {
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER);
 
-        return offsetDateTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDate();
-    }
-
-    public static Instant convertToUtc(String dateTimeStr) {
-        return Instant.parse(dateTimeStr);
+        Instant instant = offsetDateTime.toInstant();
+        return instant.atZone(ZoneOffset.UTC).toLocalDate();
     }
 }
