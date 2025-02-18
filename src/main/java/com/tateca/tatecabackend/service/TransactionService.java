@@ -167,7 +167,7 @@ public class TransactionService {
             exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), date);
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                CurrencyNameEntity currencyName = currencyNameAccessor.findForJPY();
+                CurrencyNameEntity currencyName = currencyNameAccessor.findById(request.getCurrencyCode());
                 ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYEntity(date, currencyName);
                 exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
             }

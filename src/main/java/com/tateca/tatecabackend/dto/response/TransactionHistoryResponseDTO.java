@@ -16,7 +16,7 @@ public class TransactionHistoryResponseDTO {
     TransactionType transactionType;
     @JsonProperty("title") String title;
     @JsonProperty("amount") Integer amount;
-    @JsonProperty("currency_code") String currencyCode;
+    @JsonProperty("currency") CurrencyResponseDTO currency;
     @JsonProperty("date") String date;
 
     public static TransactionHistoryResponseDTO from(TransactionHistoryEntity transaction) {
@@ -25,7 +25,7 @@ public class TransactionHistoryResponseDTO {
                 .transactionType(transaction.getTransactionType())
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
-                .currencyCode(transaction.getExchangeRate().getCurrencyCode())
+                .currency(CurrencyResponseDTO.from(transaction.getExchangeRate()))
                 .date(convertToTokyoTime(transaction.getDate()))
                 .build();
     }

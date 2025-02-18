@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import lombok.Builder;
 import lombok.Data;
@@ -15,11 +16,23 @@ public class CurrencyResponseDTO {
     @JsonProperty("eng_currency_name")
     String engCurrencyName;
 
-    public static CurrencyResponseDTO from(ExchangeRateEntity exchangeRate) {
+    @JsonProperty("currency_symbol")
+    String currencySymbol;
+
+    @JsonProperty("symbol_position")
+    String symbolPosition;
+
+    @JsonProperty("exchange_rate")
+    String exchangeRate;
+
+    public static CurrencyResponseDTO from(ExchangeRateEntity exchangeRateEntity) {
         return CurrencyResponseDTO.builder()
-                .currencyCode(exchangeRate.getCurrencyCode())
-                .jpCurrencyName(exchangeRate.getCurrencyName().getJpCurrencyName())
-                .engCurrencyName(exchangeRate.getCurrencyName().getEngCurrencyName())
+                .currencyCode(exchangeRateEntity.getCurrencyCode())
+                .jpCurrencyName(exchangeRateEntity.getCurrencyName().getJpCurrencyName())
+                .engCurrencyName(exchangeRateEntity.getCurrencyName().getEngCurrencyName())
+                .currencySymbol(exchangeRateEntity.getCurrencyName().getCurrencySymbol())
+                .symbolPosition(exchangeRateEntity.getCurrencyName().getSymbolPosition().name())
+                .exchangeRate(exchangeRateEntity.getExchangeRate().toString())
                 .build();
     }
 }

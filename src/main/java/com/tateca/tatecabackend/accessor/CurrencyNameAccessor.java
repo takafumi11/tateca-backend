@@ -24,18 +24,17 @@ public class CurrencyNameAccessor {
         }
     }
 
-    public CurrencyNameEntity findForJPY() {
+    public List<CurrencyNameEntity> findAllById(List<String> currencyCodes) {
         try {
-            return repository.findById("JPY")
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "JPY Not Found in currency_name"));
+            return repository.findAllById(currencyCodes);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
 
-    public List<CurrencyNameEntity> findAllById(List<String> currencyCodes) {
+    public List<CurrencyNameEntity> findAll() {
         try {
-            return repository.findAllById(currencyCodes);
+            return repository.findAll();
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

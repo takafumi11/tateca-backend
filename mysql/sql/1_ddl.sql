@@ -77,7 +77,9 @@ CREATE TABLE IF NOT EXISTS currency_names (
     eng_currency_name VARCHAR(50) NOT NULL, -- 英語表示名 (例: "United States Dollar", "Euro")
     jp_country_name VARCHAR(50) NOT NULL, -- 日本語の国名 (例: "アメリカ合衆国", "日本")
     eng_country_name VARCHAR(50) NOT NULL,  -- 英語の国名 (例: "United States", "Japan")
-    is_active TINYINT(1) NOT NULL -- 有効/無効を示すフラグ (1: 有効, 0: 無効)
+    is_active TINYINT(1) NOT NULL, -- 有効/無効を示すフラグ (1: 有効, 0: 無効)
+    currency_symbol VARCHAR(10),  -- 通貨記号 (例: "$", "€", "¥")
+    symbol_position ENUM('PREFIX', 'SUFFIX') -- 記号の位置 (PREFIX: 記号が前、SUFFIX: 記号が後)
 );
 
 CREATE TABLE IF NOT EXISTS exchange_rates (

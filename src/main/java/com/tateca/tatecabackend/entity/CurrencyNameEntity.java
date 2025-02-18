@@ -1,7 +1,10 @@
 package com.tateca.tatecabackend.entity;
 
+import com.tateca.tatecabackend.model.SymbolPosition;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -34,4 +37,11 @@ public class CurrencyNameEntity {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    @Column(name = "currency_symbol", length = 10)
+    private String currencySymbol;
+
+    @Column(name = "symbol_position")
+    @Enumerated(EnumType.STRING)
+    private SymbolPosition symbolPosition;
 }

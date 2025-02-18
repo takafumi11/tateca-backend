@@ -1,6 +1,8 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
+import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
+import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
@@ -10,6 +12,8 @@ import com.tateca.tatecabackend.dto.request.JoinGroupRequest;
 import com.tateca.tatecabackend.dto.response.GetGroupListResponse;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponse;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
@@ -20,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +40,7 @@ public class GroupService {
     private final AuthUserAccessor authUserAccessor;
     private final UserGroupAccessor userGroupAccessor;
     private final ObligationAccessor obligationAccessor;
+    private final ExchangeRateAccessor exchangeRateAccessor;
 
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
@@ -43,8 +50,9 @@ public class GroupService {
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
+        List<ExchangeRateEntity> exchangeRateEntityList = exchangeRateAccessor.findForToday(LocalDate.now(ZoneId.of("UTC")));
 
-        return GroupDetailsResponse.from(users, groupEntity);
+        return GroupDetailsResponse.from(users, groupEntity, exchangeRateEntityList);
     }
 
     public GetGroupListResponse getGroupList(String uid) {
@@ -103,7 +111,9 @@ public class GroupService {
         });
         userGroupAccessor.saveAll(userGroupEntityList);
 
-        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved);
+        List<ExchangeRateEntity> exchangeRateEntityList = exchangeRateAccessor.findForToday(LocalDate.now(ZoneId.of("UTC")));
+
+        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved, exchangeRateEntityList);
     }
 
     @Transactional
@@ -139,7 +149,9 @@ public class GroupService {
         // Check if user has already in the group requested.
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
 
-        return GroupDetailsResponse.from(users, groupEntity);
+        List<ExchangeRateEntity> exchangeRateEntityList = exchangeRateAccessor.findForToday(LocalDate.now(ZoneId.of("UTC")));
+
+        return GroupDetailsResponse.from(users, groupEntity, exchangeRateEntityList);
     }
   
     @Transactional
