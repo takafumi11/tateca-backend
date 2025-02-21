@@ -50,13 +50,13 @@ public class TransactionHistoryEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
             @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, updatable = false),
-            @JoinColumn(name = "date", referencedColumnName = "date", nullable = false, updatable = false)
+            @JoinColumn(name = "exchange_rate_date", referencedColumnName = "date", nullable = false, updatable = false)
     })
     private ExchangeRateEntity exchangeRate;
 
-    @Column(name = "date", insertable = false, updatable = false, nullable = false)
-    @Convert(converter = InstantToLocalDateConverter.class)
-    private Instant date;
+    @Column(name = "transaction_date", nullable = false)
+    @Convert(converter = InstantToLocalDateTimeConverter.class)
+    private Instant transactionDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_id", nullable = false)
@@ -80,14 +80,21 @@ public class TransactionHistoryEntity {
         updatedAt = Instant.now();
     }
 
-    public static TransactionHistoryEntity from(TransactionType transactionType, String title, int amount, Instant date, UserEntity payer, GroupEntity group, ExchangeRateEntity exchangeRate) {
+    public static TransactionHistoryEntity from(
+            TransactionType transactionType,
+            String title,
+            int amount,
+            Instant transactionDate,
+            UserEntity payer,
+            GroupEntity group,
+            ExchangeRateEntity exchangeRate) {
         return TransactionHistoryEntity.builder()
                 .uuid(UUID.randomUUID())
                 .group(group)
                 .transactionType(transactionType)
                 .title(title)
                 .amount(amount)
-                .date(date)
+                .transactionDate(transactionDate)
                 .exchangeRate(exchangeRate)
                 .payer(payer)
                 .build();

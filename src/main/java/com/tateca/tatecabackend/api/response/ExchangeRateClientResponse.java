@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
-public class ExchangeRateResponse {
+public class ExchangeRateClientResponse {
     private String result;
     @JsonProperty("time_last_update_unix")
     private String timeLastUpdateUnix;

@@ -3,7 +3,7 @@ package com.tateca.tatecabackend.scheduler;
 import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
-import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
+import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +30,8 @@ public class ExchangeRateScheduler {
     @Scheduled(cron = "0 1 0 * * *", zone = UTC_STRING)
 
     public void fetchAndStoreExchangeRate() {
-        ExchangeRateResponse exchangeRateResponse = exchangeRateApiClient.fetchLatestExchangeRate();
-        LocalDate date = timeStampToLocalDateInUtc(exchangeRateResponse.getTimeLastUpdateUnix());
+        ExchangeRateClientResponse exchangeRateClientResponse = exchangeRateApiClient.fetchLatestExchangeRate();
+        LocalDate date = timeStampToLocalDateInUtc(exchangeRateClientResponse.getTimeLastUpdateUnix());
         LocalDate nextDate = date.plus(1, ChronoUnit.DAYS);
 
         System.out.println("date::" + date);
@@ -39,17 +39,17 @@ public class ExchangeRateScheduler {
 
         List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
 
-        updateExchangeRateEntities(exchangeRateResponse, exchangeRateEntities, date);
-        updateExchangeRateEntities(exchangeRateResponse, exchangeRateEntities, nextDate);
+        updateExchangeRateEntities(exchangeRateClientResponse, exchangeRateEntities, date);
+        updateExchangeRateEntities(exchangeRateClientResponse, exchangeRateEntities, nextDate);
 
         exchangeRateAccessor.saveAll(exchangeRateEntities);
     }
 
-    private void updateExchangeRateEntities(ExchangeRateResponse exchangeRateResponse, List<ExchangeRateEntity> exchangeRateEntities, LocalDate date) {
-        List<String> currencyCodes = new ArrayList<>(exchangeRateResponse.getConversionRates().keySet());
+    private void updateExchangeRateEntities(ExchangeRateClientResponse exchangeRateClientResponse, List<ExchangeRateEntity> exchangeRateEntities, LocalDate date) {
+        List<String> currencyCodes = new ArrayList<>(exchangeRateClientResponse.getConversionRates().keySet());
 
         List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
-        exchangeRateResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
+        exchangeRateClientResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
             CurrencyNameEntity currencyNameEntity = currencyNameEntities.stream()
                     .filter(entity -> entity.getCurrencyCode().equals(currencyCode))
                     .findFirst()

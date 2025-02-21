@@ -39,22 +39,25 @@ CREATE TABLE IF NOT EXISTS user_groups (
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid) ON DELETE CASCADE
 );
 
+-- 取引履歴テーブル
 CREATE TABLE IF NOT EXISTS transaction_history (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     transaction_type ENUM('LOAN', 'REPAYMENT') NOT NULL,
-    group_uuid BINARY(16),
+    group_uuid BINARY(16) NOT NULL,
     group_uuid_text CHAR(36) AS (BIN_TO_UUID(group_uuid)) VIRTUAL,
     title VARCHAR(50),
     amount INT NOT NULL,
+    exchange_rate_date DATE NOT NULL,
     currency_code CHAR(3) NOT NULL,
-    date TIMESTAMP NOT NULL,
+    transaction_date TIMESTAMP NOT NULL,
     payer_id BINARY(16) NOT NULL,
     payer_id_text CHAR(36) AS (BIN_TO_UUID(payer_id)) VIRTUAL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid),
     FOREIGN KEY (payer_id) REFERENCES users(uuid),
+    FOREIGN KEY (exchange_rate_date, currency_code) REFERENCES exchange_rates(date, currency_code)
 );
 
 CREATE TABLE IF NOT EXISTS transaction_obligations (

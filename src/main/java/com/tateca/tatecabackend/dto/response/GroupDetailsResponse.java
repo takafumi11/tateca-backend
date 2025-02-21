@@ -20,14 +20,10 @@ public class GroupDetailsResponse {
     @JsonProperty("users")
     List<UserResponseDTO> userResponseDTOS;
 
-    @JsonProperty("currencies")
-    List<CurrencyResponseDTO> currencyResponseDTOS;
-
-    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity, List<ExchangeRateEntity> exchangeRateEntityList) {
+    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity) {
         return GroupDetailsResponse.builder()
                 .groupResponseDTO(GroupResponseDTO.from(groupEntity))
                 .userResponseDTOS(userEntityList.stream().map(UserResponseDTO::from).toList())
-                .currencyResponseDTOS(exchangeRateEntityList.stream().map(CurrencyResponseDTO::from).toList())
                 .build();
     }
 }

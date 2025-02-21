@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.api.client;
 
 
-import com.tateca.tatecabackend.api.response.ExchangeRateResponse;
+import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.scheduler.ExchangeRateScheduler;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
@@ -31,7 +31,7 @@ public class ExchangeRateApiClient {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
     private final RestTemplate restTemplate;
 
-    public ExchangeRateResponse fetchLatestExchangeRate() {
+    public ExchangeRateClientResponse fetchLatestExchangeRate() {
         RetryConfig retryConfig = RetryConfig.custom()
                 .maxAttempts(3)
                 .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(1), 2))
@@ -42,7 +42,7 @@ public class ExchangeRateApiClient {
         String url = EXCHANGE_LATEST_RATE_API_URL.replace("{api_key}", apiKey);
 
         try {
-            return Retry.decorateSupplier(retry, () -> restTemplate.getForObject(url, ExchangeRateResponse.class)).get();
+            return Retry.decorateSupplier(retry, () -> restTemplate.getForObject(url, ExchangeRateClientResponse.class)).get();
         } catch (RestClientException e) {
             logger.error("Failed to fetch exchange rate after retries, detail: {}", e.getMessage());
             throw e;
@@ -52,7 +52,7 @@ public class ExchangeRateApiClient {
         }
     }
 
-    public ExchangeRateResponse fetchExchangeRateByDate(LocalDate date) {
+    public ExchangeRateClientResponse fetchExchangeRateByDate(LocalDate date) {
         String year = String.valueOf(date.getYear());
         String month = String.valueOf(date.getMonthValue());
         String day = String.valueOf(date.getDayOfMonth());
@@ -64,7 +64,7 @@ public class ExchangeRateApiClient {
                 .replace("{day}", day);
 
         try {
-            return restTemplate.getForObject(url, ExchangeRateResponse.class);
+            return restTemplate.getForObject(url, ExchangeRateClientResponse.class);
         } catch (RestClientException e) {
             logger.error("Failed to fetch exchange rate, detail: {}", e.getMessage());
             throw e;

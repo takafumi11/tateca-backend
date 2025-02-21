@@ -50,9 +50,8 @@ public class GroupService {
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
-        List<ExchangeRateEntity> exchangeRateEntityList = exchangeRateAccessor.findForToday(LocalDate.now(ZoneId.of("UTC")));
 
-        return GroupDetailsResponse.from(users, groupEntity, exchangeRateEntityList);
+        return GroupDetailsResponse.from(users, groupEntity);
     }
 
     public GetGroupListResponse getGroupList(String uid) {
@@ -111,9 +110,7 @@ public class GroupService {
         });
         userGroupAccessor.saveAll(userGroupEntityList);
 
-        List<ExchangeRateEntity> exchangeRateEntityList = exchangeRateAccessor.findForToday(LocalDate.now(ZoneId.of("UTC")));
-
-        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved, exchangeRateEntityList);
+        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved);
     }
 
     @Transactional
@@ -149,9 +146,7 @@ public class GroupService {
         // Check if user has already in the group requested.
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
 
-        List<ExchangeRateEntity> exchangeRateEntityList = exchangeRateAccessor.findForToday(LocalDate.now(ZoneId.of("UTC")));
-
-        return GroupDetailsResponse.from(users, groupEntity, exchangeRateEntityList);
+        return GroupDetailsResponse.from(users, groupEntity);
     }
   
     @Transactional

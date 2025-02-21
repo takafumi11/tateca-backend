@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.model.TransactionType;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.core.metrics.StartupStep;
 
 import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
 
@@ -16,7 +17,7 @@ public class TransactionHistoryResponseDTO {
     TransactionType transactionType;
     @JsonProperty("title") String title;
     @JsonProperty("amount") Integer amount;
-    @JsonProperty("currency") CurrencyResponseDTO currency;
+    @JsonProperty("exchange_rate") ExchangeRateResponseDTO exchangeRate;
     @JsonProperty("date") String date;
 
     public static TransactionHistoryResponseDTO from(TransactionHistoryEntity transaction) {
@@ -25,8 +26,8 @@ public class TransactionHistoryResponseDTO {
                 .transactionType(transaction.getTransactionType())
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
-                .currency(CurrencyResponseDTO.from(transaction.getExchangeRate()))
-                .date(convertToTokyoTime(transaction.getDate()))
+                .exchangeRate(ExchangeRateResponseDTO.from(transaction.getExchangeRate()))
+                .date(convertToTokyoTime(transaction.getTransactionDate()))
                 .build();
     }
 }
