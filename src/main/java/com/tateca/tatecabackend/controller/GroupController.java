@@ -1,15 +1,19 @@
 package com.tateca.tatecabackend.controller;
 
+import com.mysql.cj.x.protobuf.Mysqlx;
 import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequest;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequest;
+import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GetGroupListResponse;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponse;
 import com.tateca.tatecabackend.service.GroupService;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +37,15 @@ public class GroupController {
     ) {
         GroupDetailsResponse response = service.createGroup(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PatchMapping("/{groupId}")
+    public ResponseEntity<GroupDetailsResponse> updateGroupName(
+            @PathVariable("groupId") UUID groupId,
+            @RequestBody UpdateGroupNameRequestDTO request
+    ) {
+        GroupDetailsResponse response = service.updateGroupName(groupId, request.getName());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{groupId}")

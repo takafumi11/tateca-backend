@@ -54,6 +54,15 @@ public class GroupService {
         return GroupDetailsResponse.from(users, groupEntity);
     }
 
+    @Transactional
+    public GroupDetailsResponse updateGroupName(UUID groupId, String name) {
+        GroupEntity group = accessor.findById(groupId);
+        group.setName(name);
+        accessor.save(group);
+
+        return getGroupInfo(groupId);
+    }
+
     public GetGroupListResponse getGroupList(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
 
