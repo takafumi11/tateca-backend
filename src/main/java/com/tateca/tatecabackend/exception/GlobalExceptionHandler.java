@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -14,19 +15,22 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(HttpServletRequest request, IllegalArgumentException ex) {
+        logger.error("IllegalArgumentException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ErrorResponse> handleDataAccessException(DataAccessException e) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+    public ResponseEntity<ErrorResponse> handleDataAccessException(HttpServletRequest request, DataAccessException ex) {
+        logger.error("DataAccessException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+    public ResponseEntity<String> handleResponseStatusException(HttpServletRequest request, ResponseStatusException ex) {
+        logger.error("ResponseStatusException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getReason(), ex);
         return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
     }
 }
