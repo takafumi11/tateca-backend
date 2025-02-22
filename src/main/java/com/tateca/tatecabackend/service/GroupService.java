@@ -1,6 +1,8 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
+import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
+import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
@@ -10,6 +12,8 @@ import com.tateca.tatecabackend.dto.request.JoinGroupRequest;
 import com.tateca.tatecabackend.dto.response.GetGroupListResponse;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponse;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
@@ -20,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +40,7 @@ public class GroupService {
     private final AuthUserAccessor authUserAccessor;
     private final UserGroupAccessor userGroupAccessor;
     private final ObligationAccessor obligationAccessor;
+    private final ExchangeRateAccessor exchangeRateAccessor;
 
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);

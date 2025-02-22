@@ -39,22 +39,25 @@ CREATE TABLE IF NOT EXISTS user_groups (
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid) ON DELETE CASCADE
 );
 
+-- 取引履歴テーブル
 CREATE TABLE IF NOT EXISTS transaction_history (
     uuid BINARY(16) PRIMARY KEY,
     uuid_text CHAR(36) AS (BIN_TO_UUID(uuid)) VIRTUAL,
     transaction_type ENUM('LOAN', 'REPAYMENT') NOT NULL,
-    group_uuid BINARY(16),
+    group_uuid BINARY(16) NOT NULL,
     group_uuid_text CHAR(36) AS (BIN_TO_UUID(group_uuid)) VIRTUAL,
     title VARCHAR(50),
     amount INT NOT NULL,
+    exchange_rate_date DATE NOT NULL,
     currency_code CHAR(3) NOT NULL,
-    date TIMESTAMP NOT NULL,
+    transaction_date TIMESTAMP NOT NULL,
     payer_id BINARY(16) NOT NULL,
     payer_id_text CHAR(36) AS (BIN_TO_UUID(payer_id)) VIRTUAL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (group_uuid) REFERENCES `groups`(uuid),
     FOREIGN KEY (payer_id) REFERENCES users(uuid),
+    FOREIGN KEY (exchange_rate_date, currency_code) REFERENCES exchange_rates(date, currency_code)
 );
 
 CREATE TABLE IF NOT EXISTS transaction_obligations (
@@ -77,7 +80,9 @@ CREATE TABLE IF NOT EXISTS currency_names (
     eng_currency_name VARCHAR(50) NOT NULL, -- 英語表示名 (例: "United States Dollar", "Euro")
     jp_country_name VARCHAR(50) NOT NULL, -- 日本語の国名 (例: "アメリカ合衆国", "日本")
     eng_country_name VARCHAR(50) NOT NULL,  -- 英語の国名 (例: "United States", "Japan")
-    is_active TINYINT(1) NOT NULL -- 有効/無効を示すフラグ (1: 有効, 0: 無効)
+    is_active TINYINT(1) NOT NULL, -- 有効/無効を示すフラグ (1: 有効, 0: 無効)
+    currency_symbol VARCHAR(10),  -- 通貨記号 (例: "$", "€", "¥")
+    symbol_position ENUM('PREFIX', 'SUFFIX') -- 記号の位置 (PREFIX: 記号が前、SUFFIX: 記号が後)
 );
 
 CREATE TABLE IF NOT EXISTS exchange_rates (

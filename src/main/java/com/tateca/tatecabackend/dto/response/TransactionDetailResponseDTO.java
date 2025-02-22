@@ -19,7 +19,7 @@ public class TransactionDetailResponseDTO {
     String title;
     long amount;
     UserResponseDTO payer;
-    CurrencyResponseDTO currency;
+    ExchangeRateResponseDTO exchangeRate;
     @JsonProperty("date_str") String dateStr;
     @JsonProperty("loan")
     LoanDetailResponseDTO loan;
@@ -47,7 +47,7 @@ public class TransactionDetailResponseDTO {
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
                 .payer(UserResponseDTO.from(transaction.getPayer()))
-                .dateStr(convertToTokyoTime(transaction.getDate()))
-                .currency(CurrencyResponseDTO.from(transaction.getExchangeRate()));
+                .dateStr(convertToTokyoTime(transaction.getTransactionDate()))
+                .exchangeRate(ExchangeRateResponseDTO.from(transaction.getExchangeRate()));
     }
 }

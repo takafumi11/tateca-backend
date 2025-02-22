@@ -2,6 +2,8 @@ package com.tateca.tatecabackend.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import lombok.Builder;

@@ -41,4 +41,12 @@ public class ExchangeRateAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public List<ExchangeRateEntity> findAllActiveByDate(LocalDate date) {
+        try {
+            return repository.findAllActiveByDate(date);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

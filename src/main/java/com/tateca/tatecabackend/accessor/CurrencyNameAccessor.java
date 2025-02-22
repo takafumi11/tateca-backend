@@ -40,4 +40,12 @@ public class CurrencyNameAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public List<CurrencyNameEntity> findAll() {
+        try {
+            return repository.findAll();
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

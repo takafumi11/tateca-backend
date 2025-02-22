@@ -106,11 +106,13 @@ public class TransactionService {
     }
 
     private List<TransactionSettlementResponseDTO> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
-        List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
         PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
         PriorityQueue<ParticipantModel> debtors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
 
         classifyParticipants(balances, creditors, debtors, userGroups);
+
+        List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
+
         processTransactions(creditors, debtors, transactions);
 
         return transactions;
@@ -139,7 +141,9 @@ public class TransactionService {
             ParticipantModel creditor = creditors.poll();
 
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), minAmount.intValue()));
+            if (minAmount.intValue() != 0) {
+                transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), minAmount.intValue()));
+            }
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);
         }
@@ -167,7 +171,7 @@ public class TransactionService {
             exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), date);
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                CurrencyNameEntity currencyName = currencyNameAccessor.findForJPY();
+                CurrencyNameEntity currencyName = currencyNameAccessor.findById(request.getCurrencyCode());
                 ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYEntity(date, currencyName);
                 exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
             }
