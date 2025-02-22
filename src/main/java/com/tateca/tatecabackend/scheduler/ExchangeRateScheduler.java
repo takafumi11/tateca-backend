@@ -17,7 +17,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.UTC_STRING;
 import static com.tateca.tatecabackend.service.util.TimeHelper.timeStampToLocalDateInUtc;
 
 @Service
@@ -27,7 +26,7 @@ public class ExchangeRateScheduler {
     private final CurrencyNameAccessor currencyNameAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
-    @Scheduled(cron = "0 1 0 * * *", zone = UTC_STRING)
+    @Scheduled(cron = "0 1 0 * * *", zone = "UTC")
 
     public void fetchAndStoreExchangeRate() {
         ExchangeRateClientResponse exchangeRateClientResponse = exchangeRateApiClient.fetchLatestExchangeRate();

@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
@@ -13,7 +12,6 @@ import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponse;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponse;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
@@ -40,6 +38,7 @@ import java.util.PriorityQueue;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.tateca.tatecabackend.service.util.TimeHelper.UTC_ZONE_ID;
 import static com.tateca.tatecabackend.service.util.TimeHelper.convertToLocalDateInUtc;
 import static com.tateca.tatecabackend.service.util.TimeHelper.dateStringToInstant;
 
@@ -52,7 +51,6 @@ public class TransactionService {
     private final TransactionAccessor accessor;
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
-    private final CurrencyNameAccessor currencyNameAccessor;
 
     public TransactionsHistoryResponse getTransactionHistory(int count, UUID groupId) {
         List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionHistory(groupId, count);
@@ -171,8 +169,12 @@ public class TransactionService {
             exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), date);
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                CurrencyNameEntity currencyName = currencyNameAccessor.findById(request.getCurrencyCode());
-                ExchangeRateEntity exchangeRateEntity = ExchangeRateEntity.getJPYEntity(date, currencyName);
+                /*
+                If the client sends data with a future date that isn’t present in the database, we temporarily substitute it with the most recent available value.
+                However, since the scheduler updates the value the day before, if a repayment occurs before that update, the value may become inaccurate.
+                */
+                ExchangeRateEntity exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), LocalDate.now(UTC_ZONE_ID));
+                exchangeRateEntity.setDate(date);
                 exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
             }
         }
