@@ -173,9 +173,14 @@ public class TransactionService {
                 If the client sends data with a future date that isn’t present in the database, we temporarily substitute it with the most recent available value.
                 However, since the scheduler updates the value the day before, if a repayment occurs before that update, the value may become inaccurate.
                 */
-                ExchangeRateEntity exchangeRateEntity = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), LocalDate.now(UTC_ZONE_ID));
-                exchangeRateEntity.setDate(date);
-                exchangeRate = exchangeRateAccessor.save(exchangeRateEntity);
+                ExchangeRateEntity existing = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), LocalDate.now(UTC_ZONE_ID));
+                ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
+                        .currencyCode(existing.getCurrencyCode())
+                        .date(date)
+                        .exchangeRate(existing.getExchangeRate())
+                        .currencyName(existing.getCurrencyName())
+                        .build();
+                exchangeRate = exchangeRateAccessor.save(newExchangeRateEntity);
             }
         }
 

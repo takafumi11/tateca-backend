@@ -58,15 +58,4 @@ public class ExchangeRateEntity {
     public void preUpdate() {
         this.updatedAt = Instant.now();
     }
-
-    public static ExchangeRateEntity getJPYEntity(LocalDate date, CurrencyNameEntity currencyName) {
-         return ExchangeRateEntity.builder()
-                .currencyCode("JPY")
-                .date(date)
-                .currencyName(currencyName)
-                .exchangeRate(BigDecimal.ONE)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-    }
 }
