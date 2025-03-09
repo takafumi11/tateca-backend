@@ -7,6 +7,7 @@ public class ApiConstants {
     // Path
     public static final String HEADER_AUTHORIZATION = "Authorization";
     public static final String PATH_AUTH_USERS = "/auth/users";
+    public static final String PATH_USERS = "/users";
     public static final String PATH_GROUPS = "/groups";
     public static final String PATH_TRANSACTIONS = "/transactions";
     public static final String PATH_HISTORY = "/history";
