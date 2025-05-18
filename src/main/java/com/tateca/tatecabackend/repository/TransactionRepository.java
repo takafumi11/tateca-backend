@@ -12,6 +12,6 @@ import java.util.UUID;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionHistoryEntity, UUID> {
-    @Query(value = "SELECT * FROM transaction_history t WHERE t.group_uuid = :groupId ORDER BY t.transaction_date DESC LIMIT :limit", nativeQuery = true)
+    @Query(value = "SELECT * FROM transaction_history t WHERE t.group_uuid = :groupId ORDER BY t.created_at DESC LIMIT :limit", nativeQuery = true)
     List<TransactionHistoryEntity> findTransactionsByGroupOrderByCreatedAtDescWithLimit(@Param("groupId") UUID groupId, @Param("limit") int limit);
 }
