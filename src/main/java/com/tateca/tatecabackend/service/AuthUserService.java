@@ -8,6 +8,8 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -16,15 +18,30 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AuthUserService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthUserService.class);
     private final AuthUserAccessor accessor;
     private final UserAccessor userAccessor;
 
     public AuthUserResponseDTO getAuthUserInfo(String uid) {
+        long totalStartTime = System.currentTimeMillis();
+        
+        // Measure findByUid query time
+        long findStartTime = System.currentTimeMillis();
         AuthUserEntity authUser = accessor.findByUid(uid);
+        long findEndTime = System.currentTimeMillis();
+        logger.info("getAuthUserInfo findByUid query time for uid {}: {} ms", uid, (findEndTime - findStartTime));
 
         authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
+
+        // Measure save query time
+        long saveStartTime = System.currentTimeMillis();
         AuthUserEntity updatedAuthUser = accessor.save(authUser);
+        long saveEndTime = System.currentTimeMillis();
+        logger.info("getAuthUserInfo save query time for uid {}: {} ms", uid, (saveEndTime - saveStartTime));
+
+        long totalEndTime = System.currentTimeMillis();
+        logger.info("getAuthUserInfo total execution time for uid {}: {} ms", uid, (totalEndTime - totalStartTime));
 
         return AuthUserResponseDTO.from(updatedAuthUser);
     }
