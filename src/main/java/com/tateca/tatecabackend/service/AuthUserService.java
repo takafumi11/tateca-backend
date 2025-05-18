@@ -6,10 +6,10 @@ import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.util.LogFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AuthUserService {
-    private static final Logger logger = LoggerFactory.getLogger(AuthUserService.class);
+    private static final Logger logger = LogFactory.getLogger(AuthUserService.class);
     private final AuthUserAccessor accessor;
     private final UserAccessor userAccessor;
 
@@ -29,7 +29,7 @@ public class AuthUserService {
         long findStartTime = System.currentTimeMillis();
         AuthUserEntity authUser = accessor.findByUid(uid);
         long findEndTime = System.currentTimeMillis();
-        logger.info("getAuthUserInfo findByUid query time for uid {}: {} ms", uid, (findEndTime - findStartTime));
+        long findTime = findEndTime - findStartTime;
 
         authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
@@ -38,10 +38,15 @@ public class AuthUserService {
         long saveStartTime = System.currentTimeMillis();
         AuthUserEntity updatedAuthUser = accessor.save(authUser);
         long saveEndTime = System.currentTimeMillis();
-        logger.info("getAuthUserInfo save query time for uid {}: {} ms", uid, (saveEndTime - saveStartTime));
+        long saveTime = saveEndTime - saveStartTime;
 
         long totalEndTime = System.currentTimeMillis();
-        logger.info("getAuthUserInfo total execution time for uid {}: {} ms", uid, (totalEndTime - totalStartTime));
+        long totalTime = totalEndTime - totalStartTime;
+
+        LogFactory.logQueryTime(logger, "getAuthUserInfo", 
+            "findByUid", findTime,
+            "save", saveTime,
+            "total", totalTime);
 
         return AuthUserResponseDTO.from(updatedAuthUser);
     }
