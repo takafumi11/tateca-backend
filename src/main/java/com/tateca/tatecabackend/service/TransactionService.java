@@ -20,8 +20,10 @@ import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
 import com.tateca.tatecabackend.model.TransactionType;
+import com.tateca.tatecabackend.util.LogFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +47,7 @@ import static com.tateca.tatecabackend.service.util.TimeHelper.dateStringToInsta
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
+    private static final Logger logger = LogFactory.getLogger(TransactionService.class);
     private final UserAccessor userAccessor;
     private final GroupAccessor groupAccessor;
     private final UserGroupAccessor userGroupAccessor;
@@ -53,9 +56,29 @@ public class TransactionService {
     private final ExchangeRateAccessor exchangeRateAccessor;
 
     public TransactionsHistoryResponse getTransactionHistory(int count, UUID groupId) {
+        long totalStartTime = System.currentTimeMillis();
+        
+        // Measure findTransactionHistory query time
+        long findStartTime = System.currentTimeMillis();
         List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionHistory(groupId, count);
+        long findEndTime = System.currentTimeMillis();
+        long findTime = findEndTime - findStartTime;
 
-        return TransactionsHistoryResponse.buildResponse(transactionHistoryEntityList);
+        // Measure buildResponse time
+        long buildStartTime = System.currentTimeMillis();
+        TransactionsHistoryResponse response = TransactionsHistoryResponse.buildResponse(transactionHistoryEntityList);
+        long buildEndTime = System.currentTimeMillis();
+        long buildTime = buildEndTime - buildStartTime;
+
+        long totalEndTime = System.currentTimeMillis();
+        long totalTime = totalEndTime - totalStartTime;
+
+        LogFactory.logQueryTime(logger, "getTransactionHistory", 
+            "findTransactionHistory", findTime,
+            "buildResponse", buildTime,
+            "total", totalTime);
+
+        return response;
     }
 
     public TransactionsSettlementResponse getSettlements(UUID groupId) {
