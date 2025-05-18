@@ -10,6 +10,8 @@ import com.tateca.tatecabackend.util.LogFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -19,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthUserService {
     private static final Logger logger = LogFactory.getLogger(AuthUserService.class);
+
     private final AuthUserAccessor accessor;
     private final UserAccessor userAccessor;
 
@@ -29,7 +32,11 @@ public class AuthUserService {
         long findStartTime = System.currentTimeMillis();
         AuthUserEntity authUser = accessor.findByUid(uid);
         long findEndTime = System.currentTimeMillis();
+
         long findTime = findEndTime - findStartTime;
+
+        logger.info("getAuthUserInfo findByUid query time for uid {}: {} ms", uid, (findEndTime - findStartTime));
+
 
         authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
