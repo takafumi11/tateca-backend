@@ -20,8 +20,10 @@ import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
 import com.tateca.tatecabackend.model.TransactionType;
+import com.tateca.tatecabackend.util.LogFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +47,7 @@ import static com.tateca.tatecabackend.service.util.TimeHelper.dateStringToInsta
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
+    private static final Logger logger = LogFactory.getLogger(TransactionService.class);
     private final UserAccessor userAccessor;
     private final GroupAccessor groupAccessor;
     private final UserGroupAccessor userGroupAccessor;
@@ -59,17 +62,40 @@ public class TransactionService {
     }
 
     public TransactionsSettlementResponse getSettlements(UUID groupId) {
+        long totalStartTime = System.currentTimeMillis();
+
+        // Measure findByGroupUuid query time
+        long userGroupsStartTime = System.currentTimeMillis();
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
+        long userGroupsEndTime = System.currentTimeMillis();
+        long userGroupsTime = userGroupsEndTime - userGroupsStartTime;
+
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
                 .map(UUID::toString)
                 .toList();
 
+        // Measure findByGroupId query time
+        long obligationsStartTime = System.currentTimeMillis();
         List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByGroupId(groupId);
+        long obligationsEndTime = System.currentTimeMillis();
+        long obligationsTime = obligationsEndTime - obligationsStartTime;
 
+        // Measure getUserBalances and optimizeTransactions time
+        long processingStartTime = System.currentTimeMillis();
         Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList);
-
         List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
+        long processingEndTime = System.currentTimeMillis();
+        long processingTime = processingEndTime - processingStartTime;
+
+        long totalEndTime = System.currentTimeMillis();
+        long totalTime = totalEndTime - totalStartTime;
+
+        LogFactory.logQueryTime(logger, "getSettlements", 
+            "findByGroupUuid", userGroupsTime,
+            "findByGroupId", obligationsTime,
+            "processing", processingTime,
+            "total", totalTime);
 
         return TransactionsSettlementResponse.builder()
                 .transactionsSettlement(transactions)
@@ -170,7 +196,7 @@ public class TransactionService {
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 /*
-                If the client sends data with a future date that isn’t present in the database, we temporarily substitute it with the most recent available value.
+                If the client sends data with a future date that isn't present in the database, we temporarily substitute it with the most recent available value.
                 However, since the scheduler updates the value the day before, if a repayment occurs before that update, the value may become inaccurate.
                 */
                 ExchangeRateEntity existing = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), LocalDate.now(UTC_ZONE_ID));
