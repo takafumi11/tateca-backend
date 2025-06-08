@@ -10,6 +10,7 @@ public class ApiConstants {
     public static final String PATH_USERS = "/users";
     public static final String PATH_GROUPS = "/groups";
     public static final String PATH_TRANSACTIONS = "/transactions";
+    public static final String PATH_LAMBDA = "/lambda";
     public static final String PATH_HISTORY = "/history";
     public static final String PATH_SETTLEMENT = "/settlement";
     public static final String PATH_EXCHANGE_RATE = "/exchange-rate";
