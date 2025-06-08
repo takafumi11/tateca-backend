@@ -49,16 +49,4 @@ public class CurrencyNameAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
-    
-    public CurrencyNameEntity findFirstCurrencyCode() {
-        try {
-            List<CurrencyNameEntity> currencies = repository.findFirstCurrencyCode(PageRequest.of(0, 1));
-            if (currencies.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No currency codes found");
-            }
-            return currencies.get(0);
-        } catch (DataAccessException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
-        }
-    }
 }
