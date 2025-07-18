@@ -14,4 +14,4 @@ COPY --from=builder workspace/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Duser.timezone=UTC", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms128m", "-Xmx128m", "-Duser.timezone=UTC", "-jar", "app.jar"]
