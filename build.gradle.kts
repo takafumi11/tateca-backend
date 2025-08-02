@@ -19,6 +19,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	implementation ("com.google.firebase:firebase-admin:9.2.0")
 	implementation ("io.github.resilience4j:resilience4j-retry:1.7.0")
 	compileOnly("org.projectlombok:lombok")
@@ -29,4 +30,11 @@ dependencies {
 
 tasks.withType<Test> {
 //	useJUnitPlatform()
+}
+
+// Gradle optimization for faster builds
+tasks.withType<JavaCompile> {
+	options.isIncremental = true
+	options.isFork = true
+	options.forkOptions.jvmArgs = listOf("-Xmx1g")
 }
