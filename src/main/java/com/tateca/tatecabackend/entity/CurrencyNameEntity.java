@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "currency_names")
 public class CurrencyNameEntity {
     @Id
-    @Column(name = "currency_code", length = 3)
+    @Column(name = "currency_code", length = 3, columnDefinition = "CHAR(3)")
     private String currencyCode;
 
     @Column(name = "jp_currency_name", nullable = false, length = 50)

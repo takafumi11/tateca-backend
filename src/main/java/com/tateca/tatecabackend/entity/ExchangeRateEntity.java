@@ -27,7 +27,7 @@ import java.time.LocalDate;
 @Table(name = "exchange_rates")
 public class ExchangeRateEntity {
     @Id
-    @Column(name = "currency_code", nullable = false)
+    @Column(name = "currency_code", nullable = false, length = 3, columnDefinition = "CHAR(3)")
     private String currencyCode;
 
     @Id
