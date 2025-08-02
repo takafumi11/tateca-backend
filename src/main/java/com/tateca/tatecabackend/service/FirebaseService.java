@@ -17,14 +17,17 @@ public class FirebaseService {
     @PostConstruct
     public void initialize() {
         try {
-            String serviceAccountKey = System.getenv("FIREBASE_SERVICE_ACCOUNT_KEY");
-            InputStream serviceAccountStream = new ByteArrayInputStream(serviceAccountKey.getBytes());
+            // Check if FirebaseApp is already initialized
+            if (FirebaseApp.getApps().isEmpty()) {
+                String serviceAccountKey = System.getenv("FIREBASE_SERVICE_ACCOUNT_KEY");
+                InputStream serviceAccountStream = new ByteArrayInputStream(serviceAccountKey.getBytes());
 
-            FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
-                    .build();
+                FirebaseOptions options = new FirebaseOptions.Builder()
+                        .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
+                        .build();
 
-            FirebaseApp.initializeApp(options);
+                FirebaseApp.initializeApp(options);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
