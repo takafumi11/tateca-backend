@@ -35,6 +35,7 @@ public class AuthUserService {
 
         long findTime = findEndTime - findStartTime;
 
+        logger.info("test");
         logger.info("getAuthUserInfo findByUid query time for uid {}: {} ms", uid, (findEndTime - findStartTime));
 
 
