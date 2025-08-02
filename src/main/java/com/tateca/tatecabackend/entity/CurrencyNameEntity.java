@@ -35,7 +35,7 @@ public class CurrencyNameEntity {
     @Column(name = "eng_country_name", nullable = false, length = 50)
     private String engCountryName;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_active", nullable = false, columnDefinition = "TINYINT(1)")
     private boolean isActive;
 
     @Column(name = "currency_symbol", length = 10)
