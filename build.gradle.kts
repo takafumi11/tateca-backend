@@ -31,7 +31,7 @@ dependencies {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+//	useJUnitPlatform()
 }
 
 // Gradle optimization for faster builds
