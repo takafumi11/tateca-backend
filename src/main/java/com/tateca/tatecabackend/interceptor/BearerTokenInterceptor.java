@@ -20,6 +20,9 @@ public class BearerTokenInterceptor implements HandlerInterceptor {
     @Value("${lambda.api.key}")
     private String lambdaApiKey;
     
+    @Value("${firebase.project.id}")
+    private String firebaseProjectId;
+    
     private static final String X_API_KEY_HEADER = "X-API-KEY";
     private static final String LAMBDA_UID = "lambda-system";
 
@@ -65,6 +68,26 @@ public class BearerTokenInterceptor implements HandlerInterceptor {
         
         String idToken = bearerToken.substring(7);
         FirebaseToken firebaseToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+        
+        // Audience検証 - このトークンがTatecaプロジェクト用かを確認
+        String audience = (String) firebaseToken.getClaims().get("aud");
+        if (!firebaseProjectId.equals(audience)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
+                "Token audience mismatch. Expected: " + firebaseProjectId + ", Got: " + audience);
+        }
+        
+        // Issuer検証 - Firebaseが正しく発行したトークンかを確認
+        String expectedIssuer = "https://securetoken.google.com/" + firebaseProjectId;
+        if (!expectedIssuer.equals(firebaseToken.getIssuer())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
+                "Token issuer mismatch. Expected: " + expectedIssuer + ", Got: " + firebaseToken.getIssuer());
+        }
+        
+        // Subject(UID)の存在確認
+        if (firebaseToken.getUid() == null || firebaseToken.getUid().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing user ID in token");
+        }
+        
         return firebaseToken.getUid();
     }
 }
