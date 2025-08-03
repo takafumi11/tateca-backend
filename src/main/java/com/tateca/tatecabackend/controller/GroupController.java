@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.controller;
 
-import com.mysql.cj.x.protobuf.Mysqlx;
 import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequest;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequest;
