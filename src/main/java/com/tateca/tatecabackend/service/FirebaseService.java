@@ -3,11 +3,12 @@ package com.tateca.tatecabackend.service;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -28,8 +29,12 @@ public class FirebaseService {
 
                 FirebaseApp.initializeApp(options);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialize Firebase", e);
         }
+    }
+
+    public String generateCustomToken(String uid) throws FirebaseAuthException {
+        return FirebaseAuth.getInstance().createCustomToken(uid);
     }
 }
