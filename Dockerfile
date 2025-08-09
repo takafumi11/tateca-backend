@@ -17,4 +17,14 @@ ENV SPRING_PROFILES_ACTIVE=prod
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Xms128m", "-Xmx128m", "-Duser.timezone=UTC", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "-jar", "app.jar"]
+ENTRYPOINT ["java", \
+    "-XX:TieredStopAtLevel=1", \
+    "-XX:+UseG1GC", \
+    "-XX:+UnlockExperimentalVMOptions", \
+    "-XX:+UseStringDeduplication", \
+    "-Xms256m", "-Xmx256m", \
+    "-Duser.timezone=UTC", \
+    "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", \
+    "-Dspring.jmx.enabled=false", \
+    "-Dspring.main.lazy-initialization=true", \
+    "-jar", "app.jar"]
