@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -29,7 +29,7 @@ public class ExchangeRateApiClient {
     private String apiKey;
 
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     public ExchangeRateClientResponse fetchLatestExchangeRate() {
         RetryConfig retryConfig = RetryConfig.custom()
@@ -42,8 +42,14 @@ public class ExchangeRateApiClient {
         String url = EXCHANGE_LATEST_RATE_API_URL.replace("{api_key}", apiKey);
 
         try {
-            return Retry.decorateSupplier(retry, () -> restTemplate.getForObject(url, ExchangeRateClientResponse.class)).get();
-        } catch (RestClientException e) {
+            return Retry.decorateSupplier(retry, () -> 
+                webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(ExchangeRateClientResponse.class)
+                    .block()
+            ).get();
+        } catch (WebClientException e) {
             logger.error("Failed to fetch exchange rate after retries, detail: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
@@ -64,8 +70,12 @@ public class ExchangeRateApiClient {
                 .replace("{day}", day);
 
         try {
-            return restTemplate.getForObject(url, ExchangeRateClientResponse.class);
-        } catch (RestClientException e) {
+            return webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(ExchangeRateClientResponse.class)
+                .block();
+        } catch (WebClientException e) {
             logger.error("Failed to fetch exchange rate, detail: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
