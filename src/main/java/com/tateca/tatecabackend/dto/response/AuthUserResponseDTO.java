@@ -14,6 +14,8 @@ public class AuthUserResponseDTO {
     @JsonProperty("email") String email;
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
+    @JsonProperty("last_login_time") String lastLoginTime;
+    @JsonProperty("total_login_count") Integer totalLoginCount;
 
     public static AuthUserResponseDTO from(AuthUserEntity user) {
         return AuthUserResponseDTO.builder()
@@ -22,6 +24,8 @@ public class AuthUserResponseDTO {
                 .email(user.getEmail())
                 .createdAt(TimeHelper.convertToTokyoTime(user.getCreatedAt()))
                 .updatedAt(TimeHelper.convertToTokyoTime(user.getUpdatedAt()))
+                .lastLoginTime(user.getLastLoginTime() != null ? TimeHelper.convertToTokyoTime(user.getLastLoginTime()) : null)
+                .totalLoginCount(user.getTotalLoginCount())
                 .build();
     }
 }
