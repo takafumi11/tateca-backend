@@ -6,7 +6,6 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import jakarta.annotation.PostConstruct;
-import jdk.jfr.Label;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
