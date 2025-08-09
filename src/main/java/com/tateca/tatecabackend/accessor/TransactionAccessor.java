@@ -48,4 +48,12 @@ public class TransactionAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public Long countByGroupId(UUID groupId) {
+        try {
+            return repository.countByGroupUuid(groupId);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

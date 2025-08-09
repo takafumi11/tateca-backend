@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
+import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequest;
@@ -41,17 +42,19 @@ public class GroupService {
     private final UserGroupAccessor userGroupAccessor;
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
+    private final TransactionAccessor transactionAccessor;
 
     public GroupDetailsResponse getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
-        if (userGroups.size() == 0) {
+        if (userGroups.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
         }
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
+        Long transactionCount = transactionAccessor.countByGroupId(groupId);
 
-        return GroupDetailsResponse.from(users, groupEntity);
+        return GroupDetailsResponse.from(users, groupEntity, transactionCount);
     }
 
     @Transactional
@@ -119,7 +122,8 @@ public class GroupService {
         });
         userGroupAccessor.saveAll(userGroupEntityList);
 
-        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved);
+        Long transactionCount = transactionAccessor.countByGroupId(groupEntitySaved.getUuid());
+        return GroupDetailsResponse.from(userEntityListSaved, groupEntitySaved, transactionCount);
     }
 
     @Transactional
@@ -154,8 +158,9 @@ public class GroupService {
         // Build response
         // Check if user has already in the group requested.
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        Long transactionCount = transactionAccessor.countByGroupId(groupId);
 
-        return GroupDetailsResponse.from(users, groupEntity);
+        return GroupDetailsResponse.from(users, groupEntity, transactionCount);
     }
   
     @Transactional
