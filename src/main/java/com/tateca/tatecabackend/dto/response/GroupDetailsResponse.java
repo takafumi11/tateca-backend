@@ -20,10 +20,14 @@ public class GroupDetailsResponse {
     @JsonProperty("users")
     List<UserResponseDTO> userResponseDTOS;
 
-    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity) {
+    @JsonProperty("transactionCount")
+    Long transactionCount;
+
+    static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity, Long transactionCount) {
         return GroupDetailsResponse.builder()
                 .groupResponseDTO(GroupResponseDTO.from(groupEntity))
                 .userResponseDTOS(userEntityList.stream().map(UserResponseDTO::from).toList())
+                .transactionCount(transactionCount)
                 .build();
     }
 }
