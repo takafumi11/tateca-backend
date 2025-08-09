@@ -20,7 +20,7 @@ public class GroupDetailsResponse {
     @JsonProperty("users")
     List<UserResponseDTO> userResponseDTOS;
 
-    @JsonProperty("transactionCount")
+    @JsonProperty("transaction_count")
     Long transactionCount;
 
     static public GroupDetailsResponse from(List<UserEntity> userEntityList, GroupEntity groupEntity, Long transactionCount) {
