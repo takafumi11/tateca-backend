@@ -15,7 +15,6 @@ import java.io.InputStream;
 
 @Lazy(value = false)
 @Service
-@Lazy(false) // Lazy初期化を無効化、即座に初期化
 public class FirebaseService {
 
     @PostConstruct
