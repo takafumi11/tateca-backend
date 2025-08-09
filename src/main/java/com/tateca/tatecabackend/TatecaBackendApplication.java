@@ -9,7 +9,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+	org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration.class
+})
 @Slf4j
 @RequiredArgsConstructor
 public class TatecaBackendApplication {
