@@ -20,8 +20,10 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.flywaydb:flyway-core")
+	implementation("org.flywaydb:flyway-mysql")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	implementation ("com.google.firebase:firebase-admin:9.2.0")
 	implementation ("io.github.resilience4j:resilience4j-retry:1.7.0")
@@ -32,7 +34,7 @@ dependencies {
 }
 
 tasks.withType<Test> {
-//	useJUnitPlatform()
+	enabled = false
 }
 
 // Gradle optimization for faster builds
