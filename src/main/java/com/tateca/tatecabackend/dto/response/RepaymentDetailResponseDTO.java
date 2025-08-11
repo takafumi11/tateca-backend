@@ -8,11 +8,11 @@ import lombok.Data;
 @Data
 @Builder
 public class RepaymentDetailResponseDTO {
-    @JsonProperty("recipient") UserResponseDTO recipient;
+    @JsonProperty("recipient") UserInfoDTO recipient;
 
     public static RepaymentDetailResponseDTO from(UserEntity recipientEntity) {
         return RepaymentDetailResponseDTO.builder()
-                .recipient(UserResponseDTO.from(recipientEntity))
+                .recipient(UserInfoDTO.from(recipientEntity))
                 .build();
     }
 }

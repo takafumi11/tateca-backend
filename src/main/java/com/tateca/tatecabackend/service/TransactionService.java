@@ -9,9 +9,9 @@ import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
 import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponse;
-import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponse;
-import com.tateca.tatecabackend.dto.response.UserResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
+import com.tateca.tatecabackend.dto.response.UserInfoDTO;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
@@ -55,13 +55,13 @@ public class TransactionService {
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
 
-    public TransactionsHistoryResponse getTransactionHistory(int count, UUID groupId) {
+    public TransactionsHistoryResponseDTO getTransactionHistory(int count, UUID groupId) {
         List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionHistory(groupId, count);
 
-        return TransactionsHistoryResponse.buildResponse(transactionHistoryEntityList);
+        return TransactionsHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
 
-    public TransactionsSettlementResponse getSettlements(UUID groupId) {
+    public TransactionsSettlementResponseDTO getSettlements(UUID groupId) {
         long totalStartTime = System.currentTimeMillis();
 
         // Measure findByGroupUuid query time
@@ -97,7 +97,7 @@ public class TransactionService {
             "processing", processingTime,
             "total", totalTime);
 
-        return TransactionsSettlementResponse.builder()
+        return TransactionsSettlementResponseDTO.builder()
                 .transactionsSettlement(transactions)
                 .build();
     }
@@ -143,14 +143,14 @@ public class TransactionService {
     }
 
     private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<UserGroupEntity> userGroups) {
-        Map<String, UserResponseDTO> userMap = userGroups.stream()
+        Map<String, UserInfoDTO> userMap = userGroups.stream()
                 .collect(Collectors.toMap(
                         u -> u.getUserUuid().toString(),
-                        u -> UserResponseDTO.from(u.getUser())
+                        u -> UserInfoDTO.from(u.getUser())
                 ));
 
         balances.forEach((userId, amount) -> {
-            UserResponseDTO user = userMap.get(userId);
+            UserInfoDTO user = userMap.get(userId);
             if (amount.compareTo(BigDecimal.ZERO) < 0) {
                 creditors.add(new ParticipantModel(user, amount.negate()));
             } else if (amount.compareTo(BigDecimal.ZERO) > 0) {

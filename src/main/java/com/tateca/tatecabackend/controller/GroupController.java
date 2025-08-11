@@ -1,14 +1,13 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.annotation.UId;
-import com.tateca.tatecabackend.dto.request.CreateGroupRequest;
-import com.tateca.tatecabackend.dto.request.JoinGroupRequest;
+import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
+import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
-import com.tateca.tatecabackend.dto.response.GetGroupListResponse;
-import com.tateca.tatecabackend.dto.response.GroupDetailsResponse;
+import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
+import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,46 +29,46 @@ public class GroupController {
     private final GroupService service;
 
     @PostMapping
-    public ResponseEntity<GroupDetailsResponse> createGroup(
+    public ResponseEntity<GroupDetailsResponseDTO> createGroup(
             @UId String uid,
-            @RequestBody CreateGroupRequest request
+            @RequestBody CreateGroupRequestDTO request
     ) {
-        GroupDetailsResponse response = service.createGroup(uid, request);
+        GroupDetailsResponseDTO response = service.createGroup(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{groupId}")
-    public ResponseEntity<GroupDetailsResponse> updateGroupName(
+    public ResponseEntity<GroupDetailsResponseDTO> updateGroupName(
             @PathVariable("groupId") UUID groupId,
             @RequestBody UpdateGroupNameRequestDTO request
     ) {
-        GroupDetailsResponse response = service.updateGroupName(groupId, request.getName());
+        GroupDetailsResponseDTO response = service.updateGroupName(groupId, request.getName());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{groupId}")
-    public ResponseEntity<GroupDetailsResponse> getGroupInfo(
+    public ResponseEntity<GroupDetailsResponseDTO> getGroupInfo(
             @PathVariable("groupId") UUID groupId
     ) {
-        GroupDetailsResponse response = service.getGroupInfo(groupId);
+        GroupDetailsResponseDTO response = service.getGroupInfo(groupId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/list")
-    public ResponseEntity<GetGroupListResponse> getGroupList(
+    public ResponseEntity<GroupListResponseDTO> getGroupList(
             @UId String uid
     ) {
-        GetGroupListResponse response = service.getGroupList(uid);
+        GroupListResponseDTO response = service.getGroupList(uid);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{groupId}")
-    public ResponseEntity<GroupDetailsResponse> joinGroupInvited(
-            @RequestBody JoinGroupRequest request,
+    public ResponseEntity<GroupDetailsResponseDTO> joinGroupInvited(
+            @RequestBody JoinGroupRequestDTO request,
             @PathVariable("groupId") UUID groupId,
             @UId String uid
     ) {
-        GroupDetailsResponse response = service.joinGroupInvited(request, groupId, uid);
+        GroupDetailsResponseDTO response = service.joinGroupInvited(request, groupId, uid);
         return ResponseEntity.ok(response);
     }
 

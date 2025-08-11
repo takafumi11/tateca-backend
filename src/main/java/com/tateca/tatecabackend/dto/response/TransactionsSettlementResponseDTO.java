@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public class TransactionsSettlementResponse {
+public class TransactionsSettlementResponseDTO {
    @JsonProperty("transactions_settlement")
    List<TransactionSettlementResponseDTO> transactionsSettlement;
 }

@@ -9,11 +9,11 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class ExchangeRateResponse {
+public class ExchangeRateListResponseDTO {
     @JsonProperty("exchange_rate")
     List<ExchangeRateResponseDTO> exchangeRateResponseList;
 
-    public static ExchangeRateResponse from(List<ExchangeRateEntity> exchangeRateEntityList) {
-        return new ExchangeRateResponse(exchangeRateEntityList.stream().map(ExchangeRateResponseDTO::from).toList());
+    public static ExchangeRateListResponseDTO from(List<ExchangeRateEntity> exchangeRateEntityList) {
+        return new ExchangeRateListResponseDTO(exchangeRateEntityList.stream().map(ExchangeRateResponseDTO::from).toList());
     }
 }
