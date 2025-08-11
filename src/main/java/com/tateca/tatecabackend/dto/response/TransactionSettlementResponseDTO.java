@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TransactionSettlementResponseDTO {
     @JsonProperty("from")
-    UserResponseDTO from;
+    UserInfoDTO from;
     @JsonProperty("to")
-    UserResponseDTO to;
+    UserInfoDTO to;
     @JsonProperty("amount") long amount;
 }

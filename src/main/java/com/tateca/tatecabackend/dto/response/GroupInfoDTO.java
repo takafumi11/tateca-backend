@@ -7,7 +7,7 @@ import lombok.Builder;
 import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
 
 @Builder
-public class GroupResponseDTO {
+public class GroupInfoDTO {
     @JsonProperty("uuid") String uuid;
     @JsonProperty("name") String name;
     @JsonProperty("join_token") String joinToken;
@@ -15,8 +15,8 @@ public class GroupResponseDTO {
     @JsonProperty("created_at") String createdAt;
     @JsonProperty("updated_at") String updatedAt;
 
-    public static GroupResponseDTO from(GroupEntity group) {
-        return GroupResponseDTO.builder()
+    public static GroupInfoDTO from(GroupEntity group) {
+        return GroupInfoDTO.builder()
                 .uuid(group.getUuid().toString())
                 .name(group.getName())
                 .joinToken(group.getJoinToken().toString())

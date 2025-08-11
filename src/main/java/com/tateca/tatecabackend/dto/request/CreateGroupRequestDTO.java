@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CreateGroupRequest {
+public class CreateGroupRequestDTO {
     @JsonProperty("group_name") String groupName;
     @JsonProperty("host_name") String hostName;
     @JsonProperty("participants_name") List<String> participantsName;
