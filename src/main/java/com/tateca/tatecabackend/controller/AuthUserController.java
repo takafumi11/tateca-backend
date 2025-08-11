@@ -3,7 +3,6 @@ package com.tateca.tatecabackend.controller;
 import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
-import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.service.AuthUserService;
 import com.tateca.tatecabackend.constants.ApiConstants;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +39,10 @@ public class AuthUserController {
     }
 
     @DeleteMapping("/{uid}")
-    public ResponseEntity<UserResponseDTO> deleteUserInfo(
+    public ResponseEntity<Void> deleteUserInfo(
             @PathVariable("uid") String uid
     ) {
         service.deleteAuthUser(uid);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
