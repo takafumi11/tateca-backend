@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.constants.ApiConstants;
-import com.tateca.tatecabackend.dto.response.ExchangeRateResponse;
+import com.tateca.tatecabackend.dto.response.ExchangeRateListResponseDTO;
 import com.tateca.tatecabackend.service.ExchangeRateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,7 +20,7 @@ public class ExchangeRateController {
     private final ExchangeRateService service;
 
     @GetMapping("/{date}")
-    public ResponseEntity<ExchangeRateResponse> getExchangeRate(
+    public ResponseEntity<ExchangeRateListResponseDTO> getExchangeRate(
             @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         return ResponseEntity.ok(service.getExchangeRate(date));

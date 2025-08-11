@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class AuthUserResponseDTO {
+public class AuthUserInfoDTO {
     @JsonProperty("uid") String uid;
     @JsonProperty("name") String name;
     @JsonProperty("email") String email;
@@ -17,8 +17,8 @@ public class AuthUserResponseDTO {
     @JsonProperty("last_login_time") String lastLoginTime;
     @JsonProperty("total_login_count") Integer totalLoginCount;
 
-    public static AuthUserResponseDTO from(AuthUserEntity user) {
-        return AuthUserResponseDTO.builder()
+    public static AuthUserInfoDTO from(AuthUserEntity user) {
+        return AuthUserInfoDTO.builder()
                 .uid(user.getUid())
                 .name(user.getName())
                 .email(user.getEmail())

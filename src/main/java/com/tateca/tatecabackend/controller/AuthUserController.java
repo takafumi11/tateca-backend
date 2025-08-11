@@ -2,7 +2,7 @@ package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
-import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
+import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
 import com.tateca.tatecabackend.service.AuthUserService;
 import com.tateca.tatecabackend.constants.ApiConstants;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +23,18 @@ public class AuthUserController {
     private final AuthUserService service;
 
     @GetMapping("/{uid}")
-    public ResponseEntity<AuthUserResponseDTO> getAuthUser(
+    public ResponseEntity<AuthUserInfoDTO> getAuthUser(
             @PathVariable("uid") String uid
     ) {
-        AuthUserResponseDTO response = service.getAuthUserInfo(uid);
+        AuthUserInfoDTO response = service.getAuthUserInfo(uid);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<AuthUserResponseDTO> createAuthUser(
+    public ResponseEntity<AuthUserInfoDTO> createAuthUser(
             @UId String uid,
             @RequestBody AuthUserRequestDTO request) {
-        AuthUserResponseDTO response = service.createAuthUser(uid, request);
+        AuthUserInfoDTO response = service.createAuthUser(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

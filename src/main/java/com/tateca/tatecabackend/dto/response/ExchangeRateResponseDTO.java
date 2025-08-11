@@ -7,6 +7,8 @@ import com.tateca.tatecabackend.model.SymbolPosition;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 public class ExchangeRateResponseDTO {
@@ -16,7 +18,8 @@ public class ExchangeRateResponseDTO {
     @JsonProperty("jp_country_name") String jpCountryName;
     @JsonProperty("eng_country_name") String engCountryName;
     @JsonProperty("currency_symbol") String currencySymbol;
-    @JsonProperty("symbol_position") SymbolPosition symbolPosition;
+    @JsonProperty("symbol_position")
+    SymbolPosition symbolPosition;
     @JsonProperty("exchange_rate") String exchangeRate;
 
     public static ExchangeRateResponseDTO from(ExchangeRateEntity exchangeRateEntity) {

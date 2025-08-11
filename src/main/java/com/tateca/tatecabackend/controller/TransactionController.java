@@ -2,8 +2,8 @@ package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
 import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponse;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponse;
+import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import com.tateca.tatecabackend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,19 +31,19 @@ public class TransactionController {
     private final TransactionService service;
 
     @GetMapping(PATH_HISTORY)
-    public ResponseEntity<TransactionsHistoryResponse> getTransactionHistory(
+    public ResponseEntity<TransactionsHistoryResponseDTO> getTransactionHistory(
             @RequestParam(defaultValue = "5") int count,
             @PathVariable UUID groupId
     ) {
-        TransactionsHistoryResponse response = service.getTransactionHistory(count, groupId);
+        TransactionsHistoryResponseDTO response = service.getTransactionHistory(count, groupId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping(PATH_SETTLEMENT)
-    public ResponseEntity<TransactionsSettlementResponse> getTransactionSettlement(
+    public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
             @PathVariable UUID groupId
     ) {
-        TransactionsSettlementResponse response = service.getSettlements(groupId);
+        TransactionsSettlementResponseDTO response = service.getSettlements(groupId);
         return ResponseEntity.ok(response);
     }
 

@@ -11,11 +11,11 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetGroupListResponse {
+public class GroupListResponseDTO {
     @JsonProperty("group_list")
-    List<GroupResponseDTO> groupList;
+    List<GroupInfoDTO> groupList;
 
-    public static GetGroupListResponse from(List<GroupEntity> groupEntityList) {
-        return new GetGroupListResponse(groupEntityList.stream().map(GroupResponseDTO::from).toList());
+    public static GroupListResponseDTO from(List<GroupEntity> groupEntityList) {
+        return new GroupListResponseDTO(groupEntityList.stream().map(GroupInfoDTO::from).toList());
     }
 }

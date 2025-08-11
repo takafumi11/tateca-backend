@@ -3,14 +3,13 @@ package com.tateca.tatecabackend.service;
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
-import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
+import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.util.LogFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 
@@ -25,7 +24,7 @@ public class AuthUserService {
     private final AuthUserAccessor accessor;
     private final UserAccessor userAccessor;
 
-    public AuthUserResponseDTO getAuthUserInfo(String uid) {
+    public AuthUserInfoDTO getAuthUserInfo(String uid) {
         long totalStartTime = System.currentTimeMillis();
         
         // Measure findByUid query time
@@ -55,11 +54,11 @@ public class AuthUserService {
             "save", saveTime,
             "total", totalTime);
 
-        return AuthUserResponseDTO.from(updatedAuthUser);
+        return AuthUserInfoDTO.from(updatedAuthUser);
     }
 
     @Transactional
-    public AuthUserResponseDTO createAuthUser(String uid, AuthUserRequestDTO request) {
+    public AuthUserInfoDTO createAuthUser(String uid, AuthUserRequestDTO request) {
         accessor.validateEmail(request.getEmail());
 
         AuthUserEntity authUser = AuthUserEntity.builder()
@@ -72,7 +71,7 @@ public class AuthUserService {
 
         AuthUserEntity createdAuthUser = accessor.save(authUser);
 
-        return AuthUserResponseDTO.from(createdAuthUser);
+        return AuthUserInfoDTO.from(createdAuthUser);
     }
 
     @Transactional

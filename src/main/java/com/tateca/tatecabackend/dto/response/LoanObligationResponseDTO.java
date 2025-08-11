@@ -6,12 +6,12 @@ import lombok.Builder;
 
 @Builder
 public class LoanObligationResponseDTO {
-    @JsonProperty("user") UserResponseDTO user;
+    @JsonProperty("user") UserInfoDTO user;
     @JsonProperty("amount") long amount;
 
     public static LoanObligationResponseDTO from(TransactionObligationEntity obligation) {
         return LoanObligationResponseDTO.builder()
-                .user(UserResponseDTO.from(obligation.getUser()))
+                .user(UserInfoDTO.from(obligation.getUser()))
                 .amount(obligation.getAmount())
                 .build();
     }

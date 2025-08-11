@@ -8,14 +8,14 @@ import lombok.Data;
 import java.util.List;
 @Data
 @Builder
-public class TransactionsHistoryResponse {
+public class TransactionsHistoryResponseDTO {
     @JsonProperty("transactions_history")
     List<TransactionHistoryResponseDTO> transactionsHistory;
   
-    public static TransactionsHistoryResponse buildResponse(List<TransactionHistoryEntity> entityList) {
+    public static TransactionsHistoryResponseDTO buildResponse(List<TransactionHistoryEntity> entityList) {
         List<TransactionHistoryResponseDTO> transactionHistoryResponseDTOList = entityList.stream().map(TransactionHistoryResponseDTO::from).toList();
 
-        return TransactionsHistoryResponse.builder()
+        return TransactionsHistoryResponseDTO.builder()
                 .transactionsHistory(transactionHistoryResponseDTOList)
                 .build();
     }

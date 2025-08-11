@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.model;
 
-import com.tateca.tatecabackend.dto.response.UserResponseDTO;
+import com.tateca.tatecabackend.dto.response.UserInfoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Data
 public class ParticipantModel implements Comparable<ParticipantModel> {
-    private UserResponseDTO userId;
+    private UserInfoDTO userId;
     private BigDecimal amount;
 
     @Override

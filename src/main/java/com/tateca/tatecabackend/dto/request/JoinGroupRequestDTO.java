@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class JoinGroupRequest {
+public class JoinGroupRequestDTO {
     @JsonProperty("user_uuid") UUID userUuid;
     @JsonProperty("join_token") UUID joinToken;
 }
