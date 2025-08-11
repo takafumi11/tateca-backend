@@ -2,6 +2,8 @@ package com.tateca.tatecabackend.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -41,6 +43,13 @@ public class AuthUserEntity {
 
     @Column(name = "total_login_count")
     private Integer totalLoginCount;
+
+    @Column(name = "last_app_review_dialog_shown_at")
+    private Instant lastAppReviewDialogShownAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "app_review_status", columnDefinition = "ENUM('PENDING', 'COMPLETED', 'PERMANENTLY_DECLINED')")
+    private AppReviewStatus appReviewStatus;
 
     @PrePersist
     protected void onCreate() {

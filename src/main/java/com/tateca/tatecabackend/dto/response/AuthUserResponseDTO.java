@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tateca.tatecabackend.entity.AppReviewStatus;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.service.util.TimeHelper;
 import lombok.Builder;
@@ -16,6 +17,8 @@ public class AuthUserResponseDTO {
     @JsonProperty("updated_at") String updatedAt;
     @JsonProperty("last_login_time") String lastLoginTime;
     @JsonProperty("total_login_count") Integer totalLoginCount;
+    @JsonProperty("last_app_review_dialog_shown_at") String lastAppReviewDialogShownAt;
+    @JsonProperty("app_review_status") AppReviewStatus appReviewStatus;
 
     public static AuthUserResponseDTO from(AuthUserEntity user) {
         return AuthUserResponseDTO.builder()
@@ -26,6 +29,8 @@ public class AuthUserResponseDTO {
                 .updatedAt(TimeHelper.convertToTokyoTime(user.getUpdatedAt()))
                 .lastLoginTime(user.getLastLoginTime() != null ? TimeHelper.convertToTokyoTime(user.getLastLoginTime()) : null)
                 .totalLoginCount(user.getTotalLoginCount())
+                .lastAppReviewDialogShownAt(user.getLastAppReviewDialogShownAt() != null ? TimeHelper.convertToTokyoTime(user.getLastAppReviewDialogShownAt()) : null)
+                .appReviewStatus(user.getAppReviewStatus())
                 .build();
     }
 }
