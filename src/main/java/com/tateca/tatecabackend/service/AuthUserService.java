@@ -3,6 +3,7 @@ package com.tateca.tatecabackend.service;
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
@@ -83,5 +84,21 @@ public class AuthUserService {
 
         userAccessor.saveAll(userEntityList);
         accessor.deleteById(uid);
+    }
+
+    @Transactional
+    public AuthUserInfoDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
+        AuthUserEntity authUser = accessor.findByUid(uid);
+
+        if (request.getShowDialog()) {
+            authUser.setLastAppReviewDialogShownAt(Instant.now());
+        }
+
+        if (request.getAppReviewStatus() != null) {
+            authUser.setAppReviewStatus(request.getAppReviewStatus());
+        }
+
+        AuthUserEntity updatedAuthUser = accessor.save(authUser);
+        return AuthUserInfoDTO.from(updatedAuthUser);
     }
 }
