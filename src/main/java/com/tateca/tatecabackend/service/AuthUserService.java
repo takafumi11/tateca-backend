@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
+import com.tateca.tatecabackend.entity.AppReviewStatus;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.util.LogFactory;
@@ -68,6 +69,7 @@ public class AuthUserService {
                 .email(request.getEmail())
                 .lastLoginTime(Instant.now())
                 .totalLoginCount(1)
+                .appReviewStatus(AppReviewStatus.PENDING)
                 .build();
 
         AuthUserEntity createdAuthUser = accessor.save(authUser);
