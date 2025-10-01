@@ -162,7 +162,23 @@ public class GroupService {
 
         return GroupDetailsResponseDTO.from(users, groupEntity, transactionCount);
     }
-  
+
+    @Transactional
+    public void leaveGroup(UUID groupId, UUID userUuid) {
+        // Verify group exists
+        accessor.findById(groupId);
+
+        // Verify user is in the group (using composite primary key for efficiency)
+        userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, groupId);
+
+        // Get user entity
+        UserEntity userEntity = userAccessor.findById(userUuid);
+
+        // Set auth_user to null (leave group)
+        userEntity.setAuthUser(null);
+        userAccessor.save(userEntity);
+    }
+
     @Transactional
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
