@@ -43,6 +43,7 @@ public class GroupService {
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
     private final TransactionAccessor transactionAccessor;
+    private final CurrencyNameAccessor currencyNameAccessor;
 
     public GroupDetailsResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
@@ -82,10 +83,15 @@ public class GroupService {
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
         validateMaxGroupCount(uid);
 
+        String currencyCode = request.getCurrencyCode() != null ? request.getCurrencyCode() : "JPY";
+        CurrencyNameEntity currencyName = currencyNameAccessor.findById(currencyCode);
+
+
         // Create new record into groups table.
         GroupEntity groupEntity = GroupEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getGroupName())
+                .currencyName(currencyName)
                 .joinToken(UUID.randomUUID())
                 .build();
         GroupEntity groupEntitySaved = accessor.save(groupEntity);

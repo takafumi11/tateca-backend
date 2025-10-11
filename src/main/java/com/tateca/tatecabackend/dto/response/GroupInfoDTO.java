@@ -10,6 +10,7 @@ import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTim
 public class GroupInfoDTO {
     @JsonProperty("uuid") String uuid;
     @JsonProperty("name") String name;
+    @JsonProperty("currency_code") String currencyCode;
     @JsonProperty("join_token") String joinToken;
     @JsonProperty("token_expires") String tokenExpires;
     @JsonProperty("created_at") String createdAt;
@@ -19,6 +20,7 @@ public class GroupInfoDTO {
         return GroupInfoDTO.builder()
                 .uuid(group.getUuid().toString())
                 .name(group.getName())
+                .currencyCode(group.getCurrencyName().getCurrencyCode())
                 .joinToken(group.getJoinToken().toString())
                 .tokenExpires(group.getTokenExpires().toString())
                 .createdAt(convertToTokyoTime(group.getCreatedAt()))

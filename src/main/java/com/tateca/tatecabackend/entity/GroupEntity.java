@@ -3,6 +3,8 @@ package com.tateca.tatecabackend.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -28,6 +30,10 @@ public class GroupEntity {
 
     @Column(name = "name", nullable = false, length = 50)
     private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code")
+    private CurrencyNameEntity currencyName;
 
     @Column(name = "join_token", nullable = false, columnDefinition = "BINARY(16)")
     private UUID joinToken;
