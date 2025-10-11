@@ -10,6 +10,7 @@ import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -59,9 +60,20 @@ public class GroupService {
     }
 
     @Transactional
-    public GroupDetailsResponseDTO updateGroupName(UUID groupId, String name) {
+    public GroupDetailsResponseDTO updateGroup(UUID groupId, UpdateGroupRequestDTO request) {
         GroupEntity group = accessor.findById(groupId);
-        group.setName(name);
+
+        // Update name if provided
+        if (request.getName() != null) {
+            group.setName(request.getName());
+        }
+
+        // Update currency code if provided
+        if (request.getCurrencyCode() != null) {
+            CurrencyNameEntity currencyName = currencyNameAccessor.findById(request.getCurrencyCode());
+            group.setCurrencyName(currencyName);
+        }
+
         accessor.save(group);
 
         return getGroupInfo(groupId);
