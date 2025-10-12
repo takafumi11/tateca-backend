@@ -36,7 +36,7 @@ public class UserEntity {
     private AuthUserEntity authUser;
 
     @ManyToOne
-    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code")
+    @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false)
     private CurrencyNameEntity currencyName;
 
     @Column(name = "created_at", nullable = false, updatable = false)
