@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
-import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
@@ -10,11 +9,10 @@ import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
-import com.tateca.tatecabackend.dto.request.UpdateGroupRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
@@ -44,7 +42,6 @@ public class GroupService {
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
     private final TransactionAccessor transactionAccessor;
-    private final CurrencyNameAccessor currencyNameAccessor;
 
     public GroupDetailsResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
@@ -60,20 +57,9 @@ public class GroupService {
     }
 
     @Transactional
-    public GroupDetailsResponseDTO updateGroup(UUID groupId, UpdateGroupRequestDTO request) {
+    public GroupDetailsResponseDTO updateGroupName(UUID groupId, String name) {
         GroupEntity group = accessor.findById(groupId);
-
-        // Update name if provided
-        if (request.getName() != null) {
-            group.setName(request.getName());
-        }
-
-        // Update currency code if provided
-        if (request.getCurrencyCode() != null) {
-            CurrencyNameEntity currencyName = currencyNameAccessor.findById(request.getCurrencyCode());
-            group.setCurrencyName(currencyName);
-        }
-
+        group.setName(name);
         accessor.save(group);
 
         return getGroupInfo(groupId);
@@ -95,15 +81,10 @@ public class GroupService {
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
         validateMaxGroupCount(uid);
 
-        String currencyCode = request.getCurrencyCode() != null ? request.getCurrencyCode() : "JPY";
-        CurrencyNameEntity currencyName = currencyNameAccessor.findById(currencyCode);
-
-
         // Create new record into groups table.
         GroupEntity groupEntity = GroupEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getGroupName())
-                .currencyName(currencyName)
                 .joinToken(UUID.randomUUID())
                 .build();
         GroupEntity groupEntitySaved = accessor.save(groupEntity);

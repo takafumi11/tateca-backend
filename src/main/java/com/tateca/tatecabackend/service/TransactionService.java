@@ -61,9 +61,10 @@ public class TransactionService {
         return TransactionsHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
 
-    public TransactionsSettlementResponseDTO getSettlements(UUID groupId) {
-        GroupEntity group = groupAccessor.findById(groupId);
-        String groupCurrencyCode = group.getCurrencyName().getCurrencyCode();
+    public TransactionsSettlementResponseDTO getSettlements(UUID groupId, UUID requestUserUuid) {
+        // Get requesting user's currency
+        UserEntity requestUser = userAccessor.findById(requestUserUuid);
+        String userCurrencyCode = requestUser.getCurrencyName().getCurrencyCode();
 
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
 
@@ -74,42 +75,41 @@ public class TransactionService {
 
         List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByGroupId(groupId);
 
-        // Build exchange rare cache for group currency
-        Map<LocalDate, ExchangeRateEntity> groupRatesCache = new HashMap<>();
-        if (!"JPY".equals(groupCurrencyCode)) {
+        // Build exchange rate cache for user currency
+        Map<LocalDate, ExchangeRateEntity> userRatesCache = new HashMap<>();
+        if (!"JPY".equals(userCurrencyCode)) {
             List<LocalDate> transactionDates = transactionObligationEntityList.stream()
                     .map(o -> o.getTransaction().getExchangeRate().getDate())
                     .distinct()
                     .toList();
 
-            // Fetch group currency rates for all dates
-
+            // Fetch user currency rates for all dates
             for (LocalDate date : transactionDates) {
                 try {
-                    ExchangeRateEntity rate = exchangeRateAccessor.findByCurrencyCodeAndDate(groupCurrencyCode, date);
-                    groupRatesCache.put(date, rate);
+                    ExchangeRateEntity rate = exchangeRateAccessor.findByCurrencyCodeAndDate(userCurrencyCode, date);
+                    userRatesCache.put(date, rate);
                 } catch (ResponseStatusException e) {
                     // If rate not found for specific date, use current rate as fallback
                     if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        ExchangeRateEntity currencyRate = exchangeRateAccessor.findByCurrencyCodeAndDate(groupCurrencyCode, LocalDate.now(UTC_ZONE_ID));
-                        groupRatesCache.put(date, currencyRate);
+                        ExchangeRateEntity currencyRate = exchangeRateAccessor.findByCurrencyCodeAndDate(userCurrencyCode, LocalDate.now(UTC_ZONE_ID));
+                        userRatesCache.put(date, currencyRate);
                     } else {
                         throw e;
                     }
-
                 }
             }
         }
 
-        Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList, groupRatesCache);
+        Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList, userRatesCache);
         List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
 
         return TransactionsSettlementResponseDTO.builder()
                 .transactionsSettlement(transactions)
+                .currencyCode(userCurrencyCode)
                 .build();
     }
 
-    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList, Map<LocalDate, ExchangeRateEntity> groupRatesCache) {
+    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList, Map<LocalDate, ExchangeRateEntity> userRatesCache) {
         Map<String, BigDecimal> balances = new HashMap<>();
 
         for (String userId : userIds) {
@@ -124,16 +124,16 @@ public class TransactionService {
                 BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
                         .divide(transactionRate, 7, RoundingMode.HALF_UP);
 
-                // Step2 Convert JPY to group currency using transaction date rate
+                // Step2: Convert JPY to user currency using transaction date rate
                 BigDecimal obligationAmount;
-                if (groupRatesCache.isEmpty()) {
-                    // Group currency is JPY
+                if (userRatesCache.isEmpty()) {
+                    // User currency is JPY
                     obligationAmount = amountInJpy;
                 } else {
-                    // Group currency is foreign currency - use rate from transaction date
+                    // User currency is foreign currency - use rate from transaction date
                     LocalDate transactionDate = obligation.getTransaction().getExchangeRate().getDate();
-                    ExchangeRateEntity groupRate = groupRatesCache.get(transactionDate);
-                    obligationAmount = amountInJpy.multiply(groupRate.getExchangeRate())
+                    ExchangeRateEntity userRate = userRatesCache.get(transactionDate);
+                    obligationAmount = amountInJpy.multiply(userRate.getExchangeRate())
                             .setScale(7, RoundingMode.HALF_UP);
                 }
 

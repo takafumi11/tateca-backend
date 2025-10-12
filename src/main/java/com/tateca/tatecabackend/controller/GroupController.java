@@ -3,7 +3,7 @@ package com.tateca.tatecabackend.controller;
 import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
-import com.tateca.tatecabackend.dto.request.UpdateGroupRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
@@ -39,11 +39,11 @@ public class GroupController {
     }
 
     @PatchMapping("/{groupId}")
-    public ResponseEntity<GroupDetailsResponseDTO> updateGroup(
+    public ResponseEntity<GroupDetailsResponseDTO> updateGroupName(
             @PathVariable("groupId") UUID groupId,
-            @RequestBody UpdateGroupRequestDTO request
+            @RequestBody UpdateGroupNameRequestDTO request
     ) {
-        GroupDetailsResponseDTO response = service.updateGroup(groupId, request);
+        GroupDetailsResponseDTO response = service.updateGroupName(groupId, request.getName());
         return ResponseEntity.ok(response);
     }
 
