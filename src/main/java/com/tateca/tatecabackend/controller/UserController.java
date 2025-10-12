@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.constants.ApiConstants;
-import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserInfoDTO;
 import com.tateca.tatecabackend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +23,9 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserInfoDTO> updateUserName(
             @PathVariable("userId") UUID userId,
-            @RequestBody UpdateUserNameRequestDTO nameRequestDTO
+            @RequestBody UpdateUserRequestDTO nameRequestDTO
             ) {
-        UserInfoDTO responseDTO = service.updateUserName(userId, nameRequestDTO.getName());
+        UserInfoDTO responseDTO = service.updateUserName(userId, nameRequestDTO);
         return ResponseEntity.ok(responseDTO);
     }
 }

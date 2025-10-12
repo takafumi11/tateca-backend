@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.controller;
 
+import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
 import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
@@ -41,9 +42,10 @@ public class TransactionController {
 
     @GetMapping(PATH_SETTLEMENT)
     public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
-            @PathVariable UUID groupId
+            @PathVariable UUID groupId,
+            @RequestParam UUID userUuid
     ) {
-        TransactionsSettlementResponseDTO response = service.getSettlements(groupId);
+        TransactionsSettlementResponseDTO response = service.getSettlements(groupId, userUuid);
         return ResponseEntity.ok(response);
     }
 

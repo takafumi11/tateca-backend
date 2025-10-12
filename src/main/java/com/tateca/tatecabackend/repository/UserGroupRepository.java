@@ -19,4 +19,7 @@ public interface UserGroupRepository extends JpaRepository<UserGroupEntity, User
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid IN :userUuidList")
     List<UserGroupEntity> findByUserUuidList(@Param("userUuidList") List<UUID> userUuidList);
 
+    @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid = :userUuid AND uge.groupUuid = :groupUuid")
+    Optional<UserGroupEntity> findByUserUuidAndGroupUuid(@Param("userUuid") UUID userUuid, @Param("groupUuid") UUID groupUuid);
+
 }

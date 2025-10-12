@@ -9,5 +9,7 @@ import java.util.List;
 public class TransactionsSettlementResponseDTO {
    @JsonProperty("transactions_settlement")
    List<TransactionSettlementResponseDTO> transactionsSettlement;
+   @JsonProperty("currency_code")
+   String currencyCode;
 }
 
