@@ -43,9 +43,9 @@ public class TransactionController {
     @GetMapping(PATH_SETTLEMENT)
     public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
             @PathVariable UUID groupId,
-            @RequestParam UUID userUuid
+            @RequestParam(required = false) String currencyCode
     ) {
-        TransactionsSettlementResponseDTO response = service.getSettlements(groupId, userUuid);
+        TransactionsSettlementResponseDTO response = service.getSettlements(groupId, currencyCode);
         return ResponseEntity.ok(response);
     }
 

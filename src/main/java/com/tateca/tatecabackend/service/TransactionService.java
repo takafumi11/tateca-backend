@@ -61,10 +61,9 @@ public class TransactionService {
         return TransactionsHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
 
-    public TransactionsSettlementResponseDTO getSettlements(UUID groupId, UUID requestUserUuid) {
-        // Get requesting user's currency
-        UserEntity requestUser = userAccessor.findById(requestUserUuid);
-        String userCurrencyCode = requestUser.getCurrencyName().getCurrencyCode();
+    public TransactionsSettlementResponseDTO getSettlements(UUID groupId, String currencyCode) {
+        // Default to JPY if currencyCode is null
+        String effectiveCurrencyCode = currencyCode != null ? currencyCode : "JPY";
 
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
 
@@ -77,7 +76,7 @@ public class TransactionService {
 
         // Build exchange rate cache for user currency
         Map<LocalDate, ExchangeRateEntity> userRatesCache = new HashMap<>();
-        if (!"JPY".equals(userCurrencyCode)) {
+        if (!"JPY".equals(effectiveCurrencyCode)) {
             List<LocalDate> transactionDates = transactionObligationEntityList.stream()
                     .map(o -> o.getTransaction().getExchangeRate().getDate())
                     .distinct()
@@ -86,12 +85,12 @@ public class TransactionService {
             // Fetch user currency rates for all dates
             for (LocalDate date : transactionDates) {
                 try {
-                    ExchangeRateEntity rate = exchangeRateAccessor.findByCurrencyCodeAndDate(userCurrencyCode, date);
+                    ExchangeRateEntity rate = exchangeRateAccessor.findByCurrencyCodeAndDate(effectiveCurrencyCode, date);
                     userRatesCache.put(date, rate);
                 } catch (ResponseStatusException e) {
                     // If rate not found for specific date, use current rate as fallback
                     if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        ExchangeRateEntity currencyRate = exchangeRateAccessor.findByCurrencyCodeAndDate(userCurrencyCode, LocalDate.now(UTC_ZONE_ID));
+                        ExchangeRateEntity currencyRate = exchangeRateAccessor.findByCurrencyCodeAndDate(effectiveCurrencyCode, LocalDate.now(UTC_ZONE_ID));
                         userRatesCache.put(date, currencyRate);
                     } else {
                         throw e;
@@ -105,7 +104,7 @@ public class TransactionService {
 
         return TransactionsSettlementResponseDTO.builder()
                 .transactionsSettlement(transactions)
-                .currencyCode(userCurrencyCode)
+                .currencyCode(effectiveCurrencyCode)
                 .build();
     }
 
