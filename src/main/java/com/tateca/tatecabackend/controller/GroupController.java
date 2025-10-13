@@ -4,12 +4,13 @@ import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
-import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
+import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,6 +71,16 @@ public class GroupController {
     ) {
         GroupDetailsResponseDTO response = service.joinGroupInvited(request, groupId, uid);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{groupId}/users/{userUuid}")
+    public ResponseEntity<Void> leaveGroup(
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("userUuid") UUID userUuid,
+            @UId String uid
+    ) {
+        service.leaveGroup(groupId, userUuid);
+        return ResponseEntity.noContent().build();
     }
 
 }

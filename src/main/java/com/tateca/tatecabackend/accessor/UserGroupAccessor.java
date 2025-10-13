@@ -39,4 +39,13 @@ public class UserGroupAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public UserGroupEntity findByUserUuidAndGroupUuid(UUID userUuid, UUID groupUuid) {
+        try {
+            return repository.findByUserUuidAndGroupUuid(userUuid, groupUuid)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not in this group"));
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }
