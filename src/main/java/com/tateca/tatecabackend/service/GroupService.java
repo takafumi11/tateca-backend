@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
-import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
@@ -10,10 +9,10 @@ import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
@@ -25,8 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -162,7 +159,23 @@ public class GroupService {
 
         return GroupDetailsResponseDTO.from(users, groupEntity, transactionCount);
     }
-  
+
+    @Transactional
+    public void leaveGroup(UUID groupId, UUID userUuid) {
+        // Verify group exists
+        accessor.findById(groupId);
+
+        // Verify user is in the group (using composite primary key for efficiency)
+        userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, groupId);
+
+        // Get user entity
+        UserEntity userEntity = userAccessor.findById(userUuid);
+
+        // Set auth_user to null (leave group)
+        userEntity.setAuthUser(null);
+        userAccessor.save(userEntity);
+    }
+
     @Transactional
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
