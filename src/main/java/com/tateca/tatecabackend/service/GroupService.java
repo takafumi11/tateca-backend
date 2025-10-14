@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
+import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
@@ -13,10 +14,12 @@ import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class GroupService {
+    private final EntityManager entityManager;
     private final GroupAccessor accessor;
     private final UserAccessor userAccessor;
     private final AuthUserAccessor authUserAccessor;
@@ -40,6 +44,7 @@ public class GroupService {
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
     private final TransactionAccessor transactionAccessor;
+    private final CurrencyNameAccessor currencyNameAccessor;
 
     public GroupDetailsResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
@@ -89,18 +94,23 @@ public class GroupService {
 
         // Create new records into users table
         AuthUserEntity authUser = authUserAccessor.findByUid(uid);
+
+        // Set currency. Default is JPY. Use getReference to avoid unnecessary DB query.
+        CurrencyNameEntity currencyName = entityManager.getReference(CurrencyNameEntity.class, "JPY");
         List<UserEntity> userEntityList = new ArrayList<>();
 
         UserEntity host = UserEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getHostName())
                 .authUser(authUser)
+                .currencyName(currencyName)
                 .build();
         userEntityList.add(host);
         request.getParticipantsName().forEach(userName -> {
             UserEntity user = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name(userName)
+                    .currencyName(currencyName)
                     .build();
             userEntityList.add(user);
         });
