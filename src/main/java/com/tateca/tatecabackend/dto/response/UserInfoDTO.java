@@ -11,7 +11,7 @@ import lombok.Data;
 public class UserInfoDTO {
     @JsonProperty("uuid") String uuid;
     @JsonProperty("name") String userName;
-    @JsonProperty("currency_code") String currencyCode;
+    @JsonProperty("currency") CurrencyNameDTO currency;
     @JsonProperty("auth_user")
     AuthUserInfoDTO authUser;
     @JsonProperty("created_at") String createdAt;
@@ -21,7 +21,7 @@ public class UserInfoDTO {
         return UserInfoDTO.builder()
                 .uuid(user.getUuid().toString())
                 .userName(user.getName())
-                .currencyCode(user.getCurrencyName().getCurrencyCode())
+                .currency(CurrencyNameDTO.from(user.getCurrencyName()))
                 .authUser(user.getAuthUser() != null ? AuthUserInfoDTO.from(user.getAuthUser()) : null)
                 .createdAt(TimeHelper.convertToTokyoTime(user.getCreatedAt()))
                 .updatedAt(TimeHelper.convertToTokyoTime(user.getUpdatedAt()))
