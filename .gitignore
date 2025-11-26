@@ -18,7 +18,13 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+# Ignore most .idea files except for project configuration
+.idea/*
+!.idea/misc.xml
+!.idea/gradle.xml
+!.idea/compiler.xml
+!.idea/vcs.xml
+!.idea/jarRepositories.xml
 *.iws
 *.iml
 *.ipr
