@@ -1,24 +1,50 @@
 package com.tateca.tatecabackend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tateca.tatecabackend.config.AbstractIntegrationTest;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Base class for Controller integration tests with full Spring context and MockMvc.
  * Tests REST endpoints end-to-end with real database and mocked Firebase authentication.
+ *
+ * <p>Note: Integration tests are executed in the same thread to avoid
+ * connection pool issues with the shared MySQL container.</p>
  */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureMockMvc
 @Transactional
 @Import(TestSecurityConfig.class)
-public abstract class AbstractControllerIntegrationTest extends AbstractIntegrationTest {
+@SuppressWarnings("resource")
+public abstract class AbstractControllerIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    protected static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass")
+            .withReuse(true);
+
+    static {
+        mysql.start();
+    }
 
     @PersistenceContext
     protected EntityManager entityManager;

@@ -40,15 +40,14 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:mysql:1.19.3")
 	testImplementation("org.testcontainers:junit-jupiter:1.19.3")
-	testImplementation("com.h2database:h2")
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-	systemProperty("junit.jupiter.execution.parallel.enabled", "true")
-	systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+	// Disable parallel execution to avoid connection pool issues with Testcontainers
+	systemProperty("junit.jupiter.execution.parallel.enabled", "false")
 	finalizedBy(tasks.jacocoTestReport)
 
 	// Set test environment variables
