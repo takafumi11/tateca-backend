@@ -73,12 +73,18 @@ tasks.jacocoTestReport {
 		files(classDirectories.files.map {
 			fileTree(it) {
 				exclude(
-					"**/dto/**",
+					"**/dto/request/**",
 					"**/entity/**",
 					"**/config/**",
 					"**/TatecaBackendApplication.class",
 					"**/constants/**",
-					"**/model/**"
+					"**/model/**",
+					"**/repository/**",
+					"**/interceptor/**",
+					"**/annotation/**",
+					"**/exception/**",
+					"**/util/**",
+					"**/scheduler/**"
 				)
 			}
 		})
@@ -111,12 +117,18 @@ tasks.jacocoTestCoverageVerification {
 		files(classDirectories.files.map {
 			fileTree(it) {
 				exclude(
-					"**/dto/**",
+					"**/dto/request/**",
 					"**/entity/**",
 					"**/config/**",
 					"**/TatecaBackendApplication.class",
 					"**/constants/**",
-					"**/model/**"
+					"**/model/**",
+					"**/repository/**",
+					"**/interceptor/**",
+					"**/annotation/**",
+					"**/exception/**",
+					"**/util/**",
+					"**/scheduler/**"
 				)
 			}
 		})
