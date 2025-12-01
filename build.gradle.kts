@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.4"
+	jacoco
 }
 
 group = "com.tateca"
@@ -31,11 +32,96 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("com.mysql:mysql-connector-j")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+	// Testing dependencies
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+	}
+	testImplementation("org.springframework.boot:spring-boot-testcontainers")
+	testImplementation("org.testcontainers:mysql:1.19.3")
+	testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+	testImplementation("com.h2database:h2")
+	testCompileOnly("org.projectlombok:lombok")
+	testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.withType<Test> {
-	enabled = false
+	useJUnitPlatform()
+	systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+	systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+	finalizedBy(tasks.jacocoTestReport)
+
+	// Set test environment variables
+	environment("FIREBASE_SERVICE_ACCOUNT_KEY", "mock-service-account-key")
+	environment("FIREBASE_PROJECT_ID", "test-project-id")
+	environment("EXCHANGE_RATE_API_KEY", "test-exchange-rate-api-key")
+	environment("LAMBDA_API_KEY", "test-lambda-api-key")
+}
+
+// JaCoCo configuration for code coverage
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+		csv.required.set(true)
+	}
+	classDirectories.setFrom(
+		files(classDirectories.files.map {
+			fileTree(it) {
+				exclude(
+					"**/dto/**",
+					"**/entity/**",
+					"**/config/**",
+					"**/TatecaBackendApplication.class",
+					"**/constants/**",
+					"**/model/**"
+				)
+			}
+		})
+	)
+}
+
+tasks.jacocoTestCoverageVerification {
+	dependsOn(tasks.jacocoTestReport)
+	violationRules {
+		rule {
+			element = "CLASS"
+			limit {
+				counter = "BRANCH"
+				//noinspection SpellCheckingInspection - COVEREDRATIO is a valid JaCoCo API constant
+				value = "COVEREDRATIO"
+				minimum = "0.95".toBigDecimal()
+			}
+		}
+		rule {
+			element = "CLASS"
+			limit {
+				counter = "LINE"
+				//noinspection SpellCheckingInspection - COVEREDRATIO is a valid JaCoCo API constant
+				value = "COVEREDRATIO"
+				minimum = "0.90".toBigDecimal()
+			}
+		}
+	}
+	classDirectories.setFrom(
+		files(classDirectories.files.map {
+			fileTree(it) {
+				exclude(
+					"**/dto/**",
+					"**/entity/**",
+					"**/config/**",
+					"**/TatecaBackendApplication.class",
+					"**/constants/**",
+					"**/model/**"
+				)
+			}
+		})
+	)
 }
 
 // Gradle optimization for faster builds
