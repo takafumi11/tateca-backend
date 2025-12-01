@@ -4,6 +4,7 @@ import com.tateca.tatecabackend.constants.ApiConstants;
 import com.tateca.tatecabackend.dto.request.UpdateUserRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserInfoDTO;
 import com.tateca.tatecabackend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,8 +24,8 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserInfoDTO> updateUserName(
             @PathVariable("userId") UUID userId,
-            @RequestBody UpdateUserRequestDTO nameRequestDTO
-            ) {
+            @Valid @RequestBody UpdateUserRequestDTO nameRequestDTO
+    ) {
         UserInfoDTO responseDTO = service.updateUserName(userId, nameRequestDTO);
         return ResponseEntity.ok(responseDTO);
     }
