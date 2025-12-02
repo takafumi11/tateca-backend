@@ -201,6 +201,28 @@ class UserControllerUnitTest extends AbstractControllerWebTest {
             // Service should never be called because validation fails at Controller layer
             verify(userService, never()).updateUserName(any(), any());
         }
+
+        @Test
+        @DisplayName("Should return 500 INTERNAL_SERVER_ERROR when database error occurs")
+        void shouldReturn500WhenDatabaseErrorOccurs() throws Exception {
+            // Given
+            UUID userId = UUID.randomUUID();
+
+            when(userService.updateUserName(eq(userId), any(UpdateUserRequestDTO.class)))
+                    .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error"));
+
+            // When & Then
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "user_name": "New Name"
+                                    }
+                                    """))
+                    .andExpect(status().isInternalServerError());
+
+            verify(userService).updateUserName(eq(userId), any(UpdateUserRequestDTO.class));
+        }
     }
 
     private UserInfoDTO createUserInfoDTO(UUID userId, String name, String currencyCode) {
