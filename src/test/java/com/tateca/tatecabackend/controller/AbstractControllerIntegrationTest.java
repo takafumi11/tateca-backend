@@ -14,8 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Base class for Controller integration tests with full Spring context and MockMvc.
@@ -26,7 +24,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureMockMvc
 @Transactional
@@ -34,7 +31,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SuppressWarnings("resource")
 public abstract class AbstractControllerIntegrationTest {
 
-    @Container
     @ServiceConnection
     protected static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("testdb")
