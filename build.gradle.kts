@@ -40,6 +40,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:mysql:1.19.3")
 	testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+	testImplementation("org.wiremock.integrations.testcontainers:wiremock-testcontainers-module:1.0-alpha-13")
+	testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0")
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
 }

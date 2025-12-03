@@ -18,15 +18,13 @@ import org.springframework.web.client.RestClientException;
 import java.time.Duration;
 import java.time.LocalDate;
 
-import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_CUSTOM_DATE_RATE_API_URL;
-import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_LATEST_RATE_API_URL;
-
 @Component
 @Setter
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "exchange.rate")
 public class ExchangeRateApiClient {
     private String apiKey;
+    private String baseUrl;
 
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
     private final RestTemplate restTemplate;
@@ -39,7 +37,7 @@ public class ExchangeRateApiClient {
 
         Retry retry = Retry.of("fetchLatestExchangeRate", retryConfig);
 
-        String url = EXCHANGE_LATEST_RATE_API_URL.replace("{api_key}", apiKey);
+        String url = baseUrl + "/" + apiKey + "/latest/JPY";
 
         try {
             return Retry.decorateSupplier(retry, () -> 
@@ -55,15 +53,8 @@ public class ExchangeRateApiClient {
     }
 
     public ExchangeRateClientResponse fetchExchangeRateByDate(LocalDate date) {
-        String year = String.valueOf(date.getYear());
-        String month = String.valueOf(date.getMonthValue());
-        String day = String.valueOf(date.getDayOfMonth());
-
-        String url = EXCHANGE_CUSTOM_DATE_RATE_API_URL
-                .replace("{api_key}", apiKey)
-                .replace("{year}", year)
-                .replace("{month}", month)
-                .replace("{day}", day);
+        String url = baseUrl + "/" + apiKey + "/history/JPY/"
+                + date.getYear() + "/" + date.getMonthValue() + "/" + date.getDayOfMonth();
 
         try {
             return restTemplate.getForObject(url, ExchangeRateClientResponse.class);
