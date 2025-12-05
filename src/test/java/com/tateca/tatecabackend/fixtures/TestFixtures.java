@@ -6,6 +6,7 @@ import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.model.SymbolPosition;
 import com.tateca.tatecabackend.model.TransactionType;
 
 import java.math.BigDecimal;
@@ -40,6 +41,7 @@ public class TestFixtures {
                     .engCountryName("Japan")
                     .isActive(true)
                     .currencySymbol("¥")
+                    .symbolPosition(SymbolPosition.PREFIX)
                     .build();
         }
 
@@ -52,6 +54,7 @@ public class TestFixtures {
                     .engCountryName("United States")
                     .isActive(true)
                     .currencySymbol("$")
+                    .symbolPosition(SymbolPosition.PREFIX)
                     .build();
         }
 
@@ -64,7 +67,101 @@ public class TestFixtures {
                     .engCountryName("Europe")
                     .isActive(true)
                     .currencySymbol("€")
+                    .symbolPosition(SymbolPosition.PREFIX)
                     .build();
+        }
+
+        public static CurrencyNameEntity inactive(String currencyCode) {
+            return CurrencyNameEntity.builder()
+                    .currencyCode(currencyCode)
+                    .jpCurrencyName("非アクティブ通貨")
+                    .engCurrencyName("Inactive Currency")
+                    .jpCountryName("なし")
+                    .engCountryName("None")
+                    .isActive(false)
+                    .currencySymbol("X")
+                    .symbolPosition(SymbolPosition.PREFIX)
+                    .build();
+        }
+    }
+
+    // ========== Object Mother: ExchangeRates ==========
+
+    public static class ExchangeRates {
+        public static ExchangeRateEntity jpy(LocalDate date) {
+            return ExchangeRateEntity.builder()
+                    .currencyCode("JPY")
+                    .date(date)
+                    .currencyName(Currencies.jpy())
+                    .exchangeRate(BigDecimal.ONE)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        }
+
+        public static ExchangeRateEntity usd(LocalDate date, BigDecimal rate) {
+            return ExchangeRateEntity.builder()
+                    .currencyCode("USD")
+                    .date(date)
+                    .currencyName(Currencies.usd())
+                    .exchangeRate(rate)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        }
+
+        public static ExchangeRateEntity eur(LocalDate date, BigDecimal rate) {
+            return ExchangeRateEntity.builder()
+                    .currencyCode("EUR")
+                    .date(date)
+                    .currencyName(Currencies.eur())
+                    .exchangeRate(rate)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        }
+
+        public static ExchangeRateEntity withCurrency(LocalDate date, CurrencyNameEntity currency, BigDecimal rate) {
+            return ExchangeRateEntity.builder()
+                    .currencyCode(currency.getCurrencyCode())
+                    .date(date)
+                    .currencyName(currency)
+                    .exchangeRate(rate)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        }
+    }
+
+    // ========== Object Mother: ExchangeRateApiResponses ==========
+
+    public static class ExchangeRateApiResponses {
+        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse success() {
+            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response =
+                new com.tateca.tatecabackend.api.response.ExchangeRateClientResponse();
+            response.setResult("success");
+            response.setTimeLastUpdateUnix("1704067200");
+            java.util.Map<String, Double> rates = new java.util.HashMap<>();
+            rates.put("JPY", 1.0);
+            rates.put("USD", 0.0067);
+            rates.put("EUR", 0.0061);
+            response.setConversionRates(rates);
+            return response;
+        }
+
+        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse withRates(
+                java.util.Map<String, Double> rates) {
+            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response = success();
+            response.setConversionRates(rates);
+            return response;
+        }
+
+        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse error() {
+            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response =
+                new com.tateca.tatecabackend.api.response.ExchangeRateClientResponse();
+            response.setResult("error");
+            response.setConversionRates(new java.util.HashMap<>());
+            return response;
         }
     }
 

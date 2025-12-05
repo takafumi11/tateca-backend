@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestClientException;
 
-import java.time.LocalDate;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -21,11 +19,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("ExchangeRateApiClient Integration Tests")
-class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
+@DisplayName("ExchangeRateHttpClient Integration Tests")
+class ExchangeRateHttpClientIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private ExchangeRateApiClient apiClient;
+    private ExchangeRateHttpClient httpClient;
 
     private static final String TEST_API_KEY = "test-exchange-rate-api-key";
 
@@ -36,8 +34,8 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
-    @DisplayName("fetchLatestExchangeRate")
-    class FetchLatestExchangeRateTests {
+    @DisplayName("fetchLatest")
+    class FetchLatestTests {
 
         @Test
         @DisplayName("Should fetch latest exchange rate from API")
@@ -62,7 +60,7 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
                             .withBody(responseBody)));
 
             // When
-            ExchangeRateClientResponse response = apiClient.fetchLatestExchangeRate();
+            ExchangeRateClientResponse response = httpClient.fetchLatest(TEST_API_KEY);
 
             // Then
             assertThat(response).isNotNull();
@@ -77,71 +75,38 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should retry on server error and eventually succeed")
-        void shouldRetryOnServerErrorAndEventuallySucceed() {
-            // Given
-            String responseBody = """
-                {
-                    "result": "success",
-                    "time_last_update_unix": "1704067200",
-                    "conversion_rates": {
-                        "JPY": 1.0
-                    }
-                }
-                """;
-
-            // First two calls fail, third succeeds
-            stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/latest/JPY"))
-                    .inScenario("Retry Scenario")
-                    .whenScenarioStateIs("Started")
-                    .willReturn(aResponse().withStatus(500))
-                    .willSetStateTo("First Failure"));
-
-            stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/latest/JPY"))
-                    .inScenario("Retry Scenario")
-                    .whenScenarioStateIs("First Failure")
-                    .willReturn(aResponse().withStatus(500))
-                    .willSetStateTo("Second Failure"));
-
-            stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/latest/JPY"))
-                    .inScenario("Retry Scenario")
-                    .whenScenarioStateIs("Second Failure")
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(responseBody)));
-
-            // When
-            ExchangeRateClientResponse response = apiClient.fetchLatestExchangeRate();
-
-            // Then
-            assertThat(response).isNotNull();
-            assertThat(response.getResult()).isEqualTo("success");
-        }
-
-        @Test
-        @DisplayName("Should throw exception after max retries on persistent failure")
-        void shouldThrowExceptionAfterMaxRetriesOnPersistentFailure() {
+        @DisplayName("Should throw RestClientException on server error")
+        void shouldThrowRestClientExceptionOnServerError() {
             // Given
             stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/latest/JPY"))
                     .willReturn(aResponse().withStatus(500)));
 
             // When & Then
-            assertThatThrownBy(() -> apiClient.fetchLatestExchangeRate())
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Exchange rate service unavailable");
+            assertThatThrownBy(() -> httpClient.fetchLatest(TEST_API_KEY))
+                    .isInstanceOf(RestClientException.class);
+        }
+
+        @Test
+        @DisplayName("Should throw RestClientException on not found error")
+        void shouldThrowRestClientExceptionOnNotFoundError() {
+            // Given
+            stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/latest/JPY"))
+                    .willReturn(aResponse().withStatus(404)));
+
+            // When & Then
+            assertThatThrownBy(() -> httpClient.fetchLatest(TEST_API_KEY))
+                    .isInstanceOf(RestClientException.class);
         }
     }
 
     @Nested
-    @DisplayName("fetchExchangeRateByDate")
-    class FetchExchangeRateByDateTests {
+    @DisplayName("fetchByDate")
+    class FetchByDateTests {
 
         @Test
         @DisplayName("Should fetch exchange rate for specific date from API")
         void shouldFetchExchangeRateByDateFromApi() {
             // Given
-            LocalDate date = LocalDate.of(2024, 1, 15);
             String responseBody = """
                 {
                     "result": "success",
@@ -160,7 +125,7 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
                             .withBody(responseBody)));
 
             // When
-            ExchangeRateClientResponse response = apiClient.fetchExchangeRateByDate(date);
+            ExchangeRateClientResponse response = httpClient.fetchByDate(TEST_API_KEY, 2024, 1, 15);
 
             // Then
             assertThat(response).isNotNull();
@@ -176,17 +141,14 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Should handle API error response")
         void shouldHandleApiErrorResponse() {
             // Given
-            LocalDate date = LocalDate.of(2024, 1, 15);
-
             stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/history/JPY/2024/1/15"))
                     .willReturn(aResponse()
                             .withStatus(404)
                             .withBody("Not Found")));
 
             // When & Then
-            assertThatThrownBy(() -> apiClient.fetchExchangeRateByDate(date))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Exchange rate service unavailable");
+            assertThatThrownBy(() -> httpClient.fetchByDate(TEST_API_KEY, 2024, 1, 15))
+                    .isInstanceOf(RestClientException.class);
         }
     }
 }
