@@ -28,7 +28,8 @@ dependencies {
 	implementation("org.flywaydb:flyway-mysql")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	implementation ("com.google.firebase:firebase-admin:9.2.0")
-	implementation ("io.github.resilience4j:resilience4j-retry:1.7.0")
+	implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+	implementation("org.springframework.boot:spring-boot-starter-aop")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("com.mysql:mysql-connector-j")
@@ -40,6 +41,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:mysql:1.19.3")
 	testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+	testImplementation("org.wiremock.integrations.testcontainers:wiremock-testcontainers-module:1.0-alpha-13")
+	testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0")
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
 }

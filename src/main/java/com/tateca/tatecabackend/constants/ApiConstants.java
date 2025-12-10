@@ -15,7 +15,4 @@ public class ApiConstants {
     public static final String PATH_SETTLEMENT = "/settlement";
     public static final String PATH_EXCHANGE_RATE = "/exchange-rate";
     public static final String PATH_DEV = "/dev";
-
-    public static final String EXCHANGE_LATEST_RATE_API_URL = "https://v6.exchangerate-api.com/v6/{api_key}/latest/JPY";
-    public static final String EXCHANGE_CUSTOM_DATE_RATE_API_URL = "https://v6.exchangerate-api.com/v6/{api_key}/history/JPY/{year}/{month}/{day}";
 }
