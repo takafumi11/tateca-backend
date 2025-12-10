@@ -1,18 +1,16 @@
 package com.tateca.tatecabackend.fixtures;
 
+import com.tateca.tatecabackend.entity.AppReviewStatus;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
-import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.model.SymbolPosition;
-import com.tateca.tatecabackend.model.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
@@ -162,6 +160,45 @@ public class TestFixtures {
             response.setResult("error");
             response.setConversionRates(new java.util.HashMap<>());
             return response;
+        }
+    }
+
+    // ========== Object Mother: AuthUsers ==========
+
+    public static class AuthUsers {
+        public static AuthUserEntity standard() {
+            return AuthUserEntity.builder()
+                    .uid("test-auth-uid")
+                    .name("Test Auth User")
+                    .email("test@example.com")
+                    .totalLoginCount(1)
+                    .lastLoginTime(Instant.now())
+                    .appReviewStatus(AppReviewStatus.PENDING)
+                    .build();
+        }
+    }
+
+    // ========== Object Mother: Groups ==========
+
+    public static class Groups {
+        public static GroupEntity standard() {
+            return GroupEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .name("Test Group")
+                    .joinToken(UUID.randomUUID())
+                    .build();
+        }
+    }
+
+    // ========== Object Mother: Users ==========
+
+    public static class Users {
+        public static UserEntity standard() {
+            return UserEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .name("Test User")
+                    .currencyName(Currencies.jpy())
+                    .build();
         }
     }
 

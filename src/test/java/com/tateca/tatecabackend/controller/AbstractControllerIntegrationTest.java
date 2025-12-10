@@ -34,4 +34,9 @@ public abstract class AbstractControllerIntegrationTest extends AbstractIntegrat
     @Autowired
     protected ObjectMapper objectMapper;
 
+    /**
+     * Test UID used for authenticated requests.
+     */
+    protected static final String TEST_UID = TestSecurityConfig.TEST_UID;
+
 }
