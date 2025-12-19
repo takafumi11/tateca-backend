@@ -167,7 +167,7 @@ public class TestFixtures {
 
     public static class AuthUsers {
         public static AuthUserEntity standard() {
-            return AuthUserEntity.builder()
+            AuthUserEntity authUser = AuthUserEntity.builder()
                     .uid("test-auth-uid")
                     .name("Test Auth User")
                     .email("test@example.com")
@@ -175,6 +175,9 @@ public class TestFixtures {
                     .lastLoginTime(Instant.now())
                     .appReviewStatus(AppReviewStatus.PENDING)
                     .build();
+            authUser.setCreatedAt(Instant.now());
+            authUser.setUpdatedAt(Instant.now());
+            return authUser;
         }
     }
 
@@ -182,11 +185,15 @@ public class TestFixtures {
 
     public static class Groups {
         public static GroupEntity standard() {
-            return GroupEntity.builder()
+            GroupEntity group = GroupEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name("Test Group")
                     .joinToken(UUID.randomUUID())
                     .build();
+            group.setCreatedAt(Instant.now());
+            group.setUpdatedAt(Instant.now());
+            group.setTokenExpires(Instant.now().plusSeconds(3600));
+            return group;
         }
     }
 
@@ -194,11 +201,14 @@ public class TestFixtures {
 
     public static class Users {
         public static UserEntity standard() {
-            return UserEntity.builder()
+            UserEntity user = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name("Test User")
                     .currencyName(Currencies.jpy())
                     .build();
+            user.setCreatedAt(Instant.now());
+            user.setUpdatedAt(Instant.now());
+            return user;
         }
     }
 
