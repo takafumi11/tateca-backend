@@ -5,6 +5,8 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,8 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("AuthUserController Integration Tests")
 class AuthUserControllerIntegrationTest extends AbstractControllerIntegrationTest {
 
-    @org.junit.jupiter.api.AfterEach
-    @org.springframework.transaction.annotation.Transactional
+    @AfterEach
+    @Transactional
     void cleanupTestData() {
         // Clean up TEST_UID data after each test to avoid conflicts
         try {
