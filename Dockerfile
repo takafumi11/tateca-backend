@@ -10,7 +10,7 @@ FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
-COPY --from=builder workspace/build/libs/*.jar app.jar
+COPY --from=builder /workspace/build/libs/*.jar app.jar
 
 # Environment variable for Spring profiles (default to prod for containers)
 ENV SPRING_PROFILES_ACTIVE=prod
