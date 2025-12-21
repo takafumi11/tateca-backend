@@ -1,7 +1,11 @@
 package com.tateca.tatecabackend.fixtures;
 
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.model.SymbolPosition;
+
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Test fixtures using Object Mother pattern.
@@ -70,6 +74,21 @@ public class TestFixtures {
                     .currencySymbol("X")
                     .symbolPosition(SymbolPosition.PREFIX)
                     .build();
+        }
+    }
+
+    // ========== Object Mother: Users ==========
+
+    public static class Users {
+        public static UserEntity standard() {
+            UserEntity user = UserEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .name("Test User")
+                    .currencyName(Currencies.jpy())
+                    .build();
+            user.setCreatedAt(Instant.now());
+            user.setUpdatedAt(Instant.now());
+            return user;
         }
     }
 
