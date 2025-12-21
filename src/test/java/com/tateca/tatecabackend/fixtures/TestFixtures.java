@@ -73,4 +73,36 @@ public class TestFixtures {
         }
     }
 
+    // ========== Object Mother: ExchangeRateApiResponses ==========
+
+    public static class ExchangeRateApiResponses {
+        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse success() {
+            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response =
+                new com.tateca.tatecabackend.api.response.ExchangeRateClientResponse();
+            response.setResult("success");
+            response.setTimeLastUpdateUnix("1704067200");
+            java.util.Map<String, Double> rates = new java.util.HashMap<>();
+            rates.put("JPY", 1.0);
+            rates.put("USD", 0.0067);
+            rates.put("EUR", 0.0061);
+            response.setConversionRates(rates);
+            return response;
+        }
+
+        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse withRates(
+                java.util.Map<String, Double> rates) {
+            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response = success();
+            response.setConversionRates(rates);
+            return response;
+        }
+
+        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse error() {
+            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response =
+                new com.tateca.tatecabackend.api.response.ExchangeRateClientResponse();
+            response.setResult("error");
+            response.setConversionRates(new java.util.HashMap<>());
+            return response;
+        }
+    }
+
 }

@@ -2,77 +2,45 @@ package com.tateca.tatecabackend.api.client;
 
 
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
-import com.tateca.tatecabackend.scheduler.ExchangeRateScheduler;
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.RestClientException;
 
-import java.time.Duration;
 import java.time.LocalDate;
-
-import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_CUSTOM_DATE_RATE_API_URL;
-import static com.tateca.tatecabackend.constants.ApiConstants.EXCHANGE_LATEST_RATE_API_URL;
 
 @Component
 @Setter
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "exchange.rate")
 public class ExchangeRateApiClient {
+    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateApiClient.class);
+
     private String apiKey;
+    private final ExchangeRateHttpClient httpClient;
 
-    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateScheduler.class);
-    private final RestTemplate restTemplate;
-
+    @Retry(name = "exchangeRateApi", fallbackMethod = "fetchLatestFallback")
     public ExchangeRateClientResponse fetchLatestExchangeRate() {
-        RetryConfig retryConfig = RetryConfig.custom()
-                .maxAttempts(3)
-                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(1), 2))
-                .build();
-
-        Retry retry = Retry.of("fetchLatestExchangeRate", retryConfig);
-
-        String url = EXCHANGE_LATEST_RATE_API_URL.replace("{api_key}", apiKey);
-
-        try {
-            return Retry.decorateSupplier(retry, () -> 
-                restTemplate.getForObject(url, ExchangeRateClientResponse.class)
-            ).get();
-        } catch (RestClientException e) {
-            logger.error("Failed to fetch exchange rate after retries, detail: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected error occurred in scheduled task, detail: {}", e.getMessage());
-            throw e;
-        }
+        logger.debug("Fetching latest exchange rate");
+        return httpClient.fetchLatest(apiKey);
     }
 
+    @Retry(name = "exchangeRateApi", fallbackMethod = "fetchByDateFallback")
     public ExchangeRateClientResponse fetchExchangeRateByDate(LocalDate date) {
-        String year = String.valueOf(date.getYear());
-        String month = String.valueOf(date.getMonthValue());
-        String day = String.valueOf(date.getDayOfMonth());
+        logger.debug("Fetching exchange rate for date: {}", date);
+        return httpClient.fetchByDate(apiKey, date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+    }
 
-        String url = EXCHANGE_CUSTOM_DATE_RATE_API_URL
-                .replace("{api_key}", apiKey)
-                .replace("{year}", year)
-                .replace("{month}", month)
-                .replace("{day}", day);
+    private ExchangeRateClientResponse fetchLatestFallback(Exception e) {
+        logger.error("Failed to fetch latest exchange rate after retries, detail: {}", e.getMessage());
+        throw new RuntimeException("Exchange rate service unavailable", e);
+    }
 
-        try {
-            return restTemplate.getForObject(url, ExchangeRateClientResponse.class);
-        } catch (RestClientException e) {
-            logger.error("Failed to fetch exchange rate, detail: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected error occurred in scheduled task, detail: {}", e.getMessage());
-            throw e;
-        }
+    private ExchangeRateClientResponse fetchByDateFallback(LocalDate date, Exception e) {
+        logger.error("Failed to fetch exchange rate for date {} after retries, detail: {}", date, e.getMessage());
+        throw new RuntimeException("Exchange rate service unavailable for date: " + date, e);
     }
 }

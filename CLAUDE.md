@@ -80,6 +80,56 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 ./gradlew dependencyCheckAnalyze         # Security scan
 ```
 
+## Testing Guidelines
+
+**Test Structure:**
+- **Unit Tests**: Test logic in isolation with mocked dependencies (Mockito)
+- **Integration Tests**: Test component integration with real infrastructure (WireMock, Testcontainers)
+
+**Unit Test Principles:**
+- Mock external dependencies
+- Focus on business logic validation
+- Fast execution
+- No external infrastructure required
+
+**Integration Test Principles:**
+- Use BDD style (Given/When/Then with nested classes)
+- Test actual component integration (e.g., Resilience4j AOP, Spring configuration)
+- WireMock for external API simulation
+- Focus on behavior that cannot be tested in unit tests
+
+**Integration Test Strategy:**
+- **API Client Layer**: Test retry logic, fallback behavior, error handling with WireMock scenarios
+- **HTTP Client Layer**: Unit tests are sufficient; avoid redundant integration tests for framework features
+- **True Integration Tests**: Test full flow (Controller → Service → Client) at higher levels
+
+**BDD Test Structure Example:**
+```java
+@Nested
+@DisplayName("Given external API is temporarily unavailable")
+class WhenExternalApiIsTemporarilyUnavailable {
+
+    @Test
+    @DisplayName("Then should retry and eventually succeed")
+    void thenShouldRetryAndEventuallySucceed() {
+        // Given: Setup WireMock scenario
+        givenExternalApiFailsTwiceThenSucceeds();
+
+        // When: Execute operation
+        var response = apiClient.fetchLatestExchangeRate();
+
+        // Then: Verify behavior
+        assertThat(response).isNotNull();
+        verifyApiWasCalledThreeTimes();
+    }
+}
+```
+
+**Test Infrastructure:**
+- `AbstractIntegrationTest` - Base class with MySQL and WireMock containers
+- `AbstractServiceUnitTest` - Base class with Mockito support
+- `TestFixtures` - Object Mother pattern for test data
+
 ## Development Workflow
 
 **Branch Naming Convention:**
@@ -105,3 +155,40 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 ### GitHub Integration Tools
 - **GitHub CLI**: Use the [GitHub CLI](https://cli.github.com/manual/) for command-line GitHub operations such as creating pull requests, managing issues, and repository interactions
 - **GitHub MCP Server**: Alternatively, use the [GitHub MCP Server](https://github.com/github/github-mcp-server) for enhanced integration capabilities and automated GitHub workflows
+
+## Refactoring Best Practices
+
+When performing major refactoring (e.g., HTTP client migration, database layer changes):
+
+### Recommended Workflow
+
+**Step 1: Write tests BEFORE refactoring**
+- Capture current behavior as baseline
+- Establish expected behavior through tests
+- Use appropriate test doubles (mocks, stubs, fakes)
+
+**Step 2: Perform refactoring incrementally**
+- Make small, focused changes
+- Keep all tests green throughout the process
+- Commit frequently
+
+**Step 3: Verify tests still pass**
+- Ensures behavior hasn't changed
+- Validates refactoring correctness
+- Catches regressions early
+
+### Example: HTTP Client Migration
+
+**Ideal approach:**
+```
+1. Ensure comprehensive tests exist for current implementation
+2. Verify all tests pass
+3. Perform migration incrementally
+4. Verify tests still pass after each change
+5. Confirm behavior is unchanged
+```
+
+**Lesson learned:**
+- Tests should be comprehensive BEFORE major refactoring
+- Tests act as safety net during refactoring
+- Incremental changes with passing tests reduce risk
