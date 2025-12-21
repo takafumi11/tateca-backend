@@ -1,18 +1,39 @@
+# Build stage
 FROM gradle:8.10-jdk21 AS builder
 
 WORKDIR /workspace
 
-COPY . /workspace
+# Copy gradle wrapper and build files first for better caching
+COPY gradlew gradlew.bat ./
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+
+# Download dependencies (cached layer)
+RUN gradle dependencies --no-daemon || true
+
+# Copy source code
+COPY src src
 
 # Skip tests during Docker build as Testcontainers requires Docker-in-Docker
 # Tests are already run in CI/CD pipeline (GitHub Actions)
 RUN gradle build -x test --no-daemon
 
-FROM eclipse-temurin:21-jdk
+# Runtime stage
+FROM eclipse-temurin:21-jre
+
+# Create non-root user for security
+RUN groupadd -r spring && useradd -r -g spring spring
 
 WORKDIR /app
 
-COPY --from=builder workspace/build/libs/*.jar app.jar
+# Copy JAR from builder
+COPY --from=builder /workspace/build/libs/*.jar app.jar
+
+# Change ownership to non-root user
+RUN chown spring:spring app.jar
+
+# Switch to non-root user
+USER spring:spring
 
 # Environment variable for Spring profiles (default to prod for containers)
 ENV SPRING_PROFILES_ACTIVE=prod
