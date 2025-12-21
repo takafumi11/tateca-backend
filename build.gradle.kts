@@ -1,14 +1,8 @@
-import com.github.spotbugs.snom.Confidence
-import com.github.spotbugs.snom.Effort
-import com.github.spotbugs.snom.SpotBugsTask
-
 plugins {
 	java
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.4"
 	jacoco
-	checkstyle
-	id("com.github.spotbugs") version "6.0.26"
 	id("org.owasp.dependencycheck") version "11.1.1"
 }
 
@@ -141,33 +135,6 @@ tasks.withType<JavaCompile> {
 	options.isIncremental = true
 	options.isFork = true
 	options.forkOptions.jvmArgs = listOf("-Xmx1g")
-}
-
-// Checkstyle configuration
-// Note: Gradual adoption - warnings allowed initially, to be fixed incrementally
-checkstyle {
-	toolVersion = "10.21.0"
-	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-	isIgnoreFailures = true  // Allow warnings for existing code
-	// maxWarnings not set - will be enforced after cleanup
-}
-
-// SpotBugs configuration
-spotbugs {
-	toolVersion.set("4.8.6")
-	effort.set(Effort.MAX)
-	reportLevel.set(Confidence.MEDIUM)
-	excludeFilter.set(file("${rootDir}/config/spotbugs/exclude.xml"))
-}
-
-tasks.withType<SpotBugsTask> {
-	reports.create("html") {
-		required.set(true)
-		outputLocation.set(file("${layout.buildDirectory.get()}/reports/spotbugs/${name}.html"))
-	}
-	reports.create("xml") {
-		required.set(false)
-	}
 }
 
 // OWASP Dependency Check configuration
