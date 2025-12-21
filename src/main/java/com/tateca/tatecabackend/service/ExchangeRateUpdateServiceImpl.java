@@ -51,11 +51,11 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
         List<String> currencyCodes = new ArrayList<>(exchangeRateClientResponse.getConversionRates().keySet());
 
-        // O(1)ルックアップ用のMapを構築
+        // Build Maps for O(1) lookup
         Map<String, CurrencyNameEntity> currencyNameMap = buildCurrencyNameMap(currencyCodes);
         Map<String, ExchangeRateEntity> existingRatesMap = buildExistingRatesMap(currencyCodes, date);
 
-        // 各為替レートを処理
+        // Process each exchange rate
         exchangeRateClientResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
             CurrencyNameEntity currencyNameEntity = currencyNameMap.get(currencyCode);
 
@@ -79,7 +79,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
     }
 
     /**
-     * 通貨コードからCurrencyNameEntityへのMapを構築（O(1)ルックアップ用）
+     * Builds a map from currency code to CurrencyNameEntity for O(1) lookup
      */
     private Map<String, CurrencyNameEntity> buildCurrencyNameMap(List<String> currencyCodes) {
         List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
@@ -91,7 +91,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
     }
 
     /**
-     * 既存の為替レートを一括取得してMapを構築（N+1問題を回避）
+     * Builds a map of existing exchange rates to avoid N+1 query problem
      */
     private Map<String, ExchangeRateEntity> buildExistingRatesMap(List<String> currencyCodes, LocalDate date) {
         List<ExchangeRateEntity> existingRates =
@@ -104,25 +104,25 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
     }
 
     /**
-     * 既存の為替レートエンティティを更新
-     * レートが変わっていない場合は更新をスキップする
-     * Note: updatedAtは@PreUpdateによって自動的に設定される
+     * Updates an existing exchange rate entity
+     * Skips update if the rate is unchanged
+     * Note: updatedAt is automatically set by @PreUpdate
      */
     private void updateExistingRate(ExchangeRateEntity entity, Double newRate) {
         BigDecimal newRateValue = BigDecimal.valueOf(newRate);
 
-        // レートが変わっていない場合は更新をスキップ
+        // Skip update if rate is unchanged
         if (entity.getExchangeRate().compareTo(newRateValue) == 0) {
             return;
         }
 
         entity.setExchangeRate(newRateValue);
-        // updatedAtは@PreUpdateによって自動的に設定されるため、手動設定は不要
+        // updatedAt is automatically set by @PreUpdate, so no manual setting is needed
     }
 
     /**
-     * 新しい為替レートエンティティを作成
-     * Note: createdAtとupdatedAtは@PrePersistによって自動的に設定される
+     * Creates a new exchange rate entity
+     * Note: createdAt and updatedAt are automatically set by @PrePersist
      */
     private ExchangeRateEntity createNewRate(
             CurrencyNameEntity currencyNameEntity,
@@ -133,7 +133,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
                 .date(date)
                 .currencyName(currencyNameEntity)
                 .exchangeRate(BigDecimal.valueOf(rate))
-                // createdAtとupdatedAtは@PrePersistによって自動的に設定されるため、手動設定は不要
+                // createdAt and updatedAt are automatically set by @PrePersist, so no manual setting is needed
                 .build();
     }
 }
