@@ -8,7 +8,9 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 
@@ -36,11 +38,11 @@ public class ExchangeRateApiClient {
 
     private ExchangeRateClientResponse fetchLatestFallback(Exception e) {
         logger.error("Failed to fetch latest exchange rate after retries, detail: {}", e.getMessage());
-        throw new RuntimeException("Exchange rate service unavailable", e);
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Exchange rate service unavailable", e);
     }
 
     private ExchangeRateClientResponse fetchByDateFallback(LocalDate date, Exception e) {
         logger.error("Failed to fetch exchange rate for date {} after retries, detail: {}", date, e.getMessage());
-        throw new RuntimeException("Exchange rate service unavailable for date: " + date, e);
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Exchange rate service unavailable for date: " + date, e);
     }
 }
