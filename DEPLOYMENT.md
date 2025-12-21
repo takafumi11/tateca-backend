@@ -1,50 +1,93 @@
 # Deployment Guide
 
-## GitHub Container Registry (GHCR) Setup
+## Overview
 
-This project uses GitHub Container Registry to store Docker images and Railway for deployment.
+This project uses a modern CI/CD pipeline with GHCR and Railway.
 
-### How it works
+### Architecture
 
-1. **CI Pipeline**: When code is pushed to `main` branch
-   - Run tests
-   - Build Docker image
-   - Push to GHCR at `ghcr.io/takafumi11/tateca-backend`
+```
+Code Push → GitHub Actions → GHCR → Railway
+              (Build & Test)  (Store) (Deploy)
+```
 
-2. **Railway Deployment**: Railway pulls the image from GHCR
+**Key Point**: The Dockerfile is ONLY used by GitHub Actions, NOT by Railway.
+- GitHub Actions: Uses Dockerfile to build image → Push to GHCR
+- Railway: Pulls pre-built image from GHCR → Deploy directly
+
+---
+
+## How It Works
+
+### 1. GitHub Actions (CI/CD)
+When code is pushed to `main` branch:
+- ✅ Run all tests (Unit + Integration with Testcontainers)
+- ✅ Build Docker image using Dockerfile
+- ✅ Push to `ghcr.io/takafumi11/tateca-backend:latest`
+
+### 2. Railway (Deployment)
+- ✅ Pull pre-built image from GHCR
+- ✅ Deploy (10-30 seconds)
+- ❌ Does NOT use Dockerfile
+- ❌ Does NOT build from source
 
 ---
 
 ## Railway Configuration
 
-### Step 1: Configure Railway to use GHCR
+### Step 1: Configure Service Source
 
-1. Go to your Railway project dashboard
-2. Click on your service
-3. Go to **Settings** → **Source**
-4. Change from "GitHub Repo" to "Docker Image"
-5. Enter the image URL:
+**Important**: Railway must use "Docker Image" source, NOT "GitHub Repo".
+
+#### Option A: Create New Service (Recommended)
+
+1. Go to Railway project dashboard
+2. Click **"+ New Service"**
+3. Select **"Docker Image"**
+4. Enter image URL:
+   ```
+   ghcr.io/takafumi11/tateca-backend:latest
+   ```
+5. Click **"Deploy"**
+
+#### Option B: Change Existing Service Source
+
+1. Open your existing service
+2. **Settings** → **Service** → **Source**
+3. Click **"Disconnect"** (remove GitHub Repo)
+4. Select **"Docker Image"**
+5. Enter image URL:
    ```
    ghcr.io/takafumi11/tateca-backend:latest
    ```
 
-### Step 2: Configure Authentication (if repository is private)
+### Step 2: Configure Registry Authentication
 
-If your GitHub repository is private, Railway needs authentication to pull the image:
+**Required for private repositories** (Pro plan required for private registries)
 
-1. Create a GitHub Personal Access Token (PAT):
-   - Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-   - Click "Generate new token (classic)"
-   - Select scopes:
-     - ✅ `read:packages`
-   - Copy the token
+#### 2-1: Create GitHub Personal Access Token (PAT)
 
-2. In Railway, go to your service → **Variables**
-3. Add the following variables:
+1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+2. Click **"Generate new token (classic)"**
+3. Configure:
+   - **Note**: `Railway GHCR Access`
+   - **Expiration**: `No expiration` or long duration
+   - **Scopes**: ✅ `read:packages`
+4. Click **"Generate token"**
+5. **Copy the token** (shown only once!)
+
+#### 2-2: Add Credentials to Railway
+
+1. Railway service → **Settings** tab
+2. Scroll to **"Registry Credentials"** section
+3. Click **"Add Credentials"**
+4. Enter:
    ```
-   DOCKER_REGISTRY_USERNAME=your-github-username
-   DOCKER_REGISTRY_PASSWORD=your-github-pat
+   Registry URL: ghcr.io
+   Username: takafumi11
+   Password: ghp_xxxxxxxxxxxxxxxxxxxx  (your PAT)
    ```
+5. Click **"Add"**
 
 ### Step 3: Configure Environment Variables
 

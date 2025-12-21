@@ -21,6 +21,21 @@ RUN gradle build -x test --no-daemon
 # Runtime stage
 FROM eclipse-temurin:21-jre
 
+# Build arguments for metadata (injected by GitHub Actions)
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION=latest
+
+# OCI standard labels for better image metadata
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.authors="Tateca Team" \
+      org.opencontainers.image.url="https://github.com/takafumi11/tateca-backend" \
+      org.opencontainers.image.source="https://github.com/takafumi11/tateca-backend" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.title="Tateca Backend" \
+      org.opencontainers.image.description="Spring Boot backend for Tateca group expense management"
+
 # Create non-root user for security
 RUN groupadd -r spring && useradd -r -g spring spring
 
@@ -39,6 +54,10 @@ USER spring:spring
 ENV SPRING_PROFILES_ACTIVE=prod
 
 EXPOSE 8080
+
+# Health check for container orchestration platforms
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", \
     "-XX:TieredStopAtLevel=1", \
