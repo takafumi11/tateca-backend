@@ -162,9 +162,9 @@ public class GroupService {
         userEntity.setAuthUser(authUserEntity);
         userAccessor.save(userEntity);
 
-        // Build response
-        // Check if user has already in the group requested.
-        List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
+        // Build response - Re-fetch UserGroupEntity list to get updated authUser links
+        List<UserGroupEntity> updatedUserGroupList = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserEntity> users = updatedUserGroupList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         Long transactionCount = transactionAccessor.countByGroupId(groupId);
 
         return GroupDetailsResponseDTO.from(users, groupEntity, transactionCount);
