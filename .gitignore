@@ -5,6 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Gradle Caches ###
+jdks/
+kotlin-profile/
+
 ### STS ###
 .apt_generated
 .classpath
@@ -53,3 +57,26 @@ D1移行完全ガイド.md,
 /native/
 /.tmp/
 /wrapper/
+
+### CI/CD Generated Files ###
+# OWASP Dependency Check data directory
+dependency-check-data/
+
+# Trivy security scan results
+*.sarif
+trivy-results.sarif
+
+# Codecov temporary files (if using Codecov in the future)
+.codecov/
+codecov
+
+# Code quality reports (already covered by build/ but being explicit)
+# build/reports/ is already ignored via build/
+
+# SpotBugs cache
+.spotbugs/
+
+### Runtime Error Logs ###
+# Worker error logs
+workers/
+worker-error-*.txt

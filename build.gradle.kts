@@ -1,8 +1,15 @@
+import com.github.spotbugs.snom.Confidence
+import com.github.spotbugs.snom.Effort
+import com.github.spotbugs.snom.SpotBugsTask
+
 plugins {
 	java
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.4"
 	jacoco
+	checkstyle
+	id("com.github.spotbugs") version "6.0.26"
+	id("org.owasp.dependencycheck") version "11.1.1"
 }
 
 group = "com.tateca"
@@ -143,4 +150,49 @@ tasks.withType<JavaCompile> {
 	options.isIncremental = true
 	options.isFork = true
 	options.forkOptions.jvmArgs = listOf("-Xmx1g")
+}
+
+// Checkstyle configuration
+checkstyle {
+	toolVersion = "10.21.0"
+	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+	isIgnoreFailures = false
+	maxWarnings = 0
+}
+
+tasks.withType<Checkstyle> {
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+	}
+}
+
+// SpotBugs configuration
+spotbugs {
+	toolVersion.set("4.8.6")
+	effort.set(Effort.MAX)
+	reportLevel.set(Confidence.MEDIUM)
+	excludeFilter.set(file("${rootDir}/config/spotbugs/exclude.xml"))
+}
+
+tasks.withType<SpotBugsTask>().configureEach {
+	reports.create("html") {
+		required.set(true)
+		outputLocation.set(file("${project.layout.buildDirectory.get()}/reports/spotbugs/${this@configureEach.name}.html"))
+		setStylesheet("fancy-hist.xsl")
+	}
+	reports.create("xml") {
+		required.set(true)
+		outputLocation.set(file("${project.layout.buildDirectory.get()}/reports/spotbugs/${this@configureEach.name}.xml"))
+	}
+}
+
+// OWASP Dependency Check configuration
+dependencyCheck {
+	format = "ALL"
+	suppressionFile = "${rootDir}/config/owasp/suppressions.xml"
+	failBuildOnCVSS = 7.0f
+	analyzers.assemblyEnabled = false
+	analyzers.nugetconfEnabled = false
+	analyzers.nodeEnabled = false
 }
