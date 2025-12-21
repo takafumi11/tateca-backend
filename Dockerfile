@@ -1,11 +1,12 @@
-FROM gradle:8.10-jdk21 AS builder
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /workspace
 
 COPY . /workspace
 
+# Use gradle wrapper to ensure version consistency with gradle-wrapper.properties
 # Skip tests as they are already run in CI pipeline
-RUN gradle build -x test --no-daemon
+RUN ./gradlew build -x test --no-daemon
 
 FROM eclipse-temurin:21-jre
 
