@@ -42,6 +42,14 @@ public class ExchangeRateAccessor {
         }
     }
 
+    public List<ExchangeRateEntity> findByCurrencyCodeInAndDate(List<String> currencyCodes, LocalDate date) {
+        try {
+            return repository.findByCurrencyCodeInAndDate(currencyCodes, date);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
     public List<ExchangeRateEntity> findAllActiveByDate(LocalDate date) {
         try {
             return repository.findAllActiveByDate(date);

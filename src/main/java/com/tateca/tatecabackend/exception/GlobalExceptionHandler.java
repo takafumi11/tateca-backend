@@ -29,8 +29,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatusException(HttpServletRequest request, ResponseStatusException ex) {
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(HttpServletRequest request, ResponseStatusException ex) {
         logger.error("ResponseStatusException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getReason(), ex);
-        return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getStatusCode().value(), ex.getReason());
+        return new ResponseEntity<>(errorResponse, ex.getStatusCode());
     }
 }

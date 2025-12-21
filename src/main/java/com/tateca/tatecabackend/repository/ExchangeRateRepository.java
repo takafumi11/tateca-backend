@@ -15,6 +15,16 @@ import java.util.Optional;
 public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity, ExchangeRateId> {
     Optional<ExchangeRateEntity> findByCurrencyCodeAndDate(String currencyCode, LocalDate date);
 
+    /**
+     * Find all exchange rates for multiple currency codes on a specific date.
+     * This enables batch loading to avoid N+1 queries.
+     *
+     * @param currencyCodes List of currency codes to fetch
+     * @param date Target date
+     * @return List of exchange rate entities matching the criteria
+     */
+    List<ExchangeRateEntity> findByCurrencyCodeInAndDate(List<String> currencyCodes, LocalDate date);
+
     @Query("SELECT e FROM ExchangeRateEntity e WHERE e.date = :date AND e.currencyName.isActive = TRUE")
     List<ExchangeRateEntity> findAllActiveByDate(LocalDate date);
 }
