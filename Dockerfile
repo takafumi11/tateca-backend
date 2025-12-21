@@ -4,9 +4,10 @@ WORKDIR /workspace
 
 COPY . /workspace
 
-RUN gradle build --no-daemon
+# Skip tests as they are already run in CI pipeline
+RUN gradle build -x test --no-daemon
 
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
