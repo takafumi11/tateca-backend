@@ -70,16 +70,16 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `hotfix/` - Production emergency fixes
-- `chore/` - Build, config, dependencies updates
+- `chore/` - Build, config, dependencies updates, **test code additions**
 - `refactor/` - Code improvements (no functionality change)
 - `docs/` - Documentation only
-- `test/` - Test additions/modifications
 - `perf/` - Performance improvements
 
 **Examples:**
 - `feature/123-add-user-authentication`
 - `fix/456-resolve-payment-validation`
 - `chore/update-gitignore`
+- `chore/add-api-client-tests`
 
 ### GitHub Integration Tools
 - **GitHub CLI**: Use the [GitHub CLI](https://cli.github.com/manual/) for command-line GitHub operations such as creating pull requests, managing issues, and repository interactions
