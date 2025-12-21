@@ -1,6 +1,6 @@
 # Tateca Backend
 
-Spring Boot 3.2.5 Java 17 application for group expense management with Firebase authentication.
+Spring Boot 3.5.4 Java 21 application for group expense management with Firebase authentication.
 
 ## Commands
 
@@ -47,6 +47,18 @@ Spring Boot 3.2.5 Java 17 application for group expense management with Firebase
 - Auth: `FIREBASE_SERVICE_ACCOUNT_KEY`, `LAMBDA_API_KEY`
 - External: `EXCHANGE_RATE_API_KEY`
 
+## CI/CD
+
+**GitHub Actions:**
+- Runs on every pull request to `main`
+- Build and test pipeline with JDK 21
+- Can be triggered manually via `workflow_dispatch`
+
+**Dependabot:**
+- Automatic dependency updates weekly (Monday 09:00 JST)
+- Grouped updates for Spring Boot, testing libraries, and security dependencies
+- GitHub Actions and Docker updates managed separately
+
 ## Code Quality
 
 **Static Analysis Tools:**
@@ -79,16 +91,16 @@ Spring Boot 3.2.5 Java 17 application for group expense management with Firebase
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `hotfix/` - Production emergency fixes
-- `chore/` - Build, config, dependencies updates
+- `chore/` - Build, config, dependencies updates, **test code additions**
 - `refactor/` - Code improvements (no functionality change)
 - `docs/` - Documentation only
-- `test/` - Test additions/modifications
 - `perf/` - Performance improvements
 
 **Examples:**
 - `feature/123-add-user-authentication`
 - `fix/456-resolve-payment-validation`
 - `chore/update-gitignore`
+- `chore/add-api-client-tests`
 
 ### GitHub Integration Tools
 - **GitHub CLI**: Use the [GitHub CLI](https://cli.github.com/manual/) for command-line GitHub operations such as creating pull requests, managing issues, and repository interactions
