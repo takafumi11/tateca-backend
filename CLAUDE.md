@@ -59,6 +59,27 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 - Grouped updates for Spring Boot, testing libraries, and security dependencies
 - GitHub Actions and Docker updates managed separately
 
+## Code Quality
+
+**Static Analysis Tools:**
+- **Checkstyle**: Code style enforcement (gradual adoption)
+- **SpotBugs**: Bug pattern detection
+- **JaCoCo**: Code coverage measurement (90% line, 95% branch)
+- **OWASP**: Dependency vulnerability scanning
+
+**Current Status:**
+- Checkstyle: Warning-only mode (existing code has ~50 warnings)
+- Goal: Fix warnings incrementally, then enforce strict mode
+- Priority: UnusedImports > Whitespace > LineLength
+
+**Running Checks:**
+```bash
+./gradlew checkstyleMain checkstyleTest  # Style check
+./gradlew spotbugsMain spotbugsTest      # Bug detection
+./gradlew jacocoTestReport               # Coverage report
+./gradlew dependencyCheckAnalyze         # Security scan
+```
+
 ## Development Workflow
 
 **Branch Naming Convention:**
