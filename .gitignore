@@ -53,3 +53,8 @@ D1移行完全ガイド.md,
 /native/
 /.tmp/
 /wrapper/
+
+### Development ###
+jdks/
+kotlin-profile/
+workers/
