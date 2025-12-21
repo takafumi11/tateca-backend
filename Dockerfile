@@ -4,7 +4,9 @@ WORKDIR /workspace
 
 COPY . /workspace
 
-RUN gradle build --no-daemon
+# Skip tests during Docker build as Testcontainers requires Docker-in-Docker
+# Tests are already run in CI/CD pipeline (GitHub Actions)
+RUN gradle build -x test --no-daemon
 
 FROM eclipse-temurin:21-jdk
 
