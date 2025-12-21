@@ -49,7 +49,16 @@ dependencies {
 }
 
 tasks.withType<Test> {
-	enabled = false
+	useJUnitPlatform()
+	// Disable parallel execution to avoid connection pool issues with Testcontainers
+	systemProperty("junit.jupiter.execution.parallel.enabled", "false")
+	finalizedBy(tasks.jacocoTestReport)
+
+	// Set test environment variables
+	environment("FIREBASE_SERVICE_ACCOUNT_KEY", "mock-service-account-key")
+	environment("FIREBASE_PROJECT_ID", "test-project-id")
+	environment("EXCHANGE_RATE_API_KEY", "test-exchange-rate-api-key")
+	environment("LAMBDA_API_KEY", "test-lambda-api-key")
 }
 
 // JaCoCo configuration for code coverage
