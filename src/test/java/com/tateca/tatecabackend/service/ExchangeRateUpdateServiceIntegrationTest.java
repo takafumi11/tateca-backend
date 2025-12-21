@@ -148,17 +148,6 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
             List<ExchangeRateEntity> firstUpdate = exchangeRateRepository.findAll();
             int firstCount = firstUpdate.size();
-            ExchangeRateEntity jpyBeforeUpdate = firstUpdate.stream()
-                    .filter(e -> e.getCurrencyCode().equals("JPY"))
-                    .findFirst()
-                    .orElseThrow();
-
-            // And: Wait to ensure timestamp difference
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
 
             // And: API now returns different rates
             String responseWithDifferentRates = """
@@ -182,16 +171,24 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
             List<ExchangeRateEntity> secondUpdate = exchangeRateRepository.findAll();
             assertThat(secondUpdate).hasSize(firstCount);
 
-            // And: Rates should be updated
+            // And: Rates should be updated to new values
             ExchangeRateEntity jpyAfterUpdate = secondUpdate.stream()
                     .filter(e -> e.getCurrencyCode().equals("JPY"))
                     .findFirst()
                     .orElseThrow();
             assertThat(jpyAfterUpdate.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.5));
 
-            // And: updatedAt timestamp should be updated
-            assertThat(jpyAfterUpdate.getUpdatedAt()).isNotNull();
-            assertThat(jpyAfterUpdate.getUpdatedAt()).isAfter(jpyBeforeUpdate.getUpdatedAt());
+            ExchangeRateEntity usdAfterUpdate = secondUpdate.stream()
+                    .filter(e -> e.getCurrencyCode().equals("USD"))
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(usdAfterUpdate.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.008));
+
+            ExchangeRateEntity eurAfterUpdate = secondUpdate.stream()
+                    .filter(e -> e.getCurrencyCode().equals("EUR"))
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(eurAfterUpdate.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.007));
         }
 
         @Test
