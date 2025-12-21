@@ -1,4 +1,4 @@
-FROM gradle:8.10-jdk21 AS builder
+FROM gradle:9.2-jdk21 AS builder
 
 WORKDIR /workspace
 
