@@ -31,7 +31,7 @@ public class ExchangeRateScheduler {
     public void fetchAndStoreExchangeRate() {
         ExchangeRateClientResponse exchangeRateClientResponse = exchangeRateApiClient.fetchLatestExchangeRate();
         LocalDate date = timeStampToLocalDateInUtc(exchangeRateClientResponse.getTimeLastUpdateUnix());
-        LocalDate nextDate = date.plus(1, ChronoUnit.DAYS);
+        LocalDate nextDate = date.plusDays(1);
 
         System.out.println("date::" + date);
         System.out.println("next date::" + nextDate);
