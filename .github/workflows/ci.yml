@@ -81,3 +81,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+
+  railway-redeploy:
+    name: Redeploy to Railway
+    runs-on: ubuntu-latest
+    needs: docker-build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    container:
+      image: ghcr.io/railwayapp/cli:latest
+
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    steps:
+      - name: Redeploy service
+        run: railway redeploy --service=${{ secrets.RAILWAY_SERVICE_ID }} --yes
