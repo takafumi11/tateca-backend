@@ -1,0 +1,29 @@
+type: object
+required:
+  - transaction_id
+  - transaction_type
+  - title
+  - amount
+  - exchange_rate
+  - date
+properties:
+  transaction_id:
+    type: string
+    description: Transaction UUID as string
+    example: "456e7890-a1b2-3c4d-5e6f-789012345678"
+  transaction_type:
+    $ref: './TransactionType.yaml'
+  title:
+    type: string
+    description: Transaction description
+    example: "Dinner at Restaurant"
+  amount:
+    type: integer
+    description: Transaction amount
+    example: 1200
+  exchange_rate:
+    $ref: './ExchangeRateResponse.yaml'
+  date:
+    type: string
+    description: Transaction date (Tokyo time)
+    example: "2023-12-25 19:30:00"

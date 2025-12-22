@@ -1,0 +1,40 @@
+type: object
+required:
+  - transaction_type
+  - title
+  - amount
+  - currency_code
+  - date_str
+  - payer_id
+properties:
+  transaction_type:
+    $ref: './TransactionType.yaml'
+  title:
+    type: string
+    description: Transaction description
+    example: "Dinner at Restaurant"
+  amount:
+    type: integer
+    description: Transaction amount
+    example: 1200
+  currency_code:
+    type: string
+    description: Currency code (e.g., USD, JPY)
+    example: "USD"
+  date_str:
+    type: string
+    description: Transaction date as string
+    example: "2023-12-25"
+  payer_id:
+    type: string
+    format: uuid
+    description: UUID of the person who paid
+    example: "123e4567-e89b-12d3-a456-426614174000"
+  loan:
+    $ref: './LoanCreationRequest.yaml'
+    nullable: true
+    description: Loan-specific data (required if transaction_type is LOAN)
+  repayment:
+    $ref: './RepaymentCreationRequest.yaml'
+    nullable: true
+    description: Repayment-specific data (required if transaction_type is REPAYMENT)

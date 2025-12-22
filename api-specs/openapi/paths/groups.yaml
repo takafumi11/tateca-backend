@@ -1,0 +1,23 @@
+post:
+  tags:
+    - Groups
+  summary: Create a new group
+  description: Create a new group with the authenticated user as the creator
+  operationId: createGroup
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/CreateGroupRequest.yaml'
+  responses:
+    '201':
+      description: Group successfully created
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/GroupDetailsResponse.yaml'
+    '400':
+      $ref: '../components/responses/index.yaml#/BadRequest'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

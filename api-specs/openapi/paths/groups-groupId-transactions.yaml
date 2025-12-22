@@ -1,0 +1,27 @@
+post:
+  tags:
+    - Transactions
+  summary: Create a new transaction
+  description: Create a new transaction within a group
+  operationId: createTransaction
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/TransactionCreationRequest.yaml'
+  responses:
+    '201':
+      description: Transaction successfully created
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/TransactionDetailResponse.yaml'
+    '400':
+      $ref: '../components/responses/index.yaml#/BadRequest'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

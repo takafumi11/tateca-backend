@@ -1,0 +1,14 @@
+type: object
+required:
+  - amount
+  - user_uuid
+properties:
+  amount:
+    type: integer
+    description: Amount owed
+    example: 1500
+  user_uuid:
+    type: string
+    format: uuid
+    description: UUID of the user who owes money
+    example: "123e4567-e89b-12d3-a456-426614174000"

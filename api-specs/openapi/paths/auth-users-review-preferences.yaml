@@ -1,0 +1,25 @@
+patch:
+  tags:
+    - Authentication
+  summary: Update user review preferences
+  description: Update user's app review dialog preferences and status
+  operationId: updateReviewPreferences
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/UpdateAppReviewRequest.yaml'
+  responses:
+    '200':
+      description: Review preferences successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/AuthUserResponse.yaml'
+    '400':
+      $ref: '../components/responses/index.yaml#/BadRequest'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

@@ -1,0 +1,6 @@
+type: object
+properties:
+  group_name:
+    type: string
+    description: New group name (optional)
+    example: "Updated Travel Group"

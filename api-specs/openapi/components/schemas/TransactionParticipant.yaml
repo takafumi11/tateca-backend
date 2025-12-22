@@ -1,0 +1,15 @@
+type: object
+required:
+  - userId
+  - amount
+properties:
+  userId:
+    type: string
+    format: uuid
+    description: Participant's user UUID
+    example: "456e7890-a1b2-3c4d-5e6f-789012345678"
+  amount:
+    type: number
+    format: decimal
+    description: Amount owed by this participant
+    example: 30.25

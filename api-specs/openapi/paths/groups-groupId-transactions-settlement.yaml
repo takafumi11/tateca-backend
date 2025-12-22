@@ -1,0 +1,20 @@
+get:
+  tags:
+    - Transactions
+  summary: Get transaction settlement
+  description: Calculate and retrieve settlement information for a group in the specified currency (defaults to JPY if not provided)
+  operationId: getTransactionSettlement
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+    - $ref: '../components/parameters/index.yaml#/CurrencyCodeQuery'
+  responses:
+    '200':
+      description: Successfully retrieved settlement information
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/TransactionsSettlementResponse.yaml'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

@@ -1,0 +1,15 @@
+type: object
+required:
+  - user_uuid
+  - join_token
+properties:
+  user_uuid:
+    type: string
+    format: uuid
+    description: UUID of the user joining the group
+    example: "123e4567-e89b-12d3-a456-426614174000"
+  join_token:
+    type: string
+    format: uuid
+    description: Join token for the group
+    example: "987fcdeb-51a2-43d7-8f4c-123456789abc"

@@ -1,0 +1,25 @@
+type: object
+required:
+  - id
+  - name
+  - memberCount
+  - createdAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: Group UUID
+    example: "987fcdeb-51a2-43d7-8f4c-123456789abc"
+  name:
+    type: string
+    description: Group name
+    example: "Travel Group 2024"
+  memberCount:
+    type: integer
+    description: Number of members in the group
+    example: 5
+  createdAt:
+    type: string
+    format: date-time
+    description: Group creation timestamp
+    example: "2023-12-25T10:30:00Z"

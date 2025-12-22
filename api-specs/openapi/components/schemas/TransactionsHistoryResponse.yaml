@@ -1,0 +1,9 @@
+type: object
+required:
+  - transactions_history
+properties:
+  transactions_history:
+    type: array
+    description: Array of transaction summaries
+    items:
+      $ref: './TransactionHistory.yaml'

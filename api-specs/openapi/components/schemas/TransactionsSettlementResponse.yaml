@@ -1,0 +1,15 @@
+type: object
+required:
+  - transactions_settlement
+  - currency_code
+properties:
+  transactions_settlement:
+    type: array
+    description: Array of settlement items
+    items:
+      $ref: './Settlement.yaml'
+  currency_code:
+    type: string
+    description: Currency code for the settlement amounts (ISO 4217 format). All amounts are calculated in this currency.
+    pattern: '^[A-Z]{3}$'
+    example: "JPY"

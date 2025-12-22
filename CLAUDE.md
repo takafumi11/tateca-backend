@@ -156,6 +156,120 @@ class WhenExternalApiIsTemporarilyUnavailable {
 - **GitHub CLI**: Use the [GitHub CLI](https://cli.github.com/manual/) for command-line GitHub operations such as creating pull requests, managing issues, and repository interactions
 - **GitHub MCP Server**: Alternatively, use the [GitHub MCP Server](https://github.com/github/github-mcp-server) for enhanced integration capabilities and automated GitHub workflows
 
+## API Specification Management
+
+### Overview
+API specifications and Postman collections are managed in the `api-specs/` directory, following a **Spec-First** approach where OpenAPI specifications serve as the single source of truth.
+
+### Directory Structure
+```
+api-specs/
+├── openapi/              # OpenAPI 3.0 specification (modular)
+├── postman/              # Postman collections and environments
+├── docs/                 # Generated documentation
+├── dist/                 # Bundled specifications
+└── scripts/              # Automation scripts
+```
+
+### Quick Start
+
+**Setup:**
+```bash
+cd api-specs
+npm install
+```
+
+**Development Workflow:**
+```bash
+npm run lint              # Validate OpenAPI spec
+npm run bundle            # Bundle modular spec
+npm run build-docs        # Generate HTML documentation
+npm run generate:postman  # Generate Postman collection from OpenAPI
+npm run dev              # Full workflow: bundle + docs + serve
+```
+
+**View Documentation:**
+```bash
+npm run preview          # Interactive preview
+npm run serve           # Serve generated docs at http://localhost:8080
+```
+
+### API Specification Workflow
+
+**1. Editing OpenAPI Specifications:**
+- Edit modular files in `api-specs/openapi/paths/` or `api-specs/openapi/components/`
+- Never edit bundled files in `api-specs/dist/` (auto-generated)
+- Validate changes with `npm run lint`
+
+**2. Generating Documentation:**
+- Run `npm run build-docs` to generate HTML documentation
+- Documentation is served via `npm run serve` at port 8080
+- CI/CD automatically deploys to GitHub Pages on merge
+
+**3. Postman Collections:**
+- Manual collection: `postman/collections/Tateca Backend.postman_collection.json`
+- Auto-generated: `postman/collections/tateca-api-generated.postman_collection.json` (from OpenAPI)
+- Environments: `postman/environments/*.postman_environment.json`
+- Run `npm run generate:postman` to sync with OpenAPI spec
+
+**4. CI/CD Integration:**
+- OpenAPI validation runs on every PR
+- Documentation auto-deploys on merge to main
+- Breaking changes are detected automatically
+
+### NPM Scripts Reference
+
+**Validation:**
+- `npm run lint` - Validate OpenAPI specification
+- `npm run validate` - JSON format validation (CI/CD)
+- `npm run stats` - Show specification statistics
+
+**Build:**
+- `npm run bundle` - Bundle modular spec to single file
+- `npm run build-docs` - Generate HTML documentation
+- `npm run build:all` - Clean + bundle + docs
+
+**Development:**
+- `npm run preview` - Interactive documentation preview
+- `npm run dev` - Full dev workflow (bundle + docs + serve)
+- `npm test` - CI/CD test (lint + bundle)
+
+**Postman:**
+- `npm run generate:postman` - Generate collection from OpenAPI
+- `npm run postman:validate` - Validate collections with Newman
+
+### Best Practices
+
+1. **Spec-First Development:**
+   - Update OpenAPI spec before implementing endpoints
+   - Use spec as contract between frontend and backend
+   - Generate Postman collections from spec for consistency
+
+2. **Version Control:**
+   - Commit OpenAPI source files only
+   - Exclude generated files (dist/, docs/, node_modules/)
+   - Auto-generated Postman collections are gitignored
+
+3. **Documentation:**
+   - Keep OpenAPI descriptions comprehensive
+   - Use examples for all schemas and responses
+   - Run `npm run preview` to verify documentation appearance
+
+4. **Testing:**
+   - Use Postman environments for different stages (local/production)
+   - Validate API behavior with Newman: `npm run postman:validate`
+   - Ensure OpenAPI spec matches actual API implementation
+
+### Integration with Backend
+
+The API specifications are tightly integrated with the Spring Boot backend:
+- Specifications live alongside code in same repository
+- CI/CD validates both code and specs together
+- Breaking API changes are caught in PR validation
+- Documentation deploys automatically with releases
+
+For detailed API specification workflows, see `api-specs/README.md`
+
 ## Refactoring Best Practices
 
 When performing major refactoring (e.g., HTTP client migration, database layer changes):

@@ -1,0 +1,73 @@
+get:
+  tags:
+    - Groups
+  summary: Get group information
+  description: Retrieve detailed information about a specific group
+  operationId: getGroupInfo
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+  responses:
+    '200':
+      description: Successfully retrieved group information
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/GroupDetailsResponse.yaml'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'
+patch:
+  tags:
+    - Groups
+  summary: Update group
+  description: Update the name and/or currency code of a specific group
+  operationId: updateGroup
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/UpdateGroupRequest.yaml'
+  responses:
+    '200':
+      description: Group successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/GroupDetailsResponse.yaml'
+    '400':
+      $ref: '../components/responses/index.yaml#/BadRequest'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'
+post:
+  tags:
+    - Groups
+  summary: Join group by invitation
+  description: Join a group using an invitation token
+  operationId: joinGroupInvited
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/JoinGroupRequest.yaml'
+  responses:
+    '200':
+      description: Successfully joined the group
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/GroupDetailsResponse.yaml'
+    '400':
+      $ref: '../components/responses/index.yaml#/BadRequest'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

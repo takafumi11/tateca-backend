@@ -1,0 +1,33 @@
+type: object
+required:
+  - uuid
+  - name
+  - join_token
+  - token_expires
+  - created_at
+  - updated_at
+properties:
+  uuid:
+    type: string
+    description: Group UUID as string
+    example: "123e4567-e89b-12d3-a456-426614174000"
+  name:
+    type: string
+    description: Group name
+    example: "Travel Group 2024"
+  join_token:
+    type: string
+    description: Invitation token as string
+    example: "456e7890-e12b-34d5-c678-567890123456"
+  token_expires:
+    type: string
+    description: Token expiration timestamp
+    example: "2024-01-25 19:30:00"
+  created_at:
+    type: string
+    description: Creation timestamp (Tokyo time)
+    example: "2023-12-25 19:30:00"
+  updated_at:
+    type: string
+    description: Update timestamp (Tokyo time)
+    example: "2023-12-25 19:30:00"
