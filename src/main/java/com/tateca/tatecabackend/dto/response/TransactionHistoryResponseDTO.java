@@ -3,6 +3,7 @@ package com.tateca.tatecabackend.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.model.TransactionType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.core.metrics.StartupStep;
@@ -11,14 +12,31 @@ import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTim
 
 @Data
 @Builder
+@Schema(description = "Transaction history entry")
 public class TransactionHistoryResponseDTO {
-    @JsonProperty("transaction_id") String id;
+    @JsonProperty("transaction_id")
+    @Schema(description = "Transaction unique identifier", example = "550e8400-e29b-41d4-a716-446655440000")
+    String id;
+
     @JsonProperty("transaction_type")
+    @Schema(description = "Type of transaction", example = "EXPENSE")
     TransactionType transactionType;
-    @JsonProperty("title") String title;
-    @JsonProperty("amount") Integer amount;
-    @JsonProperty("exchange_rate") ExchangeRateResponseDTO exchangeRate;
-    @JsonProperty("date") String date;
+
+    @JsonProperty("title")
+    @Schema(description = "Transaction title", example = "Dinner at restaurant")
+    String title;
+
+    @JsonProperty("amount")
+    @Schema(description = "Transaction amount in cents", example = "5000")
+    Integer amount;
+
+    @JsonProperty("exchange_rate")
+    @Schema(description = "Exchange rate at the time of transaction")
+    ExchangeRateResponseDTO exchangeRate;
+
+    @JsonProperty("date")
+    @Schema(description = "Transaction date (Tokyo time)", example = "2024-01-15T18:30:00+09:00")
+    String date;
 
     public static TransactionHistoryResponseDTO from(TransactionHistoryEntity transaction) {
         return TransactionHistoryResponseDTO.builder()

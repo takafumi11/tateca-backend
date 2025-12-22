@@ -6,6 +6,8 @@ import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import com.tateca.tatecabackend.service.TransactionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +30,12 @@ import static com.tateca.tatecabackend.constants.ApiConstants.PATH_TRANSACTIONS;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(PATH_GROUPS + "/{groupId}" + PATH_TRANSACTIONS)
+@Tag(name = "Transactions", description = "Transaction management operations")
 public class TransactionController {
     private final TransactionService service;
 
     @GetMapping(PATH_HISTORY)
+    @Operation(summary = "Get transaction history for a group")
     public ResponseEntity<TransactionsHistoryResponseDTO> getTransactionHistory(
             @RequestParam(defaultValue = "5") int count,
             @PathVariable UUID groupId
@@ -41,6 +45,7 @@ public class TransactionController {
     }
 
     @GetMapping(PATH_SETTLEMENT)
+    @Operation(summary = "Get settlement information for a group")
     public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
             @PathVariable UUID groupId,
             @RequestParam(required = false) String currencyCode
@@ -50,6 +55,7 @@ public class TransactionController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a new transaction")
     public ResponseEntity<TransactionDetailResponseDTO> createTransaction(
             @PathVariable("groupId") UUID groupId,
             @RequestBody TransactionCreationRequestDTO request
@@ -59,6 +65,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{transactionId}")
+    @Operation(summary = "Get transaction details by ID")
     public ResponseEntity<TransactionDetailResponseDTO> getTransactionDetail(
             @PathVariable("transactionId") UUID transactionId
     ) {
@@ -67,6 +74,7 @@ public class TransactionController {
     }
 
     @DeleteMapping("/{transactionId}")
+    @Operation(summary = "Delete a transaction")
     public ResponseEntity<Void> deleteLoan(
             @PathVariable("transactionId") UUID transactionId
     ) {
