@@ -1,0 +1,12 @@
+type: object
+required:
+  - user
+  - amount
+properties:
+  user:
+    $ref: './UserResponse.yaml'
+  amount:
+    type: integer
+    format: int64
+    description: Amount owed
+    example: 1500

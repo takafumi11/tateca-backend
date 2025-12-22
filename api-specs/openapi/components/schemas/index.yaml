@@ -1,0 +1,74 @@
+AppReviewStatus:
+  $ref: './AppReviewStatus.yaml'
+AuthUserRequest:
+  $ref: './AuthUserRequest.yaml'
+AuthUserResponse:
+  $ref: './AuthUserResponse.yaml'
+UpdateUserRequest:
+  $ref: './UpdateUserRequest.yaml'
+UserResponse:
+  $ref: './UserResponse.yaml'
+CreateGroupRequest:
+  $ref: './CreateGroupRequest.yaml'
+UpdateGroupNameRequest:
+  $ref: './UpdateGroupNameRequest.yaml'
+JoinGroupRequest:
+  $ref: './JoinGroupRequest.yaml'
+GroupDetailsResponse:
+  $ref: './GroupDetailsResponse.yaml'
+GroupListResponse:
+  $ref: './GroupListResponse.yaml'
+GroupInfo:
+  $ref: './GroupInfo.yaml'
+GroupSummary:
+  $ref: './GroupSummary.yaml'
+TransactionType:
+  $ref: './TransactionType.yaml'
+SymbolPosition:
+  $ref: './SymbolPosition.yaml'
+CurrencyName:
+  $ref: './CurrencyName.yaml'
+TransactionCreationRequest:
+  $ref: './TransactionCreationRequest.yaml'
+ObligationRequest:
+  $ref: './ObligationRequest.yaml'
+LoanCreationRequest:
+  $ref: './LoanCreationRequest.yaml'
+RepaymentCreationRequest:
+  $ref: './RepaymentCreationRequest.yaml'
+TransactionParticipant:
+  $ref: './TransactionParticipant.yaml'
+TransactionDetailResponse:
+  $ref: './TransactionDetailResponse.yaml'
+LoanDetailResponse:
+  $ref: './LoanDetailResponse.yaml'
+RepaymentDetailResponse:
+  $ref: './RepaymentDetailResponse.yaml'
+LoanObligation:
+  $ref: './LoanObligation.yaml'
+TransactionParticipantDetail:
+  $ref: './TransactionParticipantDetail.yaml'
+TransactionHistoryResponse:
+  $ref: './TransactionHistoryResponse.yaml'
+TransactionHistory:
+  $ref: './TransactionHistory.yaml'
+TransactionsHistoryResponse:
+  $ref: './TransactionsHistoryResponse.yaml'
+TransactionSummary:
+  $ref: './TransactionSummary.yaml'
+TransactionSettlementResponse:
+  $ref: './TransactionSettlementResponse.yaml'
+TransactionsSettlementResponse:
+  $ref: './TransactionsSettlementResponse.yaml'
+Settlement:
+  $ref: './Settlement.yaml'
+ExchangeRateResponse:
+  $ref: './ExchangeRateResponse.yaml'
+ExchangeRateListResponse:
+  $ref: './ExchangeRateListResponse.yaml'
+LambdaResponse:
+  $ref: './LambdaResponse.yaml'
+TokenResponse:
+  $ref: './TokenResponse.yaml'
+Error:
+  $ref: './Error.yaml'

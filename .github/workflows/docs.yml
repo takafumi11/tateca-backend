@@ -1,0 +1,84 @@
+name: Documentation Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'api-specs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-docs:
+    name: Deploy API Documentation to GitHub Pages
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: api-specs/package-lock.json
+
+      - name: Install dependencies
+        working-directory: api-specs
+        run: npm ci
+
+      - name: Validate OpenAPI specification
+        working-directory: api-specs
+        run: npm run lint
+
+      - name: Bundle specification
+        working-directory: api-specs
+        run: npm run bundle
+
+      - name: Build documentation
+        working-directory: api-specs
+        run: npm run build-docs
+
+      - name: Generate Postman collection
+        working-directory: api-specs
+        run: npm run generate:postman
+
+      - name: Upload bundled specification
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-bundle
+          path: api-specs/dist/tateca-api.yaml
+          retention-days: 90
+
+      - name: Upload Postman collection
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-collection
+          path: api-specs/postman/collections/tateca-api-generated.postman_collection.json
+          retention-days: 90
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: api-specs/docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Display deployed URL
+        run: |
+          echo "📚 Documentation deployed successfully!"
+          echo "🔗 URL: ${{ steps.deployment.outputs.page_url }}"

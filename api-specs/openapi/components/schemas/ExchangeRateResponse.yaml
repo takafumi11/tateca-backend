@@ -1,0 +1,41 @@
+type: object
+required:
+  - currency_code
+  - jp_currency_name
+  - eng_currency_name
+  - jp_country_name
+  - eng_country_name
+  - currency_symbol
+  - symbol_position
+  - exchange_rate
+properties:
+  currency_code:
+    type: string
+    description: Currency code
+    example: "USD"
+  jp_currency_name:
+    type: string
+    description: Japanese currency name
+    example: "米ドル"
+  eng_currency_name:
+    type: string
+    description: English currency name
+    example: "US Dollar"
+  jp_country_name:
+    type: string
+    description: Japanese country name
+    example: "アメリカ"
+  eng_country_name:
+    type: string
+    description: English country name
+    example: "United States"
+  currency_symbol:
+    type: string
+    description: Currency symbol
+    example: "$"
+  symbol_position:
+    $ref: './SymbolPosition.yaml'
+  exchange_rate:
+    type: string
+    description: Exchange rate as string
+    example: "150.25"

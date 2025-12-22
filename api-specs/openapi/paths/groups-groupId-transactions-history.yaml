@@ -1,0 +1,28 @@
+get:
+  tags:
+    - Transactions
+  summary: Get transaction history
+  description: Retrieve transaction history for a specific group
+  operationId: getTransactionHistory
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+    - name: count
+      in: query
+      description: Number of transactions to return
+      required: false
+      schema:
+        type: integer
+        default: 5
+        minimum: 1
+        maximum: 100
+  responses:
+    '200':
+      description: Successfully retrieved transaction history
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/TransactionsHistoryResponse.yaml'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

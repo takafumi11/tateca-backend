@@ -1,0 +1,31 @@
+type: object
+required:
+  - uuid
+  - name
+  - currency
+  - created_at
+  - updated_at
+properties:
+  uuid:
+    type: string
+    description: User UUID as string
+    example: "123e4567-e89b-12d3-a456-426614174000"
+  name:
+    type: string
+    description: User's display name
+    example: "Jane Smith"
+  currency:
+    $ref: './CurrencyName.yaml'
+    description: User's preferred currency information
+  auth_user:
+    $ref: './AuthUserResponse.yaml'
+    nullable: true
+    description: Associated authentication user (nullable)
+  created_at:
+    type: string
+    description: Creation timestamp (Tokyo time)
+    example: "2023-12-25 19:30:00"
+  updated_at:
+    type: string
+    description: Update timestamp (Tokyo time)
+    example: "2023-12-25 19:30:00"

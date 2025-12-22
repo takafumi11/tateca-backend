@@ -58,3 +58,10 @@ D1移行完全ガイド.md,
 jdks/
 kotlin-profile/
 workers/
+
+### API Specs ###
+api-specs/node_modules/
+api-specs/dist/
+api-specs/docs/
+api-specs/.redocly/
+api-specs/postman/collections/*-generated.postman_collection.json

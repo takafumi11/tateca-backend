@@ -1,0 +1,68 @@
+UidPath:
+  name: uid
+  in: path
+  required: true
+  description: User identifier
+  schema:
+    type: string
+    example: "user123"
+
+ApiKeyHeader:
+  name: X-API-KEY
+  in: header
+  required: true
+  description: API key for Lambda system authentication
+  schema:
+    type: string
+    example: "your-api-key-here"
+
+UserIdPath:
+  name: userId
+  in: path
+  required: true
+  description: User UUID
+  schema:
+    type: string
+    format: uuid
+    example: "123e4567-e89b-12d3-a456-426614174000"
+
+GroupIdPath:
+  name: groupId
+  in: path
+  required: true
+  description: Group UUID
+  schema:
+    type: string
+    format: uuid
+    example: "987fcdeb-51a2-43d7-8f4c-123456789abc"
+
+TransactionIdPath:
+  name: transactionId
+  in: path
+  required: true
+  description: Transaction UUID
+  schema:
+    type: string
+    format: uuid
+    example: "456e7890-a1b2-3c4d-5e6f-789012345678"
+
+UserUuidPath:
+  name: userUuid
+  in: path
+  required: true
+  description: User UUID
+  schema:
+    type: string
+    format: uuid
+    example: "123e4567-e89b-12d3-a456-426614174000"
+
+CurrencyCodeQuery:
+  name: currencyCode
+  in: query
+  required: false
+  description: Currency code for settlement calculations (ISO 4217 format). Defaults to JPY if not provided.
+  schema:
+    type: string
+    pattern: '^[A-Z]{3}$'
+    default: "JPY"
+    example: "USD"

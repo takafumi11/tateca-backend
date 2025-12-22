@@ -1,0 +1,9 @@
+type: object
+required:
+  - group_list
+properties:
+  group_list:
+    type: array
+    description: Array of group information
+    items:
+      $ref: './GroupInfo.yaml'

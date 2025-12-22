@@ -1,0 +1,16 @@
+delete:
+  tags:
+    - Groups
+  summary: Leave group
+  description: Remove a user from a group (user leaves the group)
+  operationId: leaveGroup
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/GroupIdPath'
+    - $ref: '../components/parameters/index.yaml#/UserUuidPath'
+  responses:
+    '204':
+      description: Successfully left the group
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

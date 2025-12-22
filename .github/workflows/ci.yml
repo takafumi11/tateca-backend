@@ -9,8 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  java-test:
+    name: Java Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -33,3 +33,68 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test --no-daemon
+
+  api-validation:
+    name: Validate API Specifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for API spec changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            api-specs:
+              - 'api-specs/**'
+
+      - name: Setup Node.js
+        if: steps.changes.outputs.api-specs == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: api-specs/package-lock.json
+
+      - name: Install dependencies
+        if: steps.changes.outputs.api-specs == 'true'
+        working-directory: api-specs
+        run: npm ci
+
+      - name: Lint OpenAPI specification
+        if: steps.changes.outputs.api-specs == 'true'
+        working-directory: api-specs
+        run: npm run lint
+
+      - name: Bundle specification
+        if: steps.changes.outputs.api-specs == 'true'
+        working-directory: api-specs
+        run: npm run bundle
+
+      - name: Show specification statistics
+        if: steps.changes.outputs.api-specs == 'true'
+        working-directory: api-specs
+        run: npm run stats
+
+      - name: Build documentation
+        if: steps.changes.outputs.api-specs == 'true'
+        working-directory: api-specs
+        run: npm run build-docs
+
+      - name: Generate Postman collection
+        if: steps.changes.outputs.api-specs == 'true'
+        working-directory: api-specs
+        run: npm run generate:postman
+
+      - name: Upload API artifacts
+        if: steps.changes.outputs.api-specs == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-artifacts-pr-${{ github.event.pull_request.number }}
+          path: |
+            api-specs/dist/
+            api-specs/docs/
+            api-specs/postman/collections/*-generated.postman_collection.json
+          retention-days: 7

@@ -1,0 +1,27 @@
+patch:
+  tags:
+    - Users
+  summary: Update user information
+  description: Update user information including name and currency preference
+  operationId: updateUser
+  parameters:
+    - $ref: '../components/parameters/index.yaml#/UserIdPath'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/UpdateUserRequest.yaml'
+  responses:
+    '200':
+      description: User information successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/UserResponse.yaml'
+    '400':
+      $ref: '../components/responses/index.yaml#/BadRequest'
+    '404':
+      $ref: '../components/responses/index.yaml#/NotFound'
+    '500':
+      $ref: '../components/responses/index.yaml#/InternalServerError'

@@ -1,0 +1,90 @@
+extends:
+  - recommended
+
+apis:
+  tateca@v1:
+    root: openapi/openapi.yaml
+    rules:
+      operation-description: error
+      operation-summary: error
+      operation-operationId: error
+      path-declaration-must-exist: error
+      path-not-include-query: error
+      path-parameters-defined: error
+      no-server-example.com: off
+      info-license-strict: off
+      struct: off
+
+# Redoc最適化設定
+theme:
+  openapi:
+    # 機能設定
+    disableSearch: false
+    expandResponses: '200,201,400,401,404,500'
+    jsonSamplesExpandLevel: 2
+    hideDownloadButton: false
+    hideSingleRequestSampleTab: true
+    menuToggle: true
+    pathInMiddlePanel: true
+    requiredPropsFirst: true
+    sortPropsAlphabetically: false
+    showExtensions: true
+    nativeScrollbars: false
+    
+    # テーマ設定（金融API向け）
+    theme:
+      # サイドバー
+      sidebar:
+        backgroundColor: '#f8f9fa'
+        textColor: '#2c3e50'
+        activeTextColor: '#1976d2'
+        groupItems:
+          textTransform: 'none'
+        level1items:
+          textTransform: 'none'
+          
+      # 右パネル（サンプルコード）
+      rightPanel:
+        backgroundColor: '#263238'
+        textColor: '#ffffff'
+            
+      # メインカラー
+      colors:
+        primary:
+          main: '#1976d2'  # 金融業界の信頼感を表す青
+        success:
+          main: '#4caf50'
+        warning:
+          main: '#ff9800'
+        error:
+          main: '#f44336'
+        text:
+          primary: '#2c3e50'
+          secondary: '#546e7a'
+          
+      # タイポグラフィ
+      typography:
+        fontSize: '14px'
+        lineHeight: '1.6'
+        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
+        smoothing: 'antialiased'
+        optimizeSpeed: false
+        headings:
+          fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
+          fontWeight: '600'
+          lineHeight: '1.4'
+        code:
+          fontSize: '13px'
+          fontFamily: '"JetBrains Mono", "Fira Code", monospace'
+          lineHeight: '1.5'
+          wrap: false
+        links:
+          color: '#1976d2'
+          visited: '#7b1fa2'
+          hover: '#1565c0'
+          
+      # スペーシング
+      spacing:
+        unit: 8
+        sectionHorizontal: 16
+        sectionVertical: 24

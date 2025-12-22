@@ -1,0 +1,14 @@
+type: object
+required:
+  - show_dialog
+properties:
+  show_dialog:
+    type: boolean
+    description: Whether to update the last dialog shown timestamp
+    example: true
+  app_review_status:
+    $ref: '../schemas/AppReviewStatus.yaml'
+    description: New app review status (optional)
+example:
+  show_dialog: true
+  app_review_status: "COMPLETED"

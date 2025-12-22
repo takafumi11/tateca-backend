@@ -1,0 +1,13 @@
+type: object
+required:
+  - transactions
+  - totalCount
+properties:
+  transactions:
+    type: array
+    items:
+      $ref: './TransactionSummary.yaml'
+  totalCount:
+    type: integer
+    description: Total number of transactions available
+    example: 45
