@@ -63,6 +63,5 @@ workers/
 api-specs/node_modules/
 api-specs/dist/
 api-specs/docs/
-api-specs/package-lock.json
 api-specs/.redocly/
 api-specs/postman/collections/*-generated.postman_collection.json
