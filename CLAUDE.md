@@ -152,6 +152,16 @@ class WhenExternalApiIsTemporarilyUnavailable {
 - `chore/update-gitignore`
 - `chore/add-api-client-tests`
 
+**Commit Message Guidelines:**
+- Write commit messages in English only
+- Keep messages to a single line (no multi-line descriptions)
+- Do not include AI attribution or co-authorship tags
+- Follow conventional commit format: `type: brief description`
+- Examples:
+  - `fix: Add workflow file to docs deployment trigger paths`
+  - `feat: Add user authentication with Firebase`
+  - `chore: Update dependencies to latest versions`
+
 ### GitHub Integration Tools
 - **GitHub CLI**: Use the [GitHub CLI](https://cli.github.com/manual/) for command-line GitHub operations such as creating pull requests, managing issues, and repository interactions
 - **GitHub MCP Server**: Alternatively, use the [GitHub MCP Server](https://github.com/github/github-mcp-server) for enhanced integration capabilities and automated GitHub workflows
