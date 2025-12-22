@@ -35,6 +35,9 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("com.mysql:mysql-connector-j")
 
+	// OpenAPI生成用のSpringDoc
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+
 	// Testing dependencies
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
@@ -46,6 +49,11 @@ dependencies {
 	testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0")
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
+
+	// 契約テスト用依存関係
+	testImplementation("io.rest-assured:rest-assured:5.4.0")
+	testImplementation("io.rest-assured:spring-mock-mvc:5.4.0")
+	testImplementation("io.rest-assured:json-schema-validator:5.4.0")
 }
 
 tasks.withType<Test> {
