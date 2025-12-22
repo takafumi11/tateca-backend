@@ -21,15 +21,15 @@ public class OpenApiConfig {
         return new OpenAPI()
             .info(new Info()
                 .title("Tateca API")
-                .description("グループ経費管理API")
+                .description("Group expense management API")
                 .version("1.0.0")
                 .contact(new Contact()
                     .name("Tateca Team")
                     .url("https://tateca.net")))
             .servers(List.of(
-                new Server().url("https://api.tateca.net").description("本番環境"),
-                new Server().url("https://staging-api.tateca.net").description("ステージング環境"),
-                new Server().url("http://localhost:8080").description("ローカル開発環境")
+                new Server().url("https://api.tateca.net").description("Production"),
+                new Server().url("https://staging-api.tateca.net").description("Staging"),
+                new Server().url("http://localhost:8080").description("Local Development")
             ))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
             .components(new Components()

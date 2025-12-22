@@ -35,7 +35,7 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("com.mysql:mysql-connector-j")
 
-	// OpenAPI生成用のSpringDoc
+	// SpringDoc for OpenAPI generation
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
 	// Testing dependencies
@@ -50,7 +50,7 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
 
-	// 契約テスト用依存関係
+	// Contract testing dependencies
 	testImplementation("io.rest-assured:rest-assured:5.4.0")
 	testImplementation("io.rest-assured:spring-mock-mvc:5.4.0")
 	testImplementation("io.rest-assured:json-schema-validator:5.4.0")
