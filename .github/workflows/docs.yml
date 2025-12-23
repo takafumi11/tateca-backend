@@ -178,6 +178,13 @@ jobs:
           </html>
           EOF
 
+      - name: Generate Postman Collection
+        run: |
+          npm install -g openapi-to-postmanv2
+          openapi2postmanv2 -s generated-api-docs/openapi.json -o docs/postman-collection.json -p
+          echo "✅ Postman Collection generated successfully"
+          ls -lh docs/postman-collection.json
+
       - name: Create download page
         run: |
           cat > docs/downloads.html << 'EOF'
@@ -211,14 +218,20 @@ jobs:
             </div>
 
             <div class="download-section">
-              <h2>📄 OpenAPI Specification</h2>
-              <p><a href="openapi.json" download>Download openapi.json</a></p>
-              <p><a href="openapi.yaml" download>Download openapi.yaml</a></p>
-              <p class="description">Import into Postman, Insomnia, or other API tools.</p>
+              <h2>🔧 Postman Collection</h2>
+              <p><a href="postman-collection.json" download>📦 Download Postman Collection</a></p>
+              <p class="description">Pre-configured collection for Postman. Import and start testing immediately!</p>
             </div>
 
             <div class="download-section">
-              <p><em>Generated from code using SpringDoc + Redocly + Swagger UI</em></p>
+              <h2>📄 OpenAPI Specification</h2>
+              <p><a href="openapi.json" download>Download openapi.json</a></p>
+              <p><a href="openapi.yaml" download>Download openapi.yaml</a></p>
+              <p class="description">Raw OpenAPI specs for Insomnia or other API tools.</p>
+            </div>
+
+            <div class="download-section">
+              <p><em>Generated from code using SpringDoc + Redocly + Swagger UI + Postman</em></p>
             </div>
           </body>
           </html>
@@ -261,5 +274,6 @@ jobs:
           echo "📄 Resources Page: ${{ steps.deployment.outputs.page_url }}downloads.html"
           echo ""
           echo "📥 Downloads:"
+          echo "  - Postman Collection: ${{ steps.deployment.outputs.page_url }}postman-collection.json"
           echo "  - OpenAPI YAML: ${{ steps.deployment.outputs.page_url }}openapi.yaml"
           echo "  - OpenAPI JSON: ${{ steps.deployment.outputs.page_url }}openapi.json"

@@ -76,12 +76,14 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
      - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
      - Generates HTML documentation with Redocly
      - Generates Swagger UI for interactive API testing
+     - Generates Postman Collection from OpenAPI spec
      - Creates resource page with links to all documentation
      - Deploys to GitHub Pages
    - URLs:
      - Base: https://tateca.github.io/tateca-backend (or your configured URL)
      - Swagger UI: `/swagger.html` - Interactive API testing (Try APIs in browser)
      - Redoc: `/` - Beautiful API documentation
+     - Postman Collection: `/postman-collection.json` - Ready-to-import collection
      - Resources: `/downloads.html` - Download specs and links
 
 3. **CD Pipeline** (`.github/workflows/cd.yml`)
@@ -96,17 +98,20 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
   3. Fetches spec from `/v3/api-docs` endpoint
   4. Generates documentation with Redocly (static docs)
   5. Generates Swagger UI (interactive testing)
-  6. Deploys to GitHub Pages
+  6. Generates Postman Collection (API testing)
+  7. Deploys to GitHub Pages
 - **Benefits**:
   - Code and docs always in sync
   - No manual spec maintenance
   - Breaking changes caught automatically
   - Single source of truth (code)
   - Browser-based API testing without Postman
+  - Pre-configured Postman Collection for production testing
 - **Usage**:
-  - **Swagger UI**: Test APIs directly in browser with "Try it out" buttons
+  - **Swagger UI**: Test APIs directly in browser with "Try it out" buttons (local development)
   - **Redoc**: Browse beautiful, responsive API documentation
-  - **Downloads**: Import specs into Postman/Insomnia if preferred
+  - **Postman Collection**: Download and import into Postman for production API testing
+  - **OpenAPI Specs**: Import into Insomnia or other API tools if preferred
 
 **API Breaking Change Detection:**
 - Uses [oasdiff](https://github.com/Tufin/oasdiff) to compare generated OpenAPI specs
