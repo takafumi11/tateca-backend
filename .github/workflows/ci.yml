@@ -35,66 +35,400 @@ jobs:
         run: ./gradlew test --no-daemon
 
   api-validation:
-    name: Validate API Specifications
+    name: Generate & Validate API Specification
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      # Spring Profile for CI/CD environment
+      SPRING_PROFILES_ACTIVE: ci
+      # Minimal environment for API docs generation (mock credentials)
+      # Note: /v3/api-docs endpoint is excluded from Bearer token authentication
+      MYSQLHOST: localhost
+      MYSQLPORT: 3306
+      MYSQLDATABASE: test
+      MYSQLUSER: test
+      MYSQLPASSWORD: test
+      FIREBASE_SERVICE_ACCOUNT_KEY: mock-key
+      FIREBASE_PROJECT_ID: test-project
+      LAMBDA_API_KEY: test-key
+      EXCHANGE_RATE_API_KEY: test-key
+      SWAGGER_UI_ENABLED: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check for API spec changes
-        uses: dorny/paths-filter@v2
-        id: changes
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          filters: |
-            api-specs:
-              - 'api-specs/**'
+          java-version: '21'
+          distribution: 'temurin'
 
-      - name: Setup Node.js
-        if: steps.changes.outputs.api-specs == 'true'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Build application
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Start application in background
+        run: |
+          ./gradlew bootRun --no-daemon > app.log 2>&1 &
+          echo $! > app.pid
+
+      - name: Wait for application to be ready
+        run: |
+          echo "Waiting for application to start..."
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/v3/api-docs > /dev/null; then
+              echo "✅ Application is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "❌ Application failed to start. Logs:"
+          cat app.log
+          exit 1
+
+      - name: Fetch OpenAPI specification from running app
+        run: |
+          mkdir -p generated-api-docs
+
+          echo "Testing application endpoint availability..."
+          curl -v http://localhost:8080/actuator/health || echo "Actuator not available"
+
+          echo "Fetching JSON specification..."
+          if curl -sf http://localhost:8080/v3/api-docs -o generated-api-docs/openapi.json; then
+            echo "✅ JSON specification fetched successfully"
+            ls -lh generated-api-docs/openapi.json
+          else
+            echo "❌ Failed to fetch JSON specification"
+            echo "Response:"
+            curl -v http://localhost:8080/v3/api-docs || true
+            exit 1
+          fi
+
+          echo "Fetching YAML specification..."
+          if curl -sf http://localhost:8080/v3/api-docs.yaml -o generated-api-docs/openapi.yaml; then
+            echo "✅ YAML specification fetched successfully"
+            ls -lh generated-api-docs/openapi.yaml
+          else
+            echo "❌ Failed to fetch YAML specification"
+            echo "Response:"
+            curl -v http://localhost:8080/v3/api-docs.yaml || true
+            exit 1
+          fi
+
+          echo "✅ OpenAPI specification generated ($(wc -l < generated-api-docs/openapi.yaml) lines)"
+
+      - name: Stop application
+        if: always()
+        run: |
+          if [ -f app.pid ]; then
+            kill $(cat app.pid) || true
+          fi
+
+      - name: Setup Node.js and CLI tools
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: api-specs/package-lock.json
 
-      - name: Install dependencies
-        if: steps.changes.outputs.api-specs == 'true'
-        working-directory: api-specs
-        run: npm ci
+      - name: Install validation and documentation tools
+        run: npm install -g @stoplight/spectral-cli @redocly/cli
 
-      - name: Lint OpenAPI specification
-        if: steps.changes.outputs.api-specs == 'true'
-        working-directory: api-specs
-        run: npm run lint
+      - name: Create Spectral ruleset
+        run: |
+          cat > .spectral.yaml << 'EOF'
+          extends: ["spectral:oas"]
+          rules:
+            info-contact: warn
+            info-description: warn
+            operation-description: warn
+            operation-tags: warn
+            operation-tag-defined: error
+            oas3-valid-schema-example: warn
+          EOF
 
-      - name: Bundle specification
-        if: steps.changes.outputs.api-specs == 'true'
-        working-directory: api-specs
-        run: npm run bundle
+      - name: Validate and analyze OpenAPI specification
+        run: |
+          echo "Validating OpenAPI specification..."
+          spectral lint generated-api-docs/openapi.yaml --format stylish --verbose
 
-      - name: Show specification statistics
-        if: steps.changes.outputs.api-specs == 'true'
-        working-directory: api-specs
-        run: npm run stats
+          echo -e "\nGenerating HTML documentation..."
+          redocly build-docs generated-api-docs/openapi.yaml -o generated-api-docs/index.html
 
-      - name: Build documentation
-        if: steps.changes.outputs.api-specs == 'true'
-        working-directory: api-specs
-        run: npm run build-docs
+          echo -e "\nOpenAPI Statistics:"
+          redocly stats generated-api-docs/openapi.yaml
 
-      - name: Generate Postman collection
-        if: steps.changes.outputs.api-specs == 'true'
-        working-directory: api-specs
-        run: npm run generate:postman
-
-      - name: Upload API artifacts
-        if: steps.changes.outputs.api-specs == 'true'
+      - name: Upload generated API artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: api-artifacts-pr-${{ github.event.pull_request.number }}
-          path: |
-            api-specs/dist/
-            api-specs/docs/
-            api-specs/postman/collections/*-generated.postman_collection.json
+          name: generated-api-docs-pr-${{ github.event.pull_request.number }}
+          path: generated-api-docs/
           retention-days: 7
+
+      - name: Comment PR with API docs info
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const yaml = fs.readFileSync('generated-api-docs/openapi.yaml', 'utf8');
+            const lines = yaml.split('\n').length;
+
+            const comment = `## 📚 API Documentation Generated
+
+            ✅ OpenAPI specification successfully generated from code (Code-First approach)
+
+            **Statistics:**
+            - Specification size: ${lines} lines
+            - Format: OpenAPI 3.0
+            - Generated from: SpringDoc annotations
+
+            **Artifacts:**
+            - \`openapi.json\` - JSON format
+            - \`openapi.yaml\` - YAML format
+            - \`index.html\` - Documentation (Redoc)
+
+            You can download the artifacts from the Actions tab.
+
+            ---
+            *Generated by SpringDoc + Redocly*`;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+  api-breaking-changes:
+    name: Check for Breaking Changes (Code-First)
+    runs-on: ubuntu-latest
+    # Temporarily disabled until OpenAPI endpoint authentication exclusion is merged to main
+    if: false
+    # if: github.event_name == 'pull_request'
+    needs: api-validation
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      # Same environment as api-validation job
+      SPRING_PROFILES_ACTIVE: ci
+      MYSQLHOST: localhost
+      MYSQLPORT: 3306
+      MYSQLDATABASE: test
+      MYSQLUSER: test
+      MYSQLPASSWORD: test
+      FIREBASE_SERVICE_ACCOUNT_KEY: mock-key
+      FIREBASE_PROJECT_ID: test-project
+      LAMBDA_API_KEY: test-key
+      EXCHANGE_RATE_API_KEY: test-key
+      SWAGGER_UI_ENABLED: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download PR specification
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-api-docs-pr-${{ github.event.pull_request.number }}
+          path: pr-spec
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Checkout main branch to generate baseline spec
+        run: |
+          git fetch origin main
+          git checkout origin/main
+
+      - name: Build and start main branch application
+        run: |
+          ./gradlew build -x test --no-daemon
+          ./gradlew bootRun --no-daemon > main-app.log 2>&1 &
+          echo $! > main-app.pid
+
+      - name: Wait for main application to be ready
+        run: |
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/v3/api-docs > /dev/null; then
+              echo "✅ Main branch application is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "❌ Application failed to start. Logs:"
+          cat main-app.log
+          exit 1
+
+      - name: Fetch main branch OpenAPI specification
+        run: |
+          mkdir -p main-spec
+
+          echo "Fetching main branch YAML specification..."
+          if curl -sf http://localhost:8080/v3/api-docs.yaml -o main-spec/openapi.yaml; then
+            echo "✅ Main branch specification fetched successfully"
+            ls -lh main-spec/openapi.yaml
+          else
+            echo "❌ Failed to fetch main branch specification"
+            echo "Response:"
+            curl -v http://localhost:8080/v3/api-docs.yaml || true
+            exit 1
+          fi
+
+      - name: Stop main application
+        if: always()
+        run: |
+          if [ -f main-app.pid ]; then
+            kill $(cat main-app.pid) || true
+          fi
+
+      - name: Install oasdiff
+        run: |
+          sudo wget -q https://github.com/Tufin/oasdiff/releases/latest/download/oasdiff_linux_amd64 -O /usr/local/bin/oasdiff
+          sudo chmod +x /usr/local/bin/oasdiff
+
+      - name: Run breaking change detection
+        id: breaking
+        continue-on-error: true
+        run: |
+          oasdiff breaking main-spec/openapi.yaml pr-spec/openapi.yaml --format json > breaking-changes.json || true
+          oasdiff changelog main-spec/openapi.yaml pr-spec/openapi.yaml --format markdown > changelog.md || true
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let breaking = [];
+            try {
+              const breakingData = fs.readFileSync('breaking-changes.json', 'utf8');
+              if (breakingData.trim()) {
+                breaking = JSON.parse(breakingData);
+              }
+            } catch (e) {
+              console.log('No breaking changes file or empty');
+            }
+
+            let changelog = '';
+            try {
+              changelog = fs.readFileSync('changelog.md', 'utf8');
+            } catch (e) {
+              console.log('No changelog file');
+            }
+
+            const hasBreaking = breaking.length > 0;
+            const emoji = hasBreaking ? '⚠️' : '✅';
+            const title = hasBreaking ? 'Breaking Changes Detected' : 'No Breaking Changes';
+
+            let comment = `## ${emoji} API Changes Report (Code-First)\n\n`;
+            comment += `### ${title}\n\n`;
+
+            if (hasBreaking) {
+              comment += '> **Warning**: This PR introduces breaking changes to the API.\n\n';
+              comment += '<details>\n<summary>Breaking Changes Details</summary>\n\n';
+              comment += '```json\n' + JSON.stringify(breaking, null, 2) + '\n```\n';
+              comment += '</details>\n\n';
+            } else {
+              comment += '✅ No breaking changes detected in this PR.\n\n';
+            }
+
+            if (changelog) {
+              comment += '<details>\n<summary>Full API Changelog</summary>\n\n';
+              comment += changelog;
+              comment += '\n</details>\n\n';
+            }
+
+            comment += '---\n';
+            comment += '*Generated by SpringDoc + [oasdiff](https://github.com/Tufin/oasdiff)*';
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('API Changes Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+            if (hasBreaking) {
+              core.setFailed('Breaking changes detected in API specification');
+            }
+
+      - name: Upload breaking changes report
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-breaking-changes-report
+          path: |
+            breaking-changes.json
+            changelog.md
+          retention-days: 30

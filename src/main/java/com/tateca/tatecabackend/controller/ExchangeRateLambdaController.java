@@ -2,6 +2,7 @@ package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.dto.request.ExchangeRateUpdateRequestDTO;
 import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/internal/exchange-rates")
 @RequiredArgsConstructor
+@Tag(name = "Internal", description = "Internal system operations")
 public class ExchangeRateLambdaController {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateLambdaController.class);
 

@@ -7,6 +7,8 @@ import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +28,12 @@ import static com.tateca.tatecabackend.constants.ApiConstants.PATH_GROUPS;
 @RestController
 @RequestMapping(PATH_GROUPS)
 @RequiredArgsConstructor
+@Tag(name = "Groups", description = "Group management operations")
 public class GroupController {
     private final GroupService service;
 
     @PostMapping
+    @Operation(summary = "Create a new group")
     public ResponseEntity<GroupDetailsResponseDTO> createGroup(
             @UId String uid,
             @RequestBody CreateGroupRequestDTO request
@@ -39,6 +43,7 @@ public class GroupController {
     }
 
     @PatchMapping("/{groupId}")
+    @Operation(summary = "Update group name")
     public ResponseEntity<GroupDetailsResponseDTO> updateGroupName(
             @PathVariable("groupId") UUID groupId,
             @RequestBody UpdateGroupNameRequestDTO request
@@ -48,6 +53,7 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}")
+    @Operation(summary = "Get group information by ID")
     public ResponseEntity<GroupDetailsResponseDTO> getGroupInfo(
             @PathVariable("groupId") UUID groupId
     ) {
@@ -56,6 +62,7 @@ public class GroupController {
     }
 
     @GetMapping("/list")
+    @Operation(summary = "Get list of groups for the current user")
     public ResponseEntity<GroupListResponseDTO> getGroupList(
             @UId String uid
     ) {
@@ -64,6 +71,7 @@ public class GroupController {
     }
 
     @PostMapping("/{groupId}")
+    @Operation(summary = "Join a group using invitation token")
     public ResponseEntity<GroupDetailsResponseDTO> joinGroupInvited(
             @RequestBody JoinGroupRequestDTO request,
             @PathVariable("groupId") UUID groupId,
@@ -74,6 +82,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/{groupId}/users/{userUuid}")
+    @Operation(summary = "Leave a group")
     public ResponseEntity<Void> leaveGroup(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("userUuid") UUID userUuid,
