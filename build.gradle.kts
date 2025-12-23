@@ -35,8 +35,8 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("com.mysql:mysql-connector-j")
 
-	// SpringDoc for OpenAPI generation
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+	// SpringDoc for OpenAPI generation (Swagger UI)
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0")
 
 	// Testing dependencies
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {

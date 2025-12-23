@@ -49,10 +49,67 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 
 ## CI/CD
 
-**GitHub Actions:**
-- Runs on every pull request to `main`
-- Build and test pipeline with JDK 21
-- Can be triggered manually via `workflow_dispatch`
+**GitHub Actions Workflows:**
+
+1. **CI Pipeline** (`.github/workflows/ci.yml`)
+   - Triggers: Pull requests to `main`
+   - Jobs:
+     - **Java Tests**: Build and run all tests with JDK 21
+     - **API Validation & Generation**:
+       - Builds Spring Boot application
+       - Starts app in background with minimal environment
+       - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
+       - Validates spec with Spectral CLI
+       - Generates HTML documentation with Redocly
+       - Uploads spec artifacts for download
+       - Comments PR with spec statistics
+     - **Breaking Changes Detection**:
+       - Downloads PR-generated spec from artifacts
+       - Checks out `main` branch and generates baseline spec
+       - Compares specs with oasdiff
+       - Comments PR with breaking changes report and changelog
+
+2. **Documentation Deployment** (`.github/workflows/docs.yml`)
+   - Triggers: Push to `main` (when `src/**` or `build.gradle.kts` changes)
+   - Workflow:
+     - Builds and starts Spring Boot application
+     - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
+     - Generates HTML documentation with Redocly
+     - Creates download page for JSON/YAML specs
+     - Deploys to GitHub Pages
+   - URL: https://tateca.github.io/tateca-backend (or your configured URL)
+
+3. **CD Pipeline** (`.github/workflows/cd.yml`)
+   - Deployment to production (Railway)
+
+**Code-First API Documentation:**
+- **Source of Truth**: Spring Boot application code with SpringDoc annotations
+- **Generation**: OpenAPI spec auto-generated from controller annotations at runtime
+- **Process**:
+  1. CI/CD builds Spring Boot app
+  2. Starts app with minimal environment (mock credentials)
+  3. Fetches spec from `/v3/api-docs` endpoint
+  4. Generates documentation with Redocly
+  5. Deploys to GitHub Pages
+- **Benefits**:
+  - Code and docs always in sync
+  - No manual spec maintenance
+  - Breaking changes caught automatically
+  - Single source of truth (code)
+
+**API Breaking Change Detection:**
+- Uses [oasdiff](https://github.com/Tufin/oasdiff) to compare generated OpenAPI specs
+- Compares PR branch spec vs main branch spec (both generated from code)
+- Automatically comments on PRs with:
+  - ✅ No breaking changes, or
+  - ⚠️ Breaking changes detected with detailed report
+- Fails CI if breaking changes are detected (intentional breaking changes require manual approval)
+- Full changelog generated for all API modifications
+- **Breaking Change Examples**:
+  - Removing endpoints or request/response fields
+  - Adding required parameters
+  - Changing response status codes
+  - Modifying data types or formats
 
 **Dependabot:**
 - Automatic dependency updates weekly (Monday 09:00 JST)
@@ -82,9 +139,23 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 
 ## Testing Guidelines
 
+**Test Pyramid:**
+```
+┌─────────────────────────────────┐
+│ E2E Tests (Manual/Automated)    │ ← QA Team
+├─────────────────────────────────┤
+│ Contract Tests                  │ ← API specification compliance
+├─────────────────────────────────┤
+│ Integration Tests               │ ← Component integration (DB, APIs)
+├─────────────────────────────────┤
+│ Unit Tests                      │ ← Business logic (most numerous)
+└─────────────────────────────────┘
+```
+
 **Test Structure:**
 - **Unit Tests**: Test logic in isolation with mocked dependencies (Mockito)
 - **Integration Tests**: Test component integration with real infrastructure (WireMock, Testcontainers)
+- **Contract Tests**: Verify API responses match OpenAPI specification (REST Assured + MockMvc)
 
 **Unit Test Principles:**
 - Mock external dependencies
@@ -125,10 +196,58 @@ class WhenExternalApiIsTemporarilyUnavailable {
 }
 ```
 
+**Contract Test Principles:**
+- Verify API responses match OpenAPI specification
+- Focus on critical public APIs (not all endpoints)
+- Test both success and error scenarios
+- Use real database (Testcontainers) for accurate responses
+
+**Contract Test Strategy:**
+- Write contract tests for:
+  - ✅ Public APIs consumed by frontend
+  - ✅ APIs with strict versioning requirements
+  - ✅ Critical business endpoints (transactions, settlements)
+- Skip contract tests for:
+  - ❌ Internal/development-only endpoints
+  - ❌ Simple CRUD operations covered by integration tests
+  - ❌ Frequently changing experimental APIs
+
+**Contract Test Example:**
+```java
+@DisplayName("Exchange Rate API Contract Tests")
+class ExchangeRateContractTest extends AbstractContractTest {
+
+    @Test
+    @DisplayName("Should return exchange rates with correct schema")
+    void shouldReturnExchangeRatesWithCorrectSchema() {
+        given()
+                .contentType("application/json")
+        .when()
+                .get("/exchange-rate/{date}", testDate.toString())
+        .then()
+                .statusCode(HttpStatus.OK.value())
+                .contentType("application/json")
+                .body("exchange_rate", notNullValue())
+                .body("exchange_rate[0].currency_code", notNullValue())
+                .body("exchange_rate[0].exchange_rate", notNullValue());
+    }
+}
+```
+
 **Test Infrastructure:**
-- `AbstractIntegrationTest` - Base class with MySQL and WireMock containers
+- `AbstractIntegrationTest` - Base class with MySQL and WireMock containers (Testcontainers)
+- `AbstractControllerIntegrationTest` - Base class with MockMvc for controller tests
+- `AbstractContractTest` - Base class with REST Assured for contract tests
 - `AbstractServiceUnitTest` - Base class with Mockito support
 - `TestFixtures` - Object Mother pattern for test data
+
+**Test Execution:**
+```bash
+./gradlew test                          # Run all tests
+./gradlew test --tests "*UnitTest"      # Unit tests only
+./gradlew test --tests "*IntegrationTest"  # Integration tests only
+./gradlew test --tests "*ContractTest"  # Contract tests only
+```
 
 ## Development Workflow
 
@@ -169,7 +288,18 @@ class WhenExternalApiIsTemporarilyUnavailable {
 ## API Specification Management
 
 ### Overview
-API specifications and Postman collections are managed in the `api-specs/` directory, following a **Spec-First** approach where OpenAPI specifications serve as the single source of truth.
+
+**⚠️ Migration Notice:**
+This project is currently transitioning from **Spec-First** to **Code-First** approach for API documentation. The `api-specs/` directory is maintained temporarily during the migration period but will eventually be removed. The new Code-First approach uses SpringDoc annotations in source code as the single source of truth.
+
+**Current Approach (Code-First):**
+- OpenAPI specs are auto-generated from Spring Boot application code
+- SpringDoc annotations on controllers define the API specification
+- CI/CD generates and deploys documentation automatically
+- See "Code-First API Documentation" section in CI/CD above
+
+**Legacy Approach (Spec-First - Temporary):**
+API specifications and Postman collections in the `api-specs/` directory follow a Spec-First approach where OpenAPI specifications are manually maintained.
 
 ### Directory Structure
 ```

@@ -25,6 +25,6 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
      */
     List<ExchangeRateEntity> findByCurrencyCodeInAndDate(List<String> currencyCodes, LocalDate date);
 
-    @Query("SELECT e FROM ExchangeRateEntity e WHERE e.date = :date AND e.currencyName.isActive = TRUE")
+    @Query("SELECT e FROM ExchangeRateEntity e JOIN FETCH e.currencyName WHERE e.date = :date AND e.currencyName.isActive = TRUE")
     List<ExchangeRateEntity> findAllActiveByDate(LocalDate date);
 }

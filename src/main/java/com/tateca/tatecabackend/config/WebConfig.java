@@ -44,7 +44,15 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(bearerTokenInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/public/**", "/error")
+                .excludePathPatterns(
+                        "/public/**",
+                        "/error",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**"
+                )
                 .order(2);
     }
 

@@ -27,9 +27,9 @@ public class OpenApiConfig {
                     .name("Tateca Team")
                     .url("https://tateca.net")))
             .servers(List.of(
-                new Server().url("https://api.tateca.net").description("Production"),
+                new Server().url("http://localhost:8080").description("Local Development"),
                 new Server().url("https://staging-api.tateca.net").description("Staging"),
-                new Server().url("http://localhost:8080").description("Local Development")
+                new Server().url("https://api.tateca.net").description("Production")
             ))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
             .components(new Components()

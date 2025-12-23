@@ -1,10 +1,11 @@
-name: Documentation Deployment
+name: Documentation Deployment (Code-First)
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'api-specs/**'
+      - 'src/**'
+      - 'build.gradle.kts'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -22,49 +23,125 @@ jobs:
       pages: write
       id-token: write
 
+    env:
+      # Minimal environment for API docs generation (mock credentials)
+      # Note: /v3/api-docs endpoint is excluded from Bearer token authentication
+      MYSQLHOST: localhost
+      MYSQLPORT: 3306
+      MYSQLDATABASE: test
+      MYSQLUSER: test
+      MYSQLPASSWORD: test
+      FIREBASE_SERVICE_ACCOUNT_KEY: mock-key
+      FIREBASE_PROJECT_ID: test-project
+      LAMBDA_API_KEY: test-key
+      EXCHANGE_RATE_API_KEY: test-key
+      SWAGGER_UI_ENABLED: false
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Build and start application
+        run: |
+          ./gradlew build -x test --no-daemon
+          ./gradlew bootRun --no-daemon > app.log 2>&1 &
+          echo $! > app.pid
+
+      - name: Wait for application to be ready
+        run: |
+          echo "Waiting for application to start..."
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/v3/api-docs > /dev/null; then
+              echo "✅ Application is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "❌ Application failed to start. Logs:"
+          cat app.log
+          exit 1
+
+      - name: Fetch OpenAPI specification from running app
+        run: |
+          mkdir -p generated-api-docs
+          curl -sf http://localhost:8080/v3/api-docs -o generated-api-docs/openapi.json
+          curl -sf http://localhost:8080/v3/api-docs.yaml -o generated-api-docs/openapi.yaml
+          echo "✅ OpenAPI specification generated successfully"
+
+      - name: Stop application
+        if: always()
+        run: |
+          if [ -f app.pid ]; then
+            kill $(cat app.pid) || true
+          fi
+
+      - name: Setup Node.js and generate documentation
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: api-specs/package-lock.json
 
-      - name: Install dependencies
-        working-directory: api-specs
-        run: npm ci
+      - name: Install Redocly CLI and generate documentation
+        run: |
+          npm install -g @redocly/cli
+          mkdir -p docs
+          redocly build-docs generated-api-docs/openapi.yaml -o docs/index.html
 
-      - name: Validate OpenAPI specification
-        working-directory: api-specs
-        run: npm run lint
+      - name: Create download page
+        run: |
+          cat > docs/downloads.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Tateca API Downloads</title>
+            <style>
+              body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+              h1 { color: #333; }
+              .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+              a { color: #0066cc; text-decoration: none; font-weight: bold; }
+              a:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>Tateca API Downloads</h1>
+            <div class="download-section">
+              <h2>OpenAPI Specification</h2>
+              <p><a href="openapi.json" download>📄 Download openapi.json</a></p>
+              <p><a href="openapi.yaml" download>📄 Download openapi.yaml</a></p>
+            </div>
+            <div class="download-section">
+              <h2>Documentation</h2>
+              <p><a href="index.html">📚 View API Documentation</a></p>
+            </div>
+            <div class="download-section">
+              <p><em>Generated from code using SpringDoc + Redocly</em></p>
+            </div>
+          </body>
+          </html>
+          EOF
 
-      - name: Bundle specification
-        working-directory: api-specs
-        run: npm run bundle
+      - name: Copy specification files to docs folder
+        run: |
+          cp generated-api-docs/openapi.json docs/
+          cp generated-api-docs/openapi.yaml docs/
 
-      - name: Build documentation
-        working-directory: api-specs
-        run: npm run build-docs
-
-      - name: Generate Postman collection
-        working-directory: api-specs
-        run: npm run generate:postman
-
-      - name: Upload bundled specification
+      - name: Upload specification artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: openapi-bundle
-          path: api-specs/dist/tateca-api.yaml
-          retention-days: 90
-
-      - name: Upload Postman collection
-        uses: actions/upload-artifact@v4
-        with:
-          name: postman-collection
-          path: api-specs/postman/collections/tateca-api-generated.postman_collection.json
+          name: openapi-specification
+          path: |
+            generated-api-docs/openapi.json
+            generated-api-docs/openapi.yaml
           retention-days: 90
 
       - name: Setup Pages
@@ -75,7 +152,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: api-specs/docs
+          path: docs
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -84,4 +161,7 @@ jobs:
       - name: Display deployed URL
         run: |
           echo "📚 Documentation deployed successfully!"
-          echo "🔗 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "🔗 Documentation: ${{ steps.deployment.outputs.page_url }}"
+          echo "🔗 Downloads: ${{ steps.deployment.outputs.page_url }}downloads.html"
+          echo "🔗 OpenAPI YAML: ${{ steps.deployment.outputs.page_url }}openapi.yaml"
+          echo "🔗 OpenAPI JSON: ${{ steps.deployment.outputs.page_url }}openapi.json"
