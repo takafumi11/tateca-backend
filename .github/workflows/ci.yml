@@ -163,6 +163,7 @@ jobs:
             operation-description: warn
             operation-tags: warn
             operation-tag-defined: error
+            oas3-valid-schema-example: warn
           EOF
 
       - name: Validate and analyze OpenAPI specification
