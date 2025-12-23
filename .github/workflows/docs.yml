@@ -24,6 +24,8 @@ jobs:
       id-token: write
 
     env:
+      # Spring Profile for CI/CD environment
+      SPRING_PROFILES_ACTIVE: ci
       # Minimal environment for API docs generation (mock credentials)
       # Note: /v3/api-docs endpoint is excluded from Bearer token authentication
       MYSQLHOST: localhost

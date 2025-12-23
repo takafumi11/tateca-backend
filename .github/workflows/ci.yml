@@ -39,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Spring Profile for CI/CD environment
+      SPRING_PROFILES_ACTIVE: ci
       # Minimal environment for API docs generation (mock credentials)
       # Note: /v3/api-docs endpoint is excluded from Bearer token authentication
       MYSQLHOST: localhost
@@ -188,6 +190,7 @@ jobs:
 
     env:
       # Same environment as api-validation job
+      SPRING_PROFILES_ACTIVE: ci
       MYSQLHOST: localhost
       MYSQLPORT: 3306
       MYSQLDATABASE: test
