@@ -139,34 +139,86 @@ jobs:
           mkdir -p docs
           redocly build-docs generated-api-docs/openapi.yaml -o docs/index.html
 
+      - name: Generate Swagger UI page
+        run: |
+          cat > docs/swagger.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Tateca API - Swagger UI</title>
+            <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css">
+            <style>
+              body { margin: 0; padding: 0; }
+            </style>
+          </head>
+          <body>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
+            <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-standalone-preset.js"></script>
+            <script>
+              window.onload = function() {
+                window.ui = SwaggerUIBundle({
+                  url: "./openapi.json",
+                  dom_id: '#swagger-ui',
+                  deepLinking: true,
+                  presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                  ],
+                  plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                  ],
+                  layout: "StandaloneLayout"
+                })
+              }
+            </script>
+          </body>
+          </html>
+          EOF
+
       - name: Create download page
         run: |
           cat > docs/downloads.html << 'EOF'
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Tateca API Downloads</title>
+            <title>Tateca API Resources</title>
             <style>
               body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
               h1 { color: #333; }
-              .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+              .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
+              .download-section h2 { margin-top: 0; color: #2c3e50; }
               a { color: #0066cc; text-decoration: none; font-weight: bold; }
               a:hover { text-decoration: underline; }
+              .description { color: #666; font-size: 0.9em; margin-top: 5px; }
             </style>
           </head>
           <body>
-            <h1>Tateca API Downloads</h1>
+            <h1>Tateca API Resources</h1>
+
             <div class="download-section">
-              <h2>OpenAPI Specification</h2>
-              <p><a href="openapi.json" download>📄 Download openapi.json</a></p>
-              <p><a href="openapi.yaml" download>📄 Download openapi.yaml</a></p>
+              <h2>🔧 Interactive API Testing</h2>
+              <p><a href="swagger.html">🚀 Swagger UI - Try API Endpoints</a></p>
+              <p class="description">Interactive interface to test API endpoints directly from your browser. No Postman required!</p>
             </div>
+
             <div class="download-section">
-              <h2>Documentation</h2>
-              <p><a href="index.html">📚 View API Documentation</a></p>
+              <h2>📚 API Documentation</h2>
+              <p><a href="index.html">📖 Redoc - View API Documentation</a></p>
+              <p class="description">Beautiful, responsive API documentation with detailed schemas and examples.</p>
             </div>
+
             <div class="download-section">
-              <p><em>Generated from code using SpringDoc + Redocly</em></p>
+              <h2>📄 OpenAPI Specification</h2>
+              <p><a href="openapi.json" download>Download openapi.json</a></p>
+              <p><a href="openapi.yaml" download>Download openapi.yaml</a></p>
+              <p class="description">Import into Postman, Insomnia, or other API tools.</p>
+            </div>
+
+            <div class="download-section">
+              <p><em>Generated from code using SpringDoc + Redocly + Swagger UI</em></p>
             </div>
           </body>
           </html>
@@ -203,7 +255,11 @@ jobs:
       - name: Display deployed URL
         run: |
           echo "📚 Documentation deployed successfully!"
-          echo "🔗 Documentation: ${{ steps.deployment.outputs.page_url }}"
-          echo "🔗 Downloads: ${{ steps.deployment.outputs.page_url }}downloads.html"
-          echo "🔗 OpenAPI YAML: ${{ steps.deployment.outputs.page_url }}openapi.yaml"
-          echo "🔗 OpenAPI JSON: ${{ steps.deployment.outputs.page_url }}openapi.json"
+          echo ""
+          echo "🚀 Swagger UI (Try APIs): ${{ steps.deployment.outputs.page_url }}swagger.html"
+          echo "📖 Redoc (Documentation): ${{ steps.deployment.outputs.page_url }}"
+          echo "📄 Resources Page: ${{ steps.deployment.outputs.page_url }}downloads.html"
+          echo ""
+          echo "📥 Downloads:"
+          echo "  - OpenAPI YAML: ${{ steps.deployment.outputs.page_url }}openapi.yaml"
+          echo "  - OpenAPI JSON: ${{ steps.deployment.outputs.page_url }}openapi.json"

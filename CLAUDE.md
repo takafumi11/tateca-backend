@@ -75,9 +75,14 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
      - Builds and starts Spring Boot application
      - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
      - Generates HTML documentation with Redocly
-     - Creates download page for JSON/YAML specs
+     - Generates Swagger UI for interactive API testing
+     - Creates resource page with links to all documentation
      - Deploys to GitHub Pages
-   - URL: https://tateca.github.io/tateca-backend (or your configured URL)
+   - URLs:
+     - Base: https://tateca.github.io/tateca-backend (or your configured URL)
+     - Swagger UI: `/swagger.html` - Interactive API testing (Try APIs in browser)
+     - Redoc: `/` - Beautiful API documentation
+     - Resources: `/downloads.html` - Download specs and links
 
 3. **CD Pipeline** (`.github/workflows/cd.yml`)
    - Deployment to production (Railway)
@@ -89,13 +94,19 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
   1. CI/CD builds Spring Boot app
   2. Starts app with minimal environment (mock credentials)
   3. Fetches spec from `/v3/api-docs` endpoint
-  4. Generates documentation with Redocly
-  5. Deploys to GitHub Pages
+  4. Generates documentation with Redocly (static docs)
+  5. Generates Swagger UI (interactive testing)
+  6. Deploys to GitHub Pages
 - **Benefits**:
   - Code and docs always in sync
   - No manual spec maintenance
   - Breaking changes caught automatically
   - Single source of truth (code)
+  - Browser-based API testing without Postman
+- **Usage**:
+  - **Swagger UI**: Test APIs directly in browser with "Try it out" buttons
+  - **Redoc**: Browse beautiful, responsive API documentation
+  - **Downloads**: Import specs into Postman/Insomnia if preferred
 
 **API Breaking Change Detection:**
 - Uses [oasdiff](https://github.com/Tufin/oasdiff) to compare generated OpenAPI specs
