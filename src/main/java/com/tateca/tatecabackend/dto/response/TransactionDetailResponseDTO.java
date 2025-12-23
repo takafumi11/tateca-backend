@@ -21,7 +21,7 @@ public class TransactionDetailResponseDTO {
     String id;
 
     @JsonProperty("transaction_type")
-    @Schema(description = "Type of transaction", example = "EXPENSE")
+    @Schema(description = "Type of transaction", example = "LOAN")
     TransactionType transactionType;
 
     @Schema(description = "Transaction title", example = "Dinner at restaurant")

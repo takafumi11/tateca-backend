@@ -11,7 +11,7 @@ import java.util.UUID;
 @Schema(description = "Request to create a new transaction")
 public class TransactionCreationRequestDTO {
     @JsonProperty("transaction_type")
-    @Schema(description = "Type of transaction (EXPENSE, LOAN, REPAYMENT)", example = "EXPENSE")
+    @Schema(description = "Type of transaction (LOAN, REPAYMENT)", example = "LOAN")
     private TransactionType transactionType;
 
     @JsonProperty("title")

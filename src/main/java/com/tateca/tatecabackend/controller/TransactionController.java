@@ -67,6 +67,7 @@ public class TransactionController {
     @GetMapping("/{transactionId}")
     @Operation(summary = "Get transaction details by ID")
     public ResponseEntity<TransactionDetailResponseDTO> getTransactionDetail(
+            @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId
     ) {
         TransactionDetailResponseDTO response = service.getTransactionDetail(transactionId);
@@ -76,6 +77,7 @@ public class TransactionController {
     @DeleteMapping("/{transactionId}")
     @Operation(summary = "Delete a transaction")
     public ResponseEntity<Void> deleteLoan(
+            @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId
     ) {
         service.deleteTransaction(transactionId);

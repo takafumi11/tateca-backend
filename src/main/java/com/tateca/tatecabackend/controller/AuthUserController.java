@@ -6,6 +6,7 @@ import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
 import com.tateca.tatecabackend.service.AuthUserService;
 import com.tateca.tatecabackend.constants.ApiConstants;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping(ApiConstants.PATH_AUTH_USERS)
 @RequiredArgsConstructor
+@Tag(name = "Auth Users", description = "Authenticated user management operations")
 public class AuthUserController {
     private final AuthUserService service;
 
