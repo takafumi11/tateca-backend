@@ -93,8 +93,32 @@ jobs:
       - name: Fetch OpenAPI specification from running app
         run: |
           mkdir -p generated-api-docs
-          curl -sf http://localhost:8080/v3/api-docs -o generated-api-docs/openapi.json
-          curl -sf http://localhost:8080/v3/api-docs.yaml -o generated-api-docs/openapi.yaml
+
+          echo "Testing application endpoint availability..."
+          curl -v http://localhost:8080/actuator/health || echo "Actuator not available"
+
+          echo "Fetching JSON specification..."
+          if curl -sf http://localhost:8080/v3/api-docs -o generated-api-docs/openapi.json; then
+            echo "✅ JSON specification fetched successfully"
+            ls -lh generated-api-docs/openapi.json
+          else
+            echo "❌ Failed to fetch JSON specification"
+            echo "Response:"
+            curl -v http://localhost:8080/v3/api-docs || true
+            exit 1
+          fi
+
+          echo "Fetching YAML specification..."
+          if curl -sf http://localhost:8080/v3/api-docs.yaml -o generated-api-docs/openapi.yaml; then
+            echo "✅ YAML specification fetched successfully"
+            ls -lh generated-api-docs/openapi.yaml
+          else
+            echo "❌ Failed to fetch YAML specification"
+            echo "Response:"
+            curl -v http://localhost:8080/v3/api-docs.yaml || true
+            exit 1
+          fi
+
           echo "✅ OpenAPI specification generated successfully"
 
       - name: Stop application
