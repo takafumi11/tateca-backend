@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
-  push:
-    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -271,7 +269,6 @@ jobs:
             type=ref,event=pr,prefix=pr-
             type=sha,prefix=sha-
             type=raw,value=${{ steps.version.outputs.version }}
-            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
