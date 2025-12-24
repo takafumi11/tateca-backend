@@ -43,7 +43,7 @@ public class TransactionAccessor {
 
     public Long countByGroupId(UUID groupId) {
         try {
-            return repository.countByGroupUuid(groupId);
+            return repository.countByGroup_Uuid(groupId);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
