@@ -9,11 +9,11 @@ import com.tateca.tatecabackend.entity.AppReviewStatus;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.util.LogFactory;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -26,6 +26,7 @@ public class AuthUserService {
     private final AuthUserAccessor accessor;
     private final UserAccessor userAccessor;
 
+    @Transactional
     public AuthUserInfoDTO getAuthUserInfo(String uid) {
         long totalStartTime = System.currentTimeMillis();
         
