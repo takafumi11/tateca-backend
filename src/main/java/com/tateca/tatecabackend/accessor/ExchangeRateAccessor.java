@@ -57,4 +57,12 @@ public class ExchangeRateAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public List<ExchangeRateEntity> findByCurrencyCodeAndDates(String currencyCode, List<LocalDate> dates) {
+        try {
+            return repository.findByCurrencyCodeAndDates(currencyCode, dates);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

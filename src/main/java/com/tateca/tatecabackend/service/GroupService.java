@@ -38,7 +38,7 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public GroupDetailsResponseDTO getGroupInfo(UUID groupId) {
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
         if (userGroups.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
         }
@@ -64,7 +64,7 @@ public class GroupService {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
 
         List<UUID> uuidList = userEntityList.stream().map(UserEntity::getUuid).toList();
-        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuidList(uuidList);
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuidListWithGroup(uuidList);
 
         List<GroupEntity> groupEntityList = userGroupEntityList.stream().map(UserGroupEntity::getGroup).toList();
 
@@ -134,7 +134,7 @@ public class GroupService {
         }
 
         // Check if user has already joined this group.
-        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
         boolean exists = userGroupEntityList.stream()
                 .anyMatch(userGroupEntity -> {
                     AuthUserEntity authUser = userGroupEntity.getUser().getAuthUser();

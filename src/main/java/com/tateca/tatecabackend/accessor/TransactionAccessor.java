@@ -41,17 +41,17 @@ public class TransactionAccessor {
         }
     }
 
-    public List<TransactionHistoryEntity> findTransactionHistory(UUID groupId, int limit) {
+    public Long countByGroupId(UUID groupId) {
         try {
-            return repository.findTransactionsByGroupOrderByCreatedAtDescWithLimit(groupId, limit);
+            return repository.countByGroupUuid(groupId);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
 
-    public Long countByGroupId(UUID groupId) {
+    public List<TransactionHistoryEntity> findTransactionsByGroupWithLimit(UUID groupId, int limit) {
         try {
-            return repository.countByGroupUuid(groupId);
+            return repository.findTransactionsByGroupWithLimit(groupId, limit);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }

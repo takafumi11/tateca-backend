@@ -16,22 +16,6 @@ import java.util.UUID;
 public class UserGroupAccessor {
     private final UserGroupRepository repository;
 
-    public List<UserGroupEntity> findByGroupUuid(UUID groupId) {
-        try {
-            return repository.findByGroupUuid(groupId);
-        } catch (DataAccessException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
-        }
-    }
-
-    public List<UserGroupEntity> findByUserUuidList(List<UUID> userUuidList) {
-        try {
-            return repository.findByUserUuidList(userUuidList);
-        } catch (DataAccessException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
-        }
-    }
-
     public List<UserGroupEntity> saveAll(List<UserGroupEntity> userGroupEntityList) {
         try {
             return repository.saveAll(userGroupEntityList);
@@ -44,6 +28,23 @@ public class UserGroupAccessor {
         try {
             return repository.findByUserUuidAndGroupUuid(userUuid, groupUuid)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not in this group"));
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
+    // JOIN FETCH methods to avoid N+1 queries
+    public List<UserGroupEntity> findByGroupUuidWithUserDetails(UUID groupId) {
+        try {
+            return repository.findByGroupUuidWithUserDetails(groupId);
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
+
+    public List<UserGroupEntity> findByUserUuidListWithGroup(List<UUID> userUuidList) {
+        try {
+            return repository.findByUserUuidListWithGroup(userUuidList);
         } catch (DataAccessException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
