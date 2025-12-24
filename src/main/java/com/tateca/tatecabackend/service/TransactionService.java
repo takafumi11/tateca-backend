@@ -57,7 +57,7 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public TransactionsHistoryResponseDTO getTransactionHistory(int count, UUID groupId) {
-        List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionHistory(groupId, count);
+        List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionsByGroupWithLimit(groupId, count);
 
         return TransactionsHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
@@ -67,7 +67,7 @@ public class TransactionService {
         // Default to JPY if currencyCode is null
         String effectiveCurrencyCode = currencyCode != null ? currencyCode : "JPY";
 
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
 
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
@@ -84,19 +84,16 @@ public class TransactionService {
                     .distinct()
                     .toList();
 
-            // Fetch user currency rates for all dates
-            for (LocalDate date : transactionDates) {
-                try {
-                    ExchangeRateEntity rate = exchangeRateAccessor.findByCurrencyCodeAndDate(effectiveCurrencyCode, date);
-                    userRatesCache.put(date, rate);
-                } catch (ResponseStatusException e) {
-                    // If rate not found for specific date, use current rate as fallback
-                    if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        ExchangeRateEntity currencyRate = exchangeRateAccessor.findByCurrencyCodeAndDate(effectiveCurrencyCode, LocalDate.now(UTC_ZONE_ID));
-                        userRatesCache.put(date, currencyRate);
-                    } else {
-                        throw e;
-                    }
+            // Batch fetch user currency rates for all dates (avoid N+1)
+            List<ExchangeRateEntity> rates = exchangeRateAccessor.findByCurrencyCodeAndDates(effectiveCurrencyCode, transactionDates);
+            userRatesCache = rates.stream()
+                    .collect(Collectors.toMap(ExchangeRateEntity::getDate, rate -> rate));
+
+            // If some rates are missing, fall back to current rate
+            if (userRatesCache.size() < transactionDates.size()) {
+                ExchangeRateEntity currentRate = exchangeRateAccessor.findByCurrencyCodeAndDate(effectiveCurrencyCode, LocalDate.now(UTC_ZONE_ID));
+                for (LocalDate date : transactionDates) {
+                    userRatesCache.putIfAbsent(date, currentRate);
                 }
             }
         }

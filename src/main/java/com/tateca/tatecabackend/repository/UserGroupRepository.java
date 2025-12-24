@@ -2,6 +2,7 @@ package com.tateca.tatecabackend.repository;
 
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.entity.UserGroupId;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,13 +14,16 @@ import java.util.UUID;
 
 @Repository
 public interface UserGroupRepository extends JpaRepository<UserGroupEntity, UserGroupId> {
-    @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.groupUuid = :groupUuid")
-    List<UserGroupEntity> findByGroupUuid(UUID groupUuid);
-
-    @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid IN :userUuidList")
-    List<UserGroupEntity> findByUserUuidList(@Param("userUuidList") List<UUID> userUuidList);
-
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.userUuid = :userUuid AND uge.groupUuid = :groupUuid")
     Optional<UserGroupEntity> findByUserUuidAndGroupUuid(@Param("userUuid") UUID userUuid, @Param("groupUuid") UUID groupUuid);
+
+    // EntityGraph to eagerly fetch related entities (avoid N+1 queries)
+    @EntityGraph(attributePaths = {"user", "user.currencyName"})
+    @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.groupUuid = :groupUuid")
+    List<UserGroupEntity> findByGroupUuidWithUserDetails(@Param("groupUuid") UUID groupUuid);
+
+    @EntityGraph(attributePaths = {"group"})
+    @Query("SELECT DISTINCT uge FROM UserGroupEntity uge WHERE uge.userUuid IN :userUuidList")
+    List<UserGroupEntity> findByUserUuidListWithGroup(@Param("userUuidList") List<UUID> userUuidList);
 
 }
