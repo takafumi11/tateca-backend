@@ -51,16 +51,18 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 
 ### Overview
 
-Modern CI/CD pipeline following **Build Once, Deploy Anywhere** principle with strict separation of concerns:
+Modern CI/CD pipeline following **Build Once, Deploy Anywhere** principle with semantic versioning:
 
 ```
-Pull Request → CI (Test & Build) → Merge → CD (Retag & Deploy)
+PR (version update) → CI (Build & Tag version) → Merge → CD (Retag & Deploy)
 ```
 
 **Key Principles:**
-- ✅ **Immutable Artifacts**: Docker images built once in CI, reused in CD
+- ✅ **Build Once**: Docker image built once in PR, reused in CD (no rebuild)
+- ✅ **Semantic Versioning**: Version managed in `build.gradle.kts` (e.g., `1.2.3`)
+- ✅ **Version Tagging**: CI automatically tags with version from build.gradle.kts
 - ✅ **Shift-Left Testing**: All validation happens during PR (before merge)
-- ✅ **Fast Deployments**: CD only retags images (~30s) instead of rebuilding (3-4min)
+- ✅ **Workflow Chaining**: CD waits for CI completion (no race conditions)
 - ✅ **Branch Protection**: All code flows through PR → CI → Main → CD
 
 ### Prerequisites
@@ -77,7 +79,7 @@ Pull Request → CI (Test & Build) → Merge → CD (Retag & Deploy)
 
 #### 1. CI Pipeline (`.github/workflows/ci.yml`)
 
-**Trigger:** Pull requests to `main` branch only
+**Trigger:** Pull requests to `main` AND pushes to `main` (PR merges)
 
 **Purpose:** Validate code quality, build artifacts, generate documentation
 
@@ -98,11 +100,16 @@ Pull Request → CI (Test & Build) → Merge → CD (Retag & Deploy)
 
 2. **Docker Build & Push** (`docker-build-push`)
    - **Depends on:** `java-test`
+   - Extracts version from `build.gradle.kts` (e.g., `0.0.1-SNAPSHOT` or `1.2.3`)
    - Builds Docker image with multi-stage build (Gradle + JRE)
    - Pushes to GitHub Container Registry (GHCR)
-   - **Tags:** `sha-<commit-hash>` (NOT `latest` - that's CD's job)
+   - **Tags:**
+     - `<version>` from build.gradle.kts (e.g., `1.2.3`) ⭐ **Release version**
+     - `sha-<commit-hash>` (always)
+     - `pr-<number>` (PR only)
+     - `latest` (main branch only, via `is_default_branch` check)
    - Uses GitHub Actions cache for faster subsequent builds
-   - Comments on PR with image information
+   - Comments on PR with version and image tags
 
 3. **API Validation & Generation** (`api-validation`)
    - Builds and starts Spring Boot application with minimal environment
@@ -114,54 +121,58 @@ Pull Request → CI (Test & Build) → Merge → CD (Retag & Deploy)
 
 **Total CI Time:** ~10-15 minutes
 
-**Why CI Only Runs on PRs:**
-- PRs are the only way code enters `main` (via branch protection)
-- Eliminates duplicate builds when merging
-- Clear separation: CI = validation, CD = deployment
+**Why CI Runs on Both PRs and Main Pushes:**
+- **PR:** Validation before merge
+- **Main push:** Handles Squash/Rebase merges where SHA changes
+- **Smart tagging:** `latest` only applied on main branch
+- **No duplicate builds:** Concurrency group ensures only one runs per ref
 
 ---
 
 #### 2. CD Pipeline (`.github/workflows/cd.yml`)
 
-**Trigger:** Push to `main` branch (PR merges only, direct pushes disabled)
+**Trigger:** After CI Pipeline completes successfully on `main` branch
 
 **Purpose:** Deploy validated artifacts to production environments
+
+**Workflow Chaining:**
+```
+main merge → CI Pipeline (builds & tags version) → CD Pipeline (retags & deploys)
+```
 
 **Jobs:** Run in sequence with dependencies
 
 ```
-docker-retag → [deploy-docs, railway-redeploy]
+retag-release → [deploy-docs, railway-redeploy]
 ```
 
 **Job Details:**
 
-1. **Docker Retag** (`docker-retag`)
+1. **Retag Release Version** (`retag-release`)
    - **Duration:** ~30 seconds
-   - Pulls pre-built image from CI: `ghcr.io/<repo>:sha-<commit>`
-   - Retags as `latest` for production: `ghcr.io/<repo>:latest`
-   - Pushes `latest` tag to GHCR
-   - **No rebuild** - uses exact image tested in PR
+   - Extracts version from `build.gradle.kts`
+   - Pulls version-tagged image from CI (e.g., `1.2.3`)
+   - Retags as `latest` for production
+   - **No rebuild** - reuses PR's tested image
    - **Optimization:** 3-4 min saved vs rebuilding
 
 2. **Deploy API Documentation** (`deploy-docs`)
    - **Duration:** ~2-3 minutes
-   - **Depends on:** `docker-retag`
-   - **Optimized:** Uses pre-built `latest` image (no Gradle/JDK setup)
+   - **Depends on:** `retag-release`
+   - Uses `latest` image (points to version image)
    - Starts application container with MySQL service
    - Fetches OpenAPI spec from running container
    - Generates Swagger UI for interactive testing
    - Generates Redoc for static documentation
    - Deploys to GitHub Pages
-   - **Optimization:** 3 min saved by using Docker image vs building app
 
 3. **Railway Redeploy** (`railway-redeploy`)
    - **Duration:** ~30 seconds (trigger only, actual deploy by Railway)
-   - **Depends on:** `docker-retag`
+   - **Depends on:** `retag-release`
    - Triggers Railway to pull `latest` image from GHCR
    - Railway deploys pre-built image (no build step on Railway)
-   - **Optimization:** 5 min saved vs Railway building from Dockerfile
 
-**Total CD Time:** ~3-4 minutes (vs 8-10 min without optimizations)
+**Total CD Time:** ~2-3 minutes (jobs run in parallel)
 
 **Documentation URLs:**
 - Base: https://tateca.github.io/tateca-backend
@@ -182,16 +193,27 @@ docker-retag → [deploy-docs, railway-redeploy]
 
 **Image Tags:**
 
-| Tag | Created By | Purpose | Example |
-|-----|-----------|---------|---------|
-| `sha-<commit>` | CI | Immutable reference to specific commit | `sha-a1b2c3d` |
-| `latest` | CD | Production deployment tag | `latest` |
+| Tag | Created By | When | Example | Purpose |
+|-----|-----------|------|---------|---------|
+| `<version>` | CI | Every build | `1.2.3` | Release version (from build.gradle.kts) ⭐ |
+| `sha-<commit>` | CI | Every commit/PR | `sha-a1b2c3d` | Immutable commit reference |
+| `pr-<number>` | CI | PR only | `pr-123` | PR-specific testing |
+| `latest` | CI (main) or CD | Main branch | `latest` | Production deployment pointer |
 
-**Tag Lifecycle:**
+**Tag Lifecycle (Version-Based with Squash/Rebase Support):**
 ```
-1. PR created → CI builds → ghcr.io/repo:sha-a1b2c3d
-2. PR merged  → CD retags → ghcr.io/repo:latest (points to sha-a1b2c3d)
-3. Railway deploys ghcr.io/repo:latest
+1. Developer updates version in build.gradle.kts (e.g., 1.2.3)
+
+2. PR created (commit: a1b2c3d)
+   └─ CI builds → ghcr.io/repo:1.2.3, sha-a1b2c3d, pr-123
+
+3. PR squash merged to main (new commit: xyz9999)
+   └─ CI builds → ghcr.io/repo:1.2.3, sha-xyz9999, latest
+
+4. CD retags version as latest (if not already done by CI)
+   └─ CD pulls ghcr.io/repo:1.2.3 → retag as latest
+
+5. Railway deploys ghcr.io/repo:latest (points to version 1.2.3)
 ```
 
 **Image Specifications:**
@@ -200,11 +222,14 @@ docker-retag → [deploy-docs, railway-redeploy]
 - Caching: GitHub Actions cache for faster builds
 - Storage: All SHA-tagged images retained indefinitely
 
-**Why SHA Tags in CI, Latest in CD:**
-- ✅ `sha-<commit>` is immutable (never changes)
-- ✅ `latest` always points to current production (`main` branch)
-- ✅ Prevents PR images from overwriting production `latest`
-- ✅ Enables easy rollback (retag any `sha-xxx` as `latest`)
+**Smart Tagging Strategy:**
+- ✅ **Version tag** from `build.gradle.kts` (e.g., `1.2.3`) - Primary release identifier
+- ✅ **SHA tag** is immutable (always created for audit trail)
+- ✅ **PR tag** for easy PR testing (e.g., `pr-123`)
+- ✅ **Latest tag** only on main branch (via `is_default_branch` in CI)
+- ✅ Handles Squash/Rebase merges (CI rebuilds with new SHA)
+- ✅ Version tags can be overwritten (allows version republishing)
+- ✅ CD retags version as latest (redundant safety, ~30s)
 
 ---
 
@@ -216,11 +241,26 @@ docker-retag → [deploy-docs, railway-redeploy]
 
 **Deployment Flow:**
 ```
-1. CI: Build image → ghcr.io/repo:sha-abc123
-2. CD: Retag sha-abc123 → latest
-3. CD: Trigger railway redeploy
-4. Railway: Pull latest from GHCR → Deploy
+1. Developer updates version in build.gradle.kts (e.g., 1.2.3 → 1.2.4)
+
+2. PR merge → CI: Build image with version tag
+   └─ CI builds → ghcr.io/repo:1.2.4, sha-xyz9999, latest
+
+3. CD: Retag version as latest (redundant safety)
+   └─ CD pulls ghcr.io/repo:1.2.4 → retag as latest → push
+
+4. CD: Trigger railway redeploy
+   └─ Railway CLI: railway redeploy --service=<id> --yes
+
+5. Railway: Pull latest from GHCR → Deploy
+   └─ Deploys ghcr.io/repo:latest (points to version 1.2.4)
 ```
+
+**Version Management:**
+- **Update:** Manually edit `version` in `build.gradle.kts`
+- **Tagging:** CI automatically extracts and tags Docker image
+- **Deployment:** CD retags version image as `latest` for Railway
+- **Rollback:** Change Railway to point to specific version tag (e.g., `1.2.3`)
 
 **Benefits:**
 - ⚡ **Fast:** Railway deployment ~30s (no build, just pull)
@@ -245,8 +285,16 @@ docker-retag → [deploy-docs, railway-redeploy]
 - No manual YAML/JSON maintenance required
 
 **Generation Process:**
-1. **PR (ci.yml):** Generate spec for validation and review
-2. **Main (cd.yml):** Generate spec and deploy documentation to GitHub Pages
+1. **PR (ci.yml):**
+   - Builds Spring Boot application from source
+   - Generates OpenAPI spec for validation and review
+   - Uploads spec as artifact
+
+2. **Main (cd.yml):**
+   - Uses pre-built Docker image (`latest` tag, points to version image)
+   - Starts application in container
+   - Fetches OpenAPI spec from running container
+   - Generates and deploys documentation to GitHub Pages
 
 **Tools:**
 - SpringDoc OpenAPI: Annotation-based spec generation
