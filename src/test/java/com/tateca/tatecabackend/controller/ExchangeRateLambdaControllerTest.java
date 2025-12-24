@@ -1,15 +1,21 @@
 package com.tateca.tatecabackend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tateca.tatecabackend.config.TestLambdaSecurityConfig;
 import com.tateca.tatecabackend.dto.request.ExchangeRateUpdateRequestDTO;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -24,14 +30,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ExchangeRateLambdaController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestLambdaSecurityConfig.class})
+@ActiveProfiles("test")
 @DisplayName("ExchangeRateLambdaController Web Tests")
-class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
+class ExchangeRateLambdaControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private ExchangeRateUpdateService exchangeRateUpdateService;
 
     private static final String ENDPOINT = "/internal/exchange-rates";
+    private static final String VALID_API_KEY = TestLambdaSecurityConfig.TEST_LAMBDA_API_KEY;
+
+    /**
+     * Converts an object to JSON string for request bodies.
+     */
+    private String toJson(Object obj) throws Exception {
+        return objectMapper.writeValueAsString(obj);
+    }
 
     @Test
     @DisplayName("Should return 204 No Content when update succeeds")
@@ -44,6 +65,7 @@ class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT)
+                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request)))
                 .andExpect(status().isNoContent());
@@ -60,6 +82,7 @@ class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT)
+                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest());
@@ -76,6 +99,7 @@ class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT)
+                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest());
@@ -89,6 +113,7 @@ class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
     void shouldReturn400WhenRequestBodyIsEmpty() throws Exception {
         // When: Calling endpoint without body
         mockMvc.perform(post(ENDPOINT)
+                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
@@ -109,6 +134,7 @@ class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
         // When: Calling endpoint
         // Then: Should return 500 (handled by GlobalExceptionHandler)
         mockMvc.perform(post(ENDPOINT)
+                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request)))
                 .andExpect(status().isInternalServerError())
@@ -117,5 +143,130 @@ class ExchangeRateLambdaControllerTest extends AbstractControllerWebTest {
 
         // And: Service should be called
         verify(exchangeRateUpdateService, times(1)).fetchAndStoreExchangeRateByDate(testDate);
+    }
+
+    @Nested
+    @DisplayName("Lambda API Key Authentication Tests")
+    class AuthenticationTests {
+
+        @Test
+        @DisplayName("Should return 401 Unauthorized when invalid X-API-KEY is provided")
+        void shouldReturn401WhenInvalidApiKeyProvided() throws Exception {
+            // Given: Invalid API key
+            LocalDate testDate = LocalDate.of(2024, 1, 15);
+            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(testDate);
+
+            // When: Calling endpoint with invalid X-API-KEY
+            mockMvc.perform(post(ENDPOINT)
+                            .header("X-API-KEY", "invalid-api-key")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(toJson(request)))
+                    .andExpect(status().isUnauthorized());
+
+            // Then: Service should not be called
+            verify(exchangeRateUpdateService, never()).fetchAndStoreExchangeRateByDate(any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request when X-API-KEY header is missing")
+        void shouldReturn400WhenApiKeyHeaderMissing() throws Exception {
+            // Given: No X-API-KEY header
+            LocalDate testDate = LocalDate.of(2024, 1, 15);
+            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(testDate);
+
+            // When: Calling endpoint without X-API-KEY
+            mockMvc.perform(post(ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(toJson(request)))
+                    .andExpect(status().isBadRequest());
+
+            // Then: Service should not be called
+            verify(exchangeRateUpdateService, never()).fetchAndStoreExchangeRateByDate(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Request Validation Tests")
+    class RequestValidationTests {
+
+        @Test
+        @DisplayName("Should return 400 Bad Request when target_date format is invalid")
+        void shouldReturn400WhenDateFormatInvalid() throws Exception {
+            // Given: Invalid date format
+            String invalidRequest = "{\"target_date\": \"2024-13-45\"}";
+
+            // When: Calling endpoint
+            mockMvc.perform(post(ENDPOINT)
+                            .header("X-API-KEY", VALID_API_KEY)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(invalidRequest))
+                    .andExpect(status().isBadRequest());
+
+            // Then: Service should not be called
+            verify(exchangeRateUpdateService, never()).fetchAndStoreExchangeRateByDate(any());
+        }
+
+        @Test
+        @DisplayName("Should accept past dates for historical data")
+        void shouldAcceptPastDates() throws Exception {
+            // Given: Past date
+            LocalDate pastDate = LocalDate.of(2020, 1, 1);
+            when(exchangeRateUpdateService.fetchAndStoreExchangeRateByDate(pastDate))
+                    .thenReturn(3);
+
+            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(pastDate);
+
+            // When: Calling endpoint
+            mockMvc.perform(post(ENDPOINT)
+                            .header("X-API-KEY", VALID_API_KEY)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(toJson(request)))
+                    .andExpect(status().isNoContent());
+
+            // Then: Service should be called with past date
+            verify(exchangeRateUpdateService, times(1)).fetchAndStoreExchangeRateByDate(pastDate);
+        }
+
+        @Test
+        @DisplayName("Should accept future dates for prediction data")
+        void shouldAcceptFutureDates() throws Exception {
+            // Given: Future date
+            LocalDate futureDate = LocalDate.of(2030, 12, 31);
+            when(exchangeRateUpdateService.fetchAndStoreExchangeRateByDate(futureDate))
+                    .thenReturn(3);
+
+            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(futureDate);
+
+            // When: Calling endpoint
+            mockMvc.perform(post(ENDPOINT)
+                            .header("X-API-KEY", VALID_API_KEY)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(toJson(request)))
+                    .andExpect(status().isNoContent());
+
+            // Then: Service should be called with future date
+            verify(exchangeRateUpdateService, times(1)).fetchAndStoreExchangeRateByDate(futureDate);
+        }
+
+        @Test
+        @DisplayName("Should accept today's date")
+        void shouldAcceptTodaysDate() throws Exception {
+            // Given: Today's date
+            LocalDate today = LocalDate.now();
+            when(exchangeRateUpdateService.fetchAndStoreExchangeRateByDate(today))
+                    .thenReturn(3);
+
+            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(today);
+
+            // When: Calling endpoint
+            mockMvc.perform(post(ENDPOINT)
+                            .header("X-API-KEY", VALID_API_KEY)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(toJson(request)))
+                    .andExpect(status().isNoContent());
+
+            // Then: Service should be called
+            verify(exchangeRateUpdateService, times(1)).fetchAndStoreExchangeRateByDate(today);
+        }
     }
 }

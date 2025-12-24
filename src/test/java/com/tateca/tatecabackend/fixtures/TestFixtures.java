@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.fixtures;
 
+import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.model.SymbolPosition;
 
@@ -58,27 +59,13 @@ public class TestFixtures {
                     .symbolPosition(SymbolPosition.PREFIX)
                     .build();
         }
-
-        public static CurrencyNameEntity inactive(String currencyCode) {
-            return CurrencyNameEntity.builder()
-                    .currencyCode(currencyCode)
-                    .jpCurrencyName("非アクティブ通貨")
-                    .engCurrencyName("Inactive Currency")
-                    .jpCountryName("なし")
-                    .engCountryName("None")
-                    .isActive(false)
-                    .currencySymbol("X")
-                    .symbolPosition(SymbolPosition.PREFIX)
-                    .build();
-        }
     }
 
     // ========== Object Mother: ExchangeRateApiResponses ==========
 
     public static class ExchangeRateApiResponses {
-        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse success() {
-            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response =
-                new com.tateca.tatecabackend.api.response.ExchangeRateClientResponse();
+        public static ExchangeRateClientResponse success() {
+            ExchangeRateClientResponse response = new ExchangeRateClientResponse();
             response.setResult("success");
             response.setTimeLastUpdateUnix("1704067200");
             java.util.Map<String, Double> rates = new java.util.HashMap<>();
@@ -89,18 +76,10 @@ public class TestFixtures {
             return response;
         }
 
-        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse withRates(
+        public static ExchangeRateClientResponse withRates(
                 java.util.Map<String, Double> rates) {
             com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response = success();
             response.setConversionRates(rates);
-            return response;
-        }
-
-        public static com.tateca.tatecabackend.api.response.ExchangeRateClientResponse error() {
-            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response =
-                new com.tateca.tatecabackend.api.response.ExchangeRateClientResponse();
-            response.setResult("error");
-            response.setConversionRates(new java.util.HashMap<>());
             return response;
         }
     }
