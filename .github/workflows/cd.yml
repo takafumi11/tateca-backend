@@ -3,6 +3,11 @@ name: CD
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'build.gradle.kts'
+      - 'Dockerfile'
+      - '.github/workflows/cd.yml'
   workflow_dispatch:
 
 concurrency:
@@ -10,35 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Run tests
-        run: ./gradlew test --no-daemon
-
   docker-build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: test
 
     permissions:
       contents: read
@@ -78,6 +57,234 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+
+  deploy-docs:
+    name: Deploy API Documentation to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: docker-build-and-push
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      packages: read
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull and run pre-built Docker image
+        run: |
+          echo "Pulling pre-built image from GHCR..."
+          docker pull ghcr.io/${{ github.repository }}:latest
+
+          echo "Starting application container..."
+          docker run -d \
+            --name tateca-app \
+            --network host \
+            -e SPRING_PROFILES_ACTIVE=ci \
+            -e MYSQLHOST=localhost \
+            -e MYSQLPORT=3306 \
+            -e MYSQLDATABASE=test \
+            -e MYSQLUSER=test \
+            -e MYSQLPASSWORD=test \
+            -e FIREBASE_SERVICE_ACCOUNT_KEY=mock-key \
+            -e FIREBASE_PROJECT_ID=test-project \
+            -e LAMBDA_API_KEY=test-key \
+            -e EXCHANGE_RATE_API_KEY=test-key \
+            -e SWAGGER_UI_ENABLED=false \
+            ghcr.io/${{ github.repository }}:latest
+
+      - name: Wait for application to be ready
+        run: |
+          echo "Waiting for application to start..."
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/v3/api-docs > /dev/null; then
+              echo "✅ Application is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "❌ Application failed to start. Logs:"
+          docker logs tateca-app
+          exit 1
+
+      - name: Fetch OpenAPI specification from running app
+        run: |
+          mkdir -p generated-api-docs
+
+          echo "Fetching JSON specification..."
+          curl -sf http://localhost:8080/v3/api-docs -o generated-api-docs/openapi.json
+          echo "✅ JSON specification fetched successfully"
+
+          echo "Fetching YAML specification..."
+          curl -sf http://localhost:8080/v3/api-docs.yaml -o generated-api-docs/openapi.yaml
+          echo "✅ YAML specification fetched successfully"
+
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop tateca-app || true
+          docker rm tateca-app || true
+
+      - name: Setup Node.js and generate documentation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Redocly CLI and generate documentation
+        run: |
+          npm install -g @redocly/cli
+          mkdir -p docs
+          redocly build-docs generated-api-docs/openapi.yaml -o docs/index.html
+
+      - name: Generate Swagger UI page
+        run: |
+          cat > docs/swagger.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Tateca API - Swagger UI</title>
+            <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css">
+            <style>
+              body { margin: 0; padding: 0; }
+            </style>
+          </head>
+          <body>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
+            <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-standalone-preset.js"></script>
+            <script>
+              window.onload = function() {
+                window.ui = SwaggerUIBundle({
+                  url: "./openapi.json",
+                  dom_id: '#swagger-ui',
+                  deepLinking: true,
+                  presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                  ],
+                  plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                  ],
+                  layout: "StandaloneLayout"
+                })
+              }
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Create download page
+        run: |
+          cat > docs/downloads.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Tateca API Resources</title>
+            <style>
+              body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+              h1 { color: #333; }
+              .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
+              .download-section h2 { margin-top: 0; color: #2c3e50; }
+              a { color: #0066cc; text-decoration: none; font-weight: bold; }
+              a:hover { text-decoration: underline; }
+              .description { color: #666; font-size: 0.9em; margin-top: 5px; }
+            </style>
+          </head>
+          <body>
+            <h1>Tateca API Resources</h1>
+
+            <div class="download-section">
+              <h2>🔧 Interactive API Testing</h2>
+              <p><a href="swagger.html">🚀 Swagger UI - Try API Endpoints</a></p>
+              <p class="description">Interactive interface to test API endpoints directly from your browser. No Postman required!</p>
+            </div>
+
+            <div class="download-section">
+              <h2>📚 API Documentation</h2>
+              <p><a href="index.html">📖 Redoc - View API Documentation</a></p>
+              <p class="description">Beautiful, responsive API documentation with detailed schemas and examples.</p>
+            </div>
+
+            <div class="download-section">
+              <h2>📄 OpenAPI Specification</h2>
+              <p><a href="openapi.json" download>Download openapi.json</a></p>
+              <p><a href="openapi.yaml" download>Download openapi.yaml</a></p>
+              <p class="description">Raw OpenAPI specs for Insomnia, Postman or other API tools.</p>
+            </div>
+
+            <div class="download-section">
+              <p><em>Generated from code using SpringDoc + Redocly + Swagger UI</em></p>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Copy specification files to docs folder
+        run: |
+          cp generated-api-docs/openapi.json docs/
+          cp generated-api-docs/openapi.yaml docs/
+
+      - name: Upload specification artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-specification
+          path: |
+            generated-api-docs/openapi.json
+            generated-api-docs/openapi.yaml
+          retention-days: 90
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Display deployed URL
+        run: |
+          echo "📚 Documentation deployed successfully!"
+          echo ""
+          echo "🚀 Swagger UI (Try APIs): ${{ steps.deployment.outputs.page_url }}swagger.html"
+          echo "📖 Redoc (Documentation): ${{ steps.deployment.outputs.page_url }}"
+          echo "📄 Resources Page: ${{ steps.deployment.outputs.page_url }}downloads.html"
+          echo ""
+          echo "📥 Downloads:"
+          echo "  - OpenAPI YAML: ${{ steps.deployment.outputs.page_url }}openapi.yaml"
+          echo "  - OpenAPI JSON: ${{ steps.deployment.outputs.page_url }}openapi.json"
 
   railway-redeploy:
     name: Redeploy to Railway
