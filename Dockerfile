@@ -5,8 +5,8 @@ WORKDIR /workspace
 COPY . /workspace
 
 # Use gradle wrapper to ensure version consistency with gradle-wrapper.properties
-# Skip tests as they are already run in CI pipeline
-RUN ./gradlew build -x test --no-daemon
+# Run tests as part of the build process
+RUN ./gradlew build --no-daemon
 
 FROM eclipse-temurin:21-jre
 
