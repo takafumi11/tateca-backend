@@ -21,11 +21,11 @@ import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.util.LogFactory;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -55,12 +55,14 @@ public class TransactionService {
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
 
+    @Transactional(readOnly = true)
     public TransactionsHistoryResponseDTO getTransactionHistory(int count, UUID groupId) {
         List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionHistory(groupId, count);
 
         return TransactionsHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
 
+    @Transactional(readOnly = true)
     public TransactionsSettlementResponseDTO getSettlements(UUID groupId, String currencyCode) {
         // Default to JPY if currencyCode is null
         String effectiveCurrencyCode = currencyCode != null ? currencyCode : "JPY";
@@ -263,6 +265,7 @@ public class TransactionService {
         }
     }
 
+    @Transactional(readOnly = true)
     public TransactionDetailResponseDTO getTransactionDetail(UUID transactionId) {
         TransactionHistoryEntity transaction = accessor.findById(transactionId);
         TransactionType transactionType = transaction.getTransactionType();

@@ -8,6 +8,7 @@ import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ public class UserService {
     private final UserAccessor accessor;
     private final CurrencyNameAccessor currencyNameAccessor;
 
+    @Transactional
     public UserInfoDTO updateUserName(UUID userId, UpdateUserRequestDTO request) {
         UserEntity user = accessor.findById(userId);
 

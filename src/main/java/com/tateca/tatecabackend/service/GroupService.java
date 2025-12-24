@@ -1,30 +1,24 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
-import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
-import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
-import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
-import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
-import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
+import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
-import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -32,7 +26,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Data
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -41,11 +34,9 @@ public class GroupService {
     private final UserAccessor userAccessor;
     private final AuthUserAccessor authUserAccessor;
     private final UserGroupAccessor userGroupAccessor;
-    private final ObligationAccessor obligationAccessor;
-    private final ExchangeRateAccessor exchangeRateAccessor;
     private final TransactionAccessor transactionAccessor;
-    private final CurrencyNameAccessor currencyNameAccessor;
 
+    @Transactional(readOnly = true)
     public GroupDetailsResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuid(groupId);
         if (userGroups.isEmpty()) {
@@ -68,6 +59,7 @@ public class GroupService {
         return getGroupInfo(groupId);
     }
 
+    @Transactional(readOnly = true)
     public GroupListResponseDTO getGroupList(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
 
@@ -186,7 +178,6 @@ public class GroupService {
         userAccessor.save(userEntity);
     }
 
-    @Transactional
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
         if (!uid.equals("v6CGVApOmVM4VWTijmRTg8m01Kj1") && userEntityList.size() >= 9) {
