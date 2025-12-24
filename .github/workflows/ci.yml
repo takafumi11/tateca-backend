@@ -223,212 +223,73 @@ jobs:
               body: comment
             });
 
-  api-breaking-changes:
-    name: Check for Breaking Changes (Code-First)
+  docker-build-push:
+    name: Build and Push Docker Image (PR)
     runs-on: ubuntu-latest
-    # Temporarily disabled until OpenAPI endpoint authentication exclusion is merged to main
-    if: false
-    # if: github.event_name == 'pull_request'
-    needs: api-validation
+    needs: java-test
 
     permissions:
       contents: read
-      pull-requests: write
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test
-          MYSQL_USER: test
-          MYSQL_PASSWORD: test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      # Same environment as api-validation job
-      SPRING_PROFILES_ACTIVE: ci
-      MYSQLHOST: localhost
-      MYSQLPORT: 3306
-      MYSQLDATABASE: test
-      MYSQLUSER: test
-      MYSQLPASSWORD: test
-      FIREBASE_SERVICE_ACCOUNT_KEY: mock-key
-      FIREBASE_PROJECT_ID: test-project
-      LAMBDA_API_KEY: test-key
-      EXCHANGE_RATE_API_KEY: test-key
-      SWAGGER_UI_ENABLED: false
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          fetch-depth: 0
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download PR specification
-        uses: actions/download-artifact@v4
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          name: generated-api-docs-pr-${{ github.event.pull_request.number }}
-          path: pr-spec
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=pr,prefix=pr-
+            type=sha,prefix=sha-
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Checkout main branch to generate baseline spec
-        run: |
-          git fetch origin main
-          git checkout origin/main
-
-      - name: Build and start main branch application
-        run: |
-          ./gradlew build -x test --no-daemon
-          ./gradlew bootRun --no-daemon > main-app.log 2>&1 &
-          echo $! > main-app.pid
-
-      - name: Wait for main application to be ready
-        run: |
-          for i in {1..60}; do
-            if curl -sf http://localhost:8080/v3/api-docs > /dev/null; then
-              echo "✅ Main branch application is ready!"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "❌ Application failed to start. Logs:"
-          cat main-app.log
-          exit 1
-
-      - name: Fetch main branch OpenAPI specification
-        run: |
-          mkdir -p main-spec
-
-          echo "Fetching main branch YAML specification..."
-          if curl -sf http://localhost:8080/v3/api-docs.yaml -o main-spec/openapi.yaml; then
-            echo "✅ Main branch specification fetched successfully"
-            ls -lh main-spec/openapi.yaml
-          else
-            echo "❌ Failed to fetch main branch specification"
-            echo "Response:"
-            curl -v http://localhost:8080/v3/api-docs.yaml || true
-            exit 1
-          fi
-
-      - name: Stop main application
-        if: always()
-        run: |
-          if [ -f main-app.pid ]; then
-            kill $(cat main-app.pid) || true
-          fi
-
-      - name: Install oasdiff
-        run: |
-          sudo wget -q https://github.com/Tufin/oasdiff/releases/latest/download/oasdiff_linux_amd64 -O /usr/local/bin/oasdiff
-          sudo chmod +x /usr/local/bin/oasdiff
-
-      - name: Run breaking change detection
-        id: breaking
-        continue-on-error: true
-        run: |
-          oasdiff breaking main-spec/openapi.yaml pr-spec/openapi.yaml --format json > breaking-changes.json || true
-          oasdiff changelog main-spec/openapi.yaml pr-spec/openapi.yaml --format markdown > changelog.md || true
-
-      - name: Comment PR with results
+      - name: Comment PR with image tags
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
+            const comment = `## 🐳 Docker Image Built
 
-            let breaking = [];
-            try {
-              const breakingData = fs.readFileSync('breaking-changes.json', 'utf8');
-              if (breakingData.trim()) {
-                breaking = JSON.parse(breakingData);
-              }
-            } catch (e) {
-              console.log('No breaking changes file or empty');
-            }
+            ✅ Docker image successfully built and pushed to GHCR
 
-            let changelog = '';
-            try {
-              changelog = fs.readFileSync('changelog.md', 'utf8');
-            } catch (e) {
-              console.log('No changelog file');
-            }
+            **Image Tags:**
+            - \`ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}\`
+            - \`ghcr.io/${{ github.repository }}:sha-${{ github.sha }}\`
 
-            const hasBreaking = breaking.length > 0;
-            const emoji = hasBreaking ? '⚠️' : '✅';
-            const title = hasBreaking ? 'Breaking Changes Detected' : 'No Breaking Changes';
+            **Pull Image:**
+            \`\`\`bash
+            docker pull ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}
+            \`\`\`
 
-            let comment = `## ${emoji} API Changes Report (Code-First)\n\n`;
-            comment += `### ${title}\n\n`;
+            ---
+            *Built with GitHub Actions*`;
 
-            if (hasBreaking) {
-              comment += '> **Warning**: This PR introduces breaking changes to the API.\n\n';
-              comment += '<details>\n<summary>Breaking Changes Details</summary>\n\n';
-              comment += '```json\n' + JSON.stringify(breaking, null, 2) + '\n```\n';
-              comment += '</details>\n\n';
-            } else {
-              comment += '✅ No breaking changes detected in this PR.\n\n';
-            }
-
-            if (changelog) {
-              comment += '<details>\n<summary>Full API Changelog</summary>\n\n';
-              comment += changelog;
-              comment += '\n</details>\n\n';
-            }
-
-            comment += '---\n';
-            comment += '*Generated by SpringDoc + [oasdiff](https://github.com/Tufin/oasdiff)*';
-
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
+            github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
+              body: comment
             });
-
-            const botComment = comments.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes('API Changes Report')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: comment
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: comment
-              });
-            }
-
-            if (hasBreaking) {
-              core.setFailed('Breaking changes detected in API specification');
-            }
-
-      - name: Upload breaking changes report
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-breaking-changes-report
-          path: |
-            breaking-changes.json
-            changelog.md
-          retention-days: 30

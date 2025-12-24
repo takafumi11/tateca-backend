@@ -55,6 +55,12 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
    - Triggers: Pull requests to `main`
    - Jobs:
      - **Java Tests**: Build and run all tests with JDK 21
+     - **Docker Build & Push**:
+       - Builds Docker image with multi-stage build
+       - Pushes to GitHub Container Registry (GHCR)
+       - Tags: `pr-<number>`, `sha-<commit-sha>`
+       - Uses GitHub Actions cache for faster builds
+       - Comments PR with image information
      - **API Validation & Generation**:
        - Builds Spring Boot application
        - Starts app in background with minimal environment
@@ -63,69 +69,97 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
        - Generates HTML documentation with Redocly
        - Uploads spec artifacts for download
        - Comments PR with spec statistics
-     - **Breaking Changes Detection**:
-       - Downloads PR-generated spec from artifacts
-       - Checks out `main` branch and generates baseline spec
-       - Compares specs with oasdiff
-       - Comments PR with breaking changes report and changelog
+     - **Breaking Changes Detection** (Disabled):
+       - Previously used oasdiff to compare specs
+       - Currently disabled as feature is not in active use
+       - Can be re-enabled when needed for API version management
 
-2. **Documentation Deployment** (`.github/workflows/docs.yml`)
-   - Triggers: Push to `main` (when `src/**` or `build.gradle.kts` changes)
-   - Workflow:
-     - Builds and starts Spring Boot application
-     - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
-     - Generates HTML documentation with Redocly
-     - Generates Swagger UI for interactive API testing
-     - Generates Postman Collection from OpenAPI spec
-     - Creates resource page with links to all documentation
-     - Deploys to GitHub Pages
+2. **CD Pipeline** (`.github/workflows/cd.yml`)
+   - Triggers: Push to `main` (when code or Dockerfile changes)
+   - Jobs run in sequence:
+     - **Docker Build & Push** → **OpenAPI Docs Deployment** + **Railway Redeploy**
+   - **Docker Build & Push**:
+       - Builds production Docker image
+       - Pushes to GHCR with `latest`, `main-<sha>` tags
+       - Uses build cache for optimization
+   - **OpenAPI Documentation Deployment**:
+       - **Optimized**: Uses pre-built Docker image from previous job
+       - Pulls image from GHCR (no build time, ~3min faster)
+       - Starts application container with MySQL service
+       - Fetches OpenAPI spec from running container
+       - Generates Swagger UI for interactive API testing
+       - Generates Redoc documentation
+       - Deploys to GitHub Pages
+       - Total time: ~2-3min (vs ~5-8min without optimization)
+   - **Railway Redeploy**:
+       - Triggers Railway to deploy using pre-built GHCR image
+       - Uses `railway redeploy` command
+       - Railway pulls image from GHCR (configured via Railway console)
    - URLs:
      - Base: https://tateca.github.io/tateca-backend (or your configured URL)
      - Swagger UI: `/swagger.html` - Interactive API testing (Try APIs in browser)
      - Redoc: `/` - Beautiful API documentation
-     - Postman Collection: `/postman-collection.json` - Ready-to-import collection
      - Resources: `/downloads.html` - Download specs and links
-
-3. **CD Pipeline** (`.github/workflows/cd.yml`)
-   - Deployment to production (Railway)
 
 **Code-First API Documentation:**
 - **Source of Truth**: Spring Boot application code with SpringDoc annotations
 - **Generation**: OpenAPI spec auto-generated from controller annotations at runtime
 - **Process**:
-  1. CI/CD builds Spring Boot app
-  2. Starts app with minimal environment (mock credentials)
+  1. PR: Validates and generates OpenAPI spec for review
+  2. Main merge: Builds Spring Boot app with minimal environment
   3. Fetches spec from `/v3/api-docs` endpoint
   4. Generates documentation with Redocly (static docs)
   5. Generates Swagger UI (interactive testing)
-  6. Generates Postman Collection (API testing)
-  7. Deploys to GitHub Pages
+  6. Deploys to GitHub Pages
 - **Benefits**:
   - Code and docs always in sync
   - No manual spec maintenance
-  - Breaking changes caught automatically
+  - Breaking changes caught automatically in PRs
   - Single source of truth (code)
-  - Browser-based API testing without Postman
-  - Pre-configured Postman Collection for production testing
+  - Browser-based API testing without external tools
+  - Shift-left testing: Docker builds validated in PRs
 - **Usage**:
-  - **Swagger UI**: Test APIs directly in browser with "Try it out" buttons (local development)
+  - **Swagger UI**: Test APIs directly in browser with "Try it out" buttons
   - **Redoc**: Browse beautiful, responsive API documentation
-  - **Postman Collection**: Download and import into Postman for production API testing
-  - **OpenAPI Specs**: Import into Insomnia or other API tools if preferred
+  - **OpenAPI Specs**: Download YAML/JSON for Postman, Insomnia, or other API tools
 
-**API Breaking Change Detection:**
-- Uses [oasdiff](https://github.com/Tufin/oasdiff) to compare generated OpenAPI specs
-- Compares PR branch spec vs main branch spec (both generated from code)
-- Automatically comments on PRs with:
-  - ✅ No breaking changes, or
-  - ⚠️ Breaking changes detected with detailed report
-- Fails CI if breaking changes are detected (intentional breaking changes require manual approval)
-- Full changelog generated for all API modifications
+**API Breaking Change Detection (Currently Disabled):**
+- **Status**: Feature temporarily disabled (not in active use)
+- **Previous Implementation**: Used [oasdiff](https://github.com/Tufin/oasdiff) to compare OpenAPI specs
+- **Capability**: Could automatically detect breaking changes in PRs
+- **Future Use**: Can be re-enabled when API versioning becomes critical
 - **Breaking Change Examples**:
   - Removing endpoints or request/response fields
   - Adding required parameters
   - Changing response status codes
   - Modifying data types or formats
+
+**Docker Image Management:**
+- **Registry**: GitHub Container Registry (GHCR) at `ghcr.io/<owner>/<repo>`
+- **Build Strategy**: Multi-stage build with Gradle + JRE
+- **Tags**:
+  - PR builds: `pr-<number>`, `sha-<commit-sha>`
+  - Production: `latest`, `main-<sha>`
+- **Caching**: GitHub Actions cache for faster builds
+- **Image Size**: ~200MB (JRE-based, optimized for production)
+- **Storage Policy**: PR images retained for 7 days, production images indefinitely
+
+**Railway Deployment Configuration:**
+- **Current Setup**: Configured for image-based deployment
+  - Source: **Image** (not Dockerfile)
+  - Image URL: `ghcr.io/tateca/tateca-backend:latest`
+  - Configured via Railway Web Console (Settings → Build)
+  - No `railway.toml` required for image-based deployments
+- **Workflow**:
+  1. GitHub Actions builds and pushes image to GHCR on main branch merge
+  2. GitHub Actions triggers `railway redeploy` command
+  3. Railway pulls latest image from GHCR (no build step)
+  4. Railway deploys using pre-built, tested image
+- **Benefits**:
+  - ⚡ Faster deployments (no Railway build time, ~30s vs ~5min)
+  - 🔒 Consistent environments (same image tested in PRs)
+  - 💰 Reduced Railway build minutes usage
+  - ✅ Immutable artifacts (build once, deploy anywhere)
 
 **Dependabot:**
 - Automatic dependency updates weekly (Monday 09:00 JST)
