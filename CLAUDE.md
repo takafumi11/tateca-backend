@@ -49,122 +49,237 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 
 ## CI/CD
 
-**GitHub Actions Workflows:**
+### Overview
 
-1. **CI Pipeline** (`.github/workflows/ci.yml`)
-   - Triggers: Pull requests to `main`
-   - Jobs:
-     - **Java Tests**: Build and run all tests with JDK 21
-     - **Docker Build & Push**:
-       - Builds Docker image with multi-stage build
-       - Pushes to GitHub Container Registry (GHCR)
-       - Tags: `pr-<number>`, `sha-<commit-sha>`
-       - Uses GitHub Actions cache for faster builds
-       - Comments PR with image information
-     - **API Validation & Generation**:
-       - Builds Spring Boot application
-       - Starts app in background with minimal environment
-       - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
-       - Validates spec with Spectral CLI
-       - Generates HTML documentation with Redocly
-       - Uploads spec artifacts for download
-       - Comments PR with spec statistics
-     - **Breaking Changes Detection** (Disabled):
-       - Previously used oasdiff to compare specs
-       - Currently disabled as feature is not in active use
-       - Can be re-enabled when needed for API version management
+Modern CI/CD pipeline following **Build Once, Deploy Anywhere** principle with strict separation of concerns:
 
-2. **CD Pipeline** (`.github/workflows/cd.yml`)
-   - Triggers: Push to `main` (when code or Dockerfile changes)
-   - Jobs run in sequence:
-     - **Docker Build & Push** → **OpenAPI Docs Deployment** + **Railway Redeploy**
-   - **Docker Build & Push**:
-       - Builds production Docker image
-       - Pushes to GHCR with `latest`, `main-<sha>` tags
-       - Uses build cache for optimization
-   - **OpenAPI Documentation Deployment**:
-       - **Optimized**: Uses pre-built Docker image from previous job
-       - Pulls image from GHCR (no build time, ~3min faster)
-       - Starts application container with MySQL service
-       - Fetches OpenAPI spec from running container
-       - Generates Swagger UI for interactive API testing
-       - Generates Redoc documentation
-       - Deploys to GitHub Pages
-       - Total time: ~2-3min (vs ~5-8min without optimization)
-   - **Railway Redeploy**:
-       - Triggers Railway to deploy using pre-built GHCR image
-       - Uses `railway redeploy` command
-       - Railway pulls image from GHCR (configured via Railway console)
-   - URLs:
-     - Base: https://tateca.github.io/tateca-backend (or your configured URL)
-     - Swagger UI: `/swagger.html` - Interactive API testing (Try APIs in browser)
-     - Redoc: `/` - Beautiful API documentation
-     - Resources: `/downloads.html` - Download specs and links
+```
+Pull Request → CI (Test & Build) → Merge → CD (Retag & Deploy)
+```
 
-**Code-First API Documentation:**
-- **Source of Truth**: Spring Boot application code with SpringDoc annotations
-- **Generation**: OpenAPI spec auto-generated from controller annotations at runtime
-- **Process**:
-  1. PR: Validates and generates OpenAPI spec for review
-  2. Main merge: Builds Spring Boot app with minimal environment
-  3. Fetches spec from `/v3/api-docs` endpoint
-  4. Generates documentation with Redocly (static docs)
-  5. Generates Swagger UI (interactive testing)
-  6. Deploys to GitHub Pages
-- **Benefits**:
-  - Code and docs always in sync
-  - No manual spec maintenance
-  - Breaking changes caught automatically in PRs
-  - Single source of truth (code)
-  - Browser-based API testing without external tools
-  - Shift-left testing: Docker builds validated in PRs
-- **Usage**:
-  - **Swagger UI**: Test APIs directly in browser with "Try it out" buttons
-  - **Redoc**: Browse beautiful, responsive API documentation
-  - **OpenAPI Specs**: Download YAML/JSON for Postman, Insomnia, or other API tools
+**Key Principles:**
+- ✅ **Immutable Artifacts**: Docker images built once in CI, reused in CD
+- ✅ **Shift-Left Testing**: All validation happens during PR (before merge)
+- ✅ **Fast Deployments**: CD only retags images (~30s) instead of rebuilding (3-4min)
+- ✅ **Branch Protection**: All code flows through PR → CI → Main → CD
 
-**API Breaking Change Detection (Currently Disabled):**
-- **Status**: Feature temporarily disabled (not in active use)
-- **Previous Implementation**: Used [oasdiff](https://github.com/Tufin/oasdiff) to compare OpenAPI specs
-- **Capability**: Could automatically detect breaking changes in PRs
-- **Future Use**: Can be re-enabled when API versioning becomes critical
-- **Breaking Change Examples**:
-  - Removing endpoints or request/response fields
-  - Adding required parameters
-  - Changing response status codes
-  - Modifying data types or formats
+### Prerequisites
 
-**Docker Image Management:**
-- **Registry**: GitHub Container Registry (GHCR) at `ghcr.io/<owner>/<repo>`
-- **Build Strategy**: Multi-stage build with Gradle + JRE
-- **Tags**:
-  - PR builds: `pr-<number>`, `sha-<commit-sha>`
-  - Production: `latest`, `main-<sha>`
-- **Caching**: GitHub Actions cache for faster builds
-- **Image Size**: ~200MB (JRE-based, optimized for production)
-- **Storage Policy**: PR images retained for 7 days, production images indefinitely
+**Branch Protection Rules** (Required):
+- Navigate to: GitHub Repository → Settings → Branches → Branch protection rules
+- Enable for `main` branch:
+  - ✅ Require pull request before merging
+  - ✅ Require status checks to pass (CI pipeline)
+  - ✅ Prevent direct pushes to main
+- **Why**: Ensures all code goes through CI validation before reaching production
 
-**Railway Deployment Configuration:**
-- **Current Setup**: Configured for image-based deployment
-  - Source: **Image** (not Dockerfile)
-  - Image URL: `ghcr.io/tateca/tateca-backend:latest`
-  - Configured via Railway Web Console (Settings → Build)
-  - No `railway.toml` required for image-based deployments
-- **Workflow**:
-  1. GitHub Actions builds and pushes image to GHCR on main branch merge
-  2. GitHub Actions triggers `railway redeploy` command
-  3. Railway pulls latest image from GHCR (no build step)
-  4. Railway deploys using pre-built, tested image
-- **Benefits**:
-  - ⚡ Faster deployments (no Railway build time, ~30s vs ~5min)
-  - 🔒 Consistent environments (same image tested in PRs)
-  - 💰 Reduced Railway build minutes usage
-  - ✅ Immutable artifacts (build once, deploy anywhere)
+### Workflows
+
+#### 1. CI Pipeline (`.github/workflows/ci.yml`)
+
+**Trigger:** Pull requests to `main` branch only
+
+**Purpose:** Validate code quality, build artifacts, generate documentation
+
+**Jobs:**
+
+| Job | Duration | Description |
+|-----|----------|-------------|
+| `java-test` | 2-3 min | JDK 21 build & test execution |
+| `docker-build-push` | 3-4 min | Multi-stage Docker build → GHCR push |
+| `api-validation` | 5-7 min | OpenAPI generation, validation, documentation |
+
+**Job Details:**
+
+1. **Java Tests** (`java-test`)
+   - Builds project with Gradle
+   - Runs all unit, integration, and contract tests
+   - Required for subsequent jobs
+
+2. **Docker Build & Push** (`docker-build-push`)
+   - **Depends on:** `java-test`
+   - Builds Docker image with multi-stage build (Gradle + JRE)
+   - Pushes to GitHub Container Registry (GHCR)
+   - **Tags:** `sha-<commit-hash>` (NOT `latest` - that's CD's job)
+   - Uses GitHub Actions cache for faster subsequent builds
+   - Comments on PR with image information
+
+3. **API Validation & Generation** (`api-validation`)
+   - Builds and starts Spring Boot application with minimal environment
+   - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
+   - Validates spec with Spectral CLI
+   - Generates HTML documentation with Redocly
+   - Uploads spec artifacts to GitHub Actions
+   - Comments on PR with specification statistics
+
+**Total CI Time:** ~10-15 minutes
+
+**Why CI Only Runs on PRs:**
+- PRs are the only way code enters `main` (via branch protection)
+- Eliminates duplicate builds when merging
+- Clear separation: CI = validation, CD = deployment
+
+---
+
+#### 2. CD Pipeline (`.github/workflows/cd.yml`)
+
+**Trigger:** Push to `main` branch (PR merges only, direct pushes disabled)
+
+**Purpose:** Deploy validated artifacts to production environments
+
+**Jobs:** Run in sequence with dependencies
+
+```
+docker-retag → [deploy-docs, railway-redeploy]
+```
+
+**Job Details:**
+
+1. **Docker Retag** (`docker-retag`)
+   - **Duration:** ~30 seconds
+   - Pulls pre-built image from CI: `ghcr.io/<repo>:sha-<commit>`
+   - Retags as `latest` for production: `ghcr.io/<repo>:latest`
+   - Pushes `latest` tag to GHCR
+   - **No rebuild** - uses exact image tested in PR
+   - **Optimization:** 3-4 min saved vs rebuilding
+
+2. **Deploy API Documentation** (`deploy-docs`)
+   - **Duration:** ~2-3 minutes
+   - **Depends on:** `docker-retag`
+   - **Optimized:** Uses pre-built `latest` image (no Gradle/JDK setup)
+   - Starts application container with MySQL service
+   - Fetches OpenAPI spec from running container
+   - Generates Swagger UI for interactive testing
+   - Generates Redoc for static documentation
+   - Deploys to GitHub Pages
+   - **Optimization:** 3 min saved by using Docker image vs building app
+
+3. **Railway Redeploy** (`railway-redeploy`)
+   - **Duration:** ~30 seconds (trigger only, actual deploy by Railway)
+   - **Depends on:** `docker-retag`
+   - Triggers Railway to pull `latest` image from GHCR
+   - Railway deploys pre-built image (no build step on Railway)
+   - **Optimization:** 5 min saved vs Railway building from Dockerfile
+
+**Total CD Time:** ~3-4 minutes (vs 8-10 min without optimizations)
+
+**Documentation URLs:**
+- Base: https://tateca.github.io/tateca-backend
+- Swagger UI: `/swagger.html` - Interactive API testing
+- Redoc: `/` - Beautiful API documentation
+- Resources: `/downloads.html` - Download OpenAPI specs
+
+---
+
+### Docker Image Management
+
+**Registry:** GitHub Container Registry (GHCR) at `ghcr.io/<owner>/<repo>`
+
+**Build Strategy:**
+- Multi-stage Dockerfile (builder: JDK 21 + Gradle, runtime: JRE 21)
+- Built **once** in CI, **reused** in CD
+- No rebuilds in CD pipeline
+
+**Image Tags:**
+
+| Tag | Created By | Purpose | Example |
+|-----|-----------|---------|---------|
+| `sha-<commit>` | CI | Immutable reference to specific commit | `sha-a1b2c3d` |
+| `latest` | CD | Production deployment tag | `latest` |
+
+**Tag Lifecycle:**
+```
+1. PR created → CI builds → ghcr.io/repo:sha-a1b2c3d
+2. PR merged  → CD retags → ghcr.io/repo:latest (points to sha-a1b2c3d)
+3. Railway deploys ghcr.io/repo:latest
+```
+
+**Image Specifications:**
+- Size: ~200MB (JRE-based, optimized for production)
+- Base: eclipse-temurin:21-jre
+- Caching: GitHub Actions cache for faster builds
+- Storage: All SHA-tagged images retained indefinitely
+
+**Why SHA Tags in CI, Latest in CD:**
+- ✅ `sha-<commit>` is immutable (never changes)
+- ✅ `latest` always points to current production (`main` branch)
+- ✅ Prevents PR images from overwriting production `latest`
+- ✅ Enables easy rollback (retag any `sha-xxx` as `latest`)
+
+---
+
+### Railway Deployment
+
+**Configuration:** Image-based deployment (Settings → Build → Image)
+
+**Image URL:** `ghcr.io/tateca/tateca-backend:latest`
+
+**Deployment Flow:**
+```
+1. CI: Build image → ghcr.io/repo:sha-abc123
+2. CD: Retag sha-abc123 → latest
+3. CD: Trigger railway redeploy
+4. Railway: Pull latest from GHCR → Deploy
+```
+
+**Benefits:**
+- ⚡ **Fast:** Railway deployment ~30s (no build, just pull)
+- 🔒 **Consistent:** Exact same image tested in PR
+- 💰 **Cost-effective:** Zero Railway build minutes used
+- ✅ **Reliable:** Pre-tested artifacts, immutable images
+
+**No `railway.toml` Required:**
+- Railway configured via Web Console (not file-based)
+- Image URL set directly in Railway settings
+- Dockerfile in repo is NOT used by Railway
+
+---
+
+### API Documentation (Code-First)
+
+**Philosophy:** Source code is the single source of truth for API specification
+
+**Implementation:**
+- SpringDoc annotations on controllers define API spec
+- OpenAPI spec auto-generated at runtime from `/v3/api-docs` endpoint
+- No manual YAML/JSON maintenance required
+
+**Generation Process:**
+1. **PR (ci.yml):** Generate spec for validation and review
+2. **Main (cd.yml):** Generate spec and deploy documentation to GitHub Pages
+
+**Tools:**
+- SpringDoc OpenAPI: Annotation-based spec generation
+- Spectral: Linting and validation
+- Redocly: Static documentation site generation
+- Swagger UI: Interactive API testing interface
+
+**Benefits:**
+- ✅ Code and docs always in sync (impossible to be out of date)
+- ✅ Breaking changes caught automatically in PRs
+- ✅ Zero manual spec maintenance
+- ✅ Interactive testing without Postman
+
+**Usage:**
+- **Swagger UI:** Test endpoints in browser with "Try it out"
+- **Redoc:** Browse beautiful, responsive documentation
+- **Downloads:** Get OpenAPI YAML/JSON for Postman, Insomnia, etc.
+
+---
+
+### Additional Features
+
+**API Breaking Change Detection (Disabled):**
+- **Status:** Currently disabled, not in active use
+- **Tool:** [oasdiff](https://github.com/Tufin/oasdiff) for spec comparison
+- **Capability:** Automated detection of breaking API changes in PRs
+- **Future:** Can be re-enabled when API versioning becomes critical
+- **Examples:** Removed endpoints, new required fields, type changes
 
 **Dependabot:**
-- Automatic dependency updates weekly (Monday 09:00 JST)
-- Grouped updates for Spring Boot, testing libraries, and security dependencies
-- GitHub Actions and Docker updates managed separately
+- Weekly dependency updates (Monday 09:00 JST)
+- Grouped updates for Spring Boot, testing libraries, security patches
+- Separate groups for GitHub Actions and Docker base images
 
 ## Code Quality
 
@@ -337,128 +452,32 @@ class ExchangeRateContractTest extends AbstractContractTest {
 
 ## API Specification Management
 
-### Overview
+### Current Approach: Code-First
+
+This project uses **Code-First** approach for API documentation:
+
+**Implementation:**
+- SpringDoc annotations on controllers define API specification
+- OpenAPI spec auto-generated at runtime from `/v3/api-docs` endpoint
+- CI/CD automatically generates and deploys documentation
+
+**Documentation:** See [CI/CD → API Documentation (Code-First)](#api-documentation-code-first) section above
+
+**Artifacts:**
+- Live docs: https://tateca.github.io/tateca-backend
+- Swagger UI: Interactive API testing
+- Redoc: Static documentation
+- OpenAPI specs: Download YAML/JSON
+
+### Legacy: Spec-First (Deprecated)
 
 **⚠️ Migration Notice:**
-This project is currently transitioning from **Spec-First** to **Code-First** approach for API documentation. The `api-specs/` directory is maintained temporarily during the migration period but will eventually be removed. The new Code-First approach uses SpringDoc annotations in source code as the single source of truth.
+The `api-specs/` directory contains legacy Spec-First specifications. This approach is **deprecated** and will be removed once migration to Code-First is complete.
 
-**Current Approach (Code-First):**
-- OpenAPI specs are auto-generated from Spring Boot application code
-- SpringDoc annotations on controllers define the API specification
-- CI/CD generates and deploys documentation automatically
-- See "Code-First API Documentation" section in CI/CD above
-
-**Legacy Approach (Spec-First - Temporary):**
-API specifications and Postman collections in the `api-specs/` directory follow a Spec-First approach where OpenAPI specifications are manually maintained.
-
-### Directory Structure
-```
-api-specs/
-├── openapi/              # OpenAPI 3.0 specification (modular)
-├── postman/              # Postman collections and environments
-├── docs/                 # Generated documentation
-├── dist/                 # Bundled specifications
-└── scripts/              # Automation scripts
-```
-
-### Quick Start
-
-**Setup:**
-```bash
-cd api-specs
-npm install
-```
-
-**Development Workflow:**
-```bash
-npm run lint              # Validate OpenAPI spec
-npm run bundle            # Bundle modular spec
-npm run build-docs        # Generate HTML documentation
-npm run generate:postman  # Generate Postman collection from OpenAPI
-npm run dev              # Full workflow: bundle + docs + serve
-```
-
-**View Documentation:**
-```bash
-npm run preview          # Interactive preview
-npm run serve           # Serve generated docs at http://localhost:8080
-```
-
-### API Specification Workflow
-
-**1. Editing OpenAPI Specifications:**
-- Edit modular files in `api-specs/openapi/paths/` or `api-specs/openapi/components/`
-- Never edit bundled files in `api-specs/dist/` (auto-generated)
-- Validate changes with `npm run lint`
-
-**2. Generating Documentation:**
-- Run `npm run build-docs` to generate HTML documentation
-- Documentation is served via `npm run serve` at port 8080
-- CI/CD automatically deploys to GitHub Pages on merge
-
-**3. Postman Collections:**
-- Manual collection: `postman/collections/Tateca Backend.postman_collection.json`
-- Auto-generated: `postman/collections/tateca-api-generated.postman_collection.json` (from OpenAPI)
-- Environments: `postman/environments/*.postman_environment.json`
-- Run `npm run generate:postman` to sync with OpenAPI spec
-
-**4. CI/CD Integration:**
-- OpenAPI validation runs on every PR
-- Documentation auto-deploys on merge to main
-- Breaking changes are detected automatically
-
-### NPM Scripts Reference
-
-**Validation:**
-- `npm run lint` - Validate OpenAPI specification
-- `npm run validate` - JSON format validation (CI/CD)
-- `npm run stats` - Show specification statistics
-
-**Build:**
-- `npm run bundle` - Bundle modular spec to single file
-- `npm run build-docs` - Generate HTML documentation
-- `npm run build:all` - Clean + bundle + docs
-
-**Development:**
-- `npm run preview` - Interactive documentation preview
-- `npm run dev` - Full dev workflow (bundle + docs + serve)
-- `npm test` - CI/CD test (lint + bundle)
-
-**Postman:**
-- `npm run generate:postman` - Generate collection from OpenAPI
-- `npm run postman:validate` - Validate collections with Newman
-
-### Best Practices
-
-1. **Spec-First Development:**
-   - Update OpenAPI spec before implementing endpoints
-   - Use spec as contract between frontend and backend
-   - Generate Postman collections from spec for consistency
-
-2. **Version Control:**
-   - Commit OpenAPI source files only
-   - Exclude generated files (dist/, docs/, node_modules/)
-   - Auto-generated Postman collections are gitignored
-
-3. **Documentation:**
-   - Keep OpenAPI descriptions comprehensive
-   - Use examples for all schemas and responses
-   - Run `npm run preview` to verify documentation appearance
-
-4. **Testing:**
-   - Use Postman environments for different stages (local/production)
-   - Validate API behavior with Newman: `npm run postman:validate`
-   - Ensure OpenAPI spec matches actual API implementation
-
-### Integration with Backend
-
-The API specifications are tightly integrated with the Spring Boot backend:
-- Specifications live alongside code in same repository
-- CI/CD validates both code and specs together
-- Breaking API changes are caught in PR validation
-- Documentation deploys automatically with releases
-
-For detailed API specification workflows, see `api-specs/README.md`
+**If you need the old tooling:**
+- See `api-specs/README.md` for npm scripts and workflows
+- Note: These specs are no longer actively maintained
+- Do not use for new development
 
 ## Refactoring Best Practices
 

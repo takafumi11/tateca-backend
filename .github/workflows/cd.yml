@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  docker-build-and-push:
-    name: Build and Push Docker Image
+  docker-retag:
+    name: Retag Docker Image as Latest
     runs-on: ubuntu-latest
 
     permissions:
@@ -24,12 +24,6 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -37,31 +31,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Pull and retag image as latest
+        run: |
+          IMAGE_NAME="ghcr.io/${{ github.repository }}"
+          SHA_TAG="sha-${{ github.sha }}"
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
+          echo "📦 Pulling pre-built image from CI..."
+          echo "Image: ${IMAGE_NAME}:${SHA_TAG}"
+          docker pull ${IMAGE_NAME}:${SHA_TAG}
+
+          echo "🏷️  Tagging as latest..."
+          docker tag ${IMAGE_NAME}:${SHA_TAG} ${IMAGE_NAME}:latest
+
+          echo "📤 Pushing latest tag to GHCR..."
+          docker push ${IMAGE_NAME}:latest
+
+          echo "✅ Image retagged successfully!"
+          echo "   - Source: ${IMAGE_NAME}:${SHA_TAG}"
+          echo "   - Target: ${IMAGE_NAME}:latest"
 
   deploy-docs:
     name: Deploy API Documentation to GitHub Pages
     runs-on: ubuntu-latest
-    needs: docker-build-and-push
+    needs: docker-retag
 
     permissions:
       contents: read
@@ -289,7 +281,7 @@ jobs:
   railway-redeploy:
     name: Redeploy to Railway
     runs-on: ubuntu-latest
-    needs: docker-build-and-push
+    needs: docker-retag
 
     container:
       image: ghcr.io/railwayapp/cli:latest
