@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionHistoryEntity, UUID>, TransactionRepositoryCustom {
-    Long countByGroupUuid(UUID groupUuid);
+    Long countByGroup_Uuid(UUID groupUuid);
 }
