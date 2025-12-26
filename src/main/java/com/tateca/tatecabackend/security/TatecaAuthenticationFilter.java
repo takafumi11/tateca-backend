@@ -15,6 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Spring Security filter that handles Firebase JWT authentication.
@@ -24,6 +26,23 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
 
     @Value("${firebase.project.id}")
     private String firebaseProjectId;
+
+    // Public endpoints that don't require authentication
+    private static final List<String> PUBLIC_PATHS = Arrays.asList(
+        "/error",
+        "/swagger-ui",
+        "/v3/api-docs",
+        "/swagger-resources",
+        "/webjars",
+        "/actuator/health",
+        "/dev"
+    );
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
