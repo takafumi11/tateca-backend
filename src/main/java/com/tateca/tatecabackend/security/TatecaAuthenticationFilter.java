@@ -15,41 +15,49 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Spring Security filter that handles both Firebase JWT and Lambda API Key authentication.
+ * Spring Security filter that handles Firebase JWT authentication.
  * Replaces the old BearerTokenInterceptor with Spring Security integration.
  */
 public class TatecaAuthenticationFilter extends OncePerRequestFilter {
 
-    @Value("${lambda.api.key}")
-    private String lambdaApiKey;
-
     @Value("${firebase.project.id}")
     private String firebaseProjectId;
 
-    private static final String X_API_KEY_HEADER = "X-API-KEY";
+    // Public endpoints that don't require authentication
+    private static final List<String> PUBLIC_PATHS = Arrays.asList(
+        "/error",
+        "/swagger-ui",
+        "/v3/api-docs",
+        "/swagger-resources",
+        "/webjars",
+        "/actuator/health",
+        "/dev"
+    );
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String apiKey = request.getHeader(X_API_KEY_HEADER);
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         try {
-            // Determine authentication method
-            if (apiKey != null && !apiKey.isEmpty()) {
-                // Lambda API Key authentication
-                authenticateWithApiKey(apiKey);
-            } else if (bearerToken != null && !bearerToken.isEmpty()) {
-                // Firebase JWT authentication
-                authenticateWithBearerToken(bearerToken);
-            } else {
-                // No authentication provided
+            if (bearerToken == null || bearerToken.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Missing authentication header (X-API-KEY or Authorization)");
+                    "Missing Authorization header");
             }
+
+            // Firebase JWT authentication
+            authenticateWithBearerToken(bearerToken);
 
             filterChain.doFilter(request, response);
 
@@ -61,15 +69,6 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
             // Clear security context after request
             SecurityContextHolder.clearContext();
         }
-    }
-
-    private void authenticateWithApiKey(String apiKey) {
-        if (!lambdaApiKey.equals(apiKey)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid X-API-KEY");
-        }
-
-        LambdaAuthentication authentication = new LambdaAuthentication();
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private void authenticateWithBearerToken(String bearerToken) throws FirebaseAuthException {

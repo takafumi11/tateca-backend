@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tateca.tatecabackend.config.TestLambdaSecurityConfig;
+import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.dto.request.ExchangeRateUpdateRequestDTO;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ExchangeRateLambdaController.class)
-@Import({GlobalExceptionHandler.class, TestLambdaSecurityConfig.class})
+@Import({GlobalExceptionHandler.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("ExchangeRateLambdaController Web Tests")
 class ExchangeRateLambdaControllerTest {
@@ -45,7 +45,6 @@ class ExchangeRateLambdaControllerTest {
     private ExchangeRateUpdateService exchangeRateUpdateService;
 
     private static final String ENDPOINT = "/internal/exchange-rates";
-    private static final String VALID_API_KEY = TestLambdaSecurityConfig.TEST_LAMBDA_API_KEY;
 
     /**
      * Converts an object to JSON string for request bodies.
@@ -65,7 +64,6 @@ class ExchangeRateLambdaControllerTest {
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT)
-                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request)))
                 .andExpect(status().isNoContent());
@@ -82,7 +80,6 @@ class ExchangeRateLambdaControllerTest {
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT)
-                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest());
@@ -99,7 +96,6 @@ class ExchangeRateLambdaControllerTest {
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT)
-                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest());
@@ -113,7 +109,6 @@ class ExchangeRateLambdaControllerTest {
     void shouldReturn400WhenRequestBodyIsEmpty() throws Exception {
         // When: Calling endpoint without body
         mockMvc.perform(post(ENDPOINT)
-                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
@@ -134,7 +129,6 @@ class ExchangeRateLambdaControllerTest {
         // When: Calling endpoint
         // Then: Should return 500 (handled by GlobalExceptionHandler)
         mockMvc.perform(post(ENDPOINT)
-                        .header("X-API-KEY", VALID_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request)))
                 .andExpect(status().isInternalServerError())
@@ -143,46 +137,6 @@ class ExchangeRateLambdaControllerTest {
 
         // And: Service should be called
         verify(exchangeRateUpdateService, times(1)).fetchAndStoreExchangeRateByDate(testDate);
-    }
-
-    @Nested
-    @DisplayName("Lambda API Key Authentication Tests")
-    class AuthenticationTests {
-
-        @Test
-        @DisplayName("Should return 401 Unauthorized when invalid X-API-KEY is provided")
-        void shouldReturn401WhenInvalidApiKeyProvided() throws Exception {
-            // Given: Invalid API key
-            LocalDate testDate = LocalDate.of(2024, 1, 15);
-            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(testDate);
-
-            // When: Calling endpoint with invalid X-API-KEY
-            mockMvc.perform(post(ENDPOINT)
-                            .header("X-API-KEY", "invalid-api-key")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(toJson(request)))
-                    .andExpect(status().isUnauthorized());
-
-            // Then: Service should not be called
-            verify(exchangeRateUpdateService, never()).fetchAndStoreExchangeRateByDate(any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 Bad Request when X-API-KEY header is missing")
-        void shouldReturn400WhenApiKeyHeaderMissing() throws Exception {
-            // Given: No X-API-KEY header
-            LocalDate testDate = LocalDate.of(2024, 1, 15);
-            ExchangeRateUpdateRequestDTO request = new ExchangeRateUpdateRequestDTO(testDate);
-
-            // When: Calling endpoint without X-API-KEY
-            mockMvc.perform(post(ENDPOINT)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(toJson(request)))
-                    .andExpect(status().isBadRequest());
-
-            // Then: Service should not be called
-            verify(exchangeRateUpdateService, never()).fetchAndStoreExchangeRateByDate(any());
-        }
     }
 
     @Nested
@@ -197,8 +151,7 @@ class ExchangeRateLambdaControllerTest {
 
             // When: Calling endpoint
             mockMvc.perform(post(ENDPOINT)
-                            .header("X-API-KEY", VALID_API_KEY)
-                            .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
                             .content(invalidRequest))
                     .andExpect(status().isBadRequest());
 
@@ -218,8 +171,7 @@ class ExchangeRateLambdaControllerTest {
 
             // When: Calling endpoint
             mockMvc.perform(post(ENDPOINT)
-                            .header("X-API-KEY", VALID_API_KEY)
-                            .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
                             .content(toJson(request)))
                     .andExpect(status().isNoContent());
 
@@ -239,8 +191,7 @@ class ExchangeRateLambdaControllerTest {
 
             // When: Calling endpoint
             mockMvc.perform(post(ENDPOINT)
-                            .header("X-API-KEY", VALID_API_KEY)
-                            .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
                             .content(toJson(request)))
                     .andExpect(status().isNoContent());
 
@@ -260,8 +211,7 @@ class ExchangeRateLambdaControllerTest {
 
             // When: Calling endpoint
             mockMvc.perform(post(ENDPOINT)
-                            .header("X-API-KEY", VALID_API_KEY)
-                            .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
                             .content(toJson(request)))
                     .andExpect(status().isNoContent());
 
