@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDate;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -57,26 +55,6 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
                     .containsEntry("EUR", 0.0061);
 
             verifyApiWasCalledOnce("/latest/JPY");
-        }
-
-        @Test
-        @DisplayName("Then should successfully fetch exchange rates for specific date")
-        void thenShouldSuccessfullyFetchExchangeRatesForSpecificDate() {
-            // Given: External API returns valid response for specific date
-            LocalDate date = LocalDate.of(2024, 1, 15);
-            givenExternalApiReturnsValidResponseForDate(date);
-
-            // When: Fetching exchange rate by date
-            ExchangeRateClientResponse response = apiClient.fetchExchangeRateByDate(date);
-
-            // Then: Should receive valid response
-            assertThat(response).isNotNull();
-            assertThat(response.getResult()).isEqualTo("success");
-            assertThat(response.getConversionRates())
-                    .containsEntry("JPY", 1.0)
-                    .containsEntry("USD", 0.0068);
-
-            verifyApiWasCalledOnce("/history/JPY/2024/1/15");
         }
     }
 
@@ -132,19 +110,6 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Exchange rate service unavailable");
         }
-
-        @Test
-        @DisplayName("Then should handle 404 gracefully for date endpoint")
-        void thenShouldHandle404GracefullyForDateEndpoint() {
-            // Given: External API returns 404 for specific date
-            LocalDate date = LocalDate.of(2024, 1, 15);
-            givenExternalApiReturns404("/history/JPY/2024/1/15");
-
-            // When & Then: Should throw exception with context
-            assertThatThrownBy(() -> apiClient.fetchExchangeRateByDate(date))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Exchange rate service unavailable for date: 2024-01-15");
-        }
     }
 
     // ========== Helper Methods for Test Setup ==========
@@ -162,26 +127,6 @@ class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
             }
             """;
         stubFor(get(urlEqualTo("/" + TEST_API_KEY + "/latest/JPY"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(responseBody)));
-    }
-
-    private void givenExternalApiReturnsValidResponseForDate(LocalDate date) {
-        String responseBody = """
-            {
-                "result": "success",
-                "time_last_update_unix": "1705276800",
-                "conversion_rates": {
-                    "JPY": 1.0,
-                    "USD": 0.0068
-                }
-            }
-            """;
-        String url = String.format("/%s/history/JPY/%d/%d/%d",
-                TEST_API_KEY, date.getYear(), date.getMonthValue(), date.getDayOfMonth());
-        stubFor(get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")

@@ -60,21 +60,20 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("Then should create new records in database")
         void thenShouldCreateNewRecordsInDatabase() {
-            // Given: External API returns valid exchange rates for a specific date
-            LocalDate testDate = LocalDate.of(2024, 1, 15);
-            givenExternalApiReturnsValidRatesForDate(testDate);
+            // Given: External API returns valid exchange rates
+            givenExternalApiReturnsValidLatestRates();
 
-            // When: Updating exchange rates for that date
-            int result = service.fetchAndStoreExchangeRateByDate(testDate);
+            // When: Updating exchange rates
+            int result = service.fetchAndStoreLatestExchangeRate();
 
             // Then: Should store 3 currency rates in database
             assertThat(result).isEqualTo(3);
 
-            // And: Database should contain exchange rates for the specified date
+            // And: Database should contain exchange rates for the current date
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
             assertThat(savedRates).hasSize(3);
-            assertThat(savedRates).allMatch(e -> e.getDate().equals(testDate));
+            assertThat(savedRates).allMatch(e -> e.getDate().equals(LocalDate.now()));
 
             // And: Rates should match API response
             ExchangeRateEntity jpyRate = savedRates.stream()
@@ -91,43 +90,41 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should handle past dates for testing purposes")
-        void thenShouldHandlePastDatesForTestingPurposes() {
-            // Given: External API returns historical data
-            LocalDate pastDate = LocalDate.of(2023, 6, 15);
-            givenExternalApiReturnsValidRatesForDate(pastDate);
+        @DisplayName("Then should handle latest data fetching")
+        void thenShouldHandleLatestDataFetching() {
+            // Given: External API returns latest exchange rates
+            givenExternalApiReturnsValidLatestRates();
 
-            // When: Updating exchange rates for past date (for testing)
-            int result = service.fetchAndStoreExchangeRateByDate(pastDate);
+            // When: Updating exchange rates
+            int result = service.fetchAndStoreLatestExchangeRate();
 
-            // Then: Should successfully store historical data
+            // Then: Should successfully store latest data
             assertThat(result).isEqualTo(3);
 
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
             assertThat(savedRates)
                     .hasSize(3)
-                    .allMatch(e -> e.getDate().equals(pastDate));
+                    .allMatch(e -> e.getDate().equals(LocalDate.now()));
         }
 
         @Test
-        @DisplayName("Then should handle future dates for prediction data")
-        void thenShouldHandleFutureDatesForPredictionData() {
-            // Given: External API returns future prediction data
-            LocalDate futureDate = LocalDate.of(2025, 12, 31);
-            givenExternalApiReturnsValidRatesForDate(futureDate);
+        @DisplayName("Then should store rates with current date")
+        void thenShouldStoreRatesWithCurrentDate() {
+            // Given: External API returns latest exchange rates
+            givenExternalApiReturnsValidLatestRates();
 
-            // When: Updating exchange rates for future date
-            int result = service.fetchAndStoreExchangeRateByDate(futureDate);
+            // When: Updating exchange rates
+            int result = service.fetchAndStoreLatestExchangeRate();
 
-            // Then: Should successfully store prediction data
+            // Then: Should successfully store data with current date
             assertThat(result).isEqualTo(3);
 
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
             assertThat(savedRates)
                     .hasSize(3)
-                    .allMatch(e -> e.getDate().equals(futureDate));
+                    .allMatch(e -> e.getDate().equals(LocalDate.now()));
         }
     }
 
@@ -139,11 +136,10 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should update existing records when rates change")
         void thenShouldUpdateExistingRecordsWhenRatesChange() {
             // Given: External API returns valid rates
-            LocalDate testDate = LocalDate.of(2024, 3, 1);
-            givenExternalApiReturnsValidRatesForDate(testDate);
+            givenExternalApiReturnsValidLatestRates();
 
             // And: First update creates records
-            service.fetchAndStoreExchangeRateByDate(testDate);
+            service.fetchAndStoreLatestExchangeRate();
 
             flushAndClear();
             List<ExchangeRateEntity> firstUpdate = exchangeRateRepository.findAll();
@@ -161,10 +157,10 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
                     }
                 }
                 """;
-            givenExternalApiReturnsCustomResponse(testDate, responseWithDifferentRates);
+            givenExternalApiReturnsCustomResponse(responseWithDifferentRates);
 
-            // When: Calling service again with same date but different rates
-            service.fetchAndStoreExchangeRateByDate(testDate);
+            // When: Calling service again with different rates
+            service.fetchAndStoreLatestExchangeRate();
 
             // Then: Should have same number of records (updates, not inserts)
             flushAndClear();
@@ -195,11 +191,10 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should not update timestamps when rates are unchanged")
         void thenShouldNotUpdateTimestampsWhenRatesUnchanged() {
             // Given: External API returns valid rates
-            LocalDate testDate = LocalDate.of(2024, 3, 15);
-            givenExternalApiReturnsValidRatesForDate(testDate);
+            givenExternalApiReturnsValidLatestRates();
 
             // And: First update creates records
-            service.fetchAndStoreExchangeRateByDate(testDate);
+            service.fetchAndStoreLatestExchangeRate();
 
             flushAndClear();
             List<ExchangeRateEntity> firstUpdate = exchangeRateRepository.findAll();
@@ -208,8 +203,8 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
                     .findFirst()
                     .orElseThrow();
 
-            // When: Calling service again with same date and same rates
-            service.fetchAndStoreExchangeRateByDate(testDate);
+            // When: Calling service again with same rates
+            service.fetchAndStoreLatestExchangeRate();
 
             // Then: Should have same number of records
             flushAndClear();
@@ -238,7 +233,6 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should skip unknown currencies and save only known ones")
         void thenShouldSkipUnknownCurrenciesAndSaveOnlyKnownOnes() {
             // Given: API returns rates including currency not in master
-            LocalDate testDate = LocalDate.of(2024, 4, 1);
             String responseWithUnknown = """
                 {
                     "result": "success",
@@ -251,10 +245,10 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
                     }
                 }
                 """;
-            givenExternalApiReturnsCustomResponse(testDate, responseWithUnknown);
+            givenExternalApiReturnsCustomResponse(responseWithUnknown);
 
             // When: Updating exchange rates
-            int result = service.fetchAndStoreExchangeRateByDate(testDate);
+            int result = service.fetchAndStoreLatestExchangeRate();
 
             // Then: Should save only known currencies (JPY, USD, EUR)
             assertThat(result).isEqualTo(3);
@@ -277,11 +271,10 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should throw exception and rollback transaction")
         void thenShouldThrowExceptionAndRollbackTransaction() {
             // Given: External API is completely unavailable
-            LocalDate testDate = LocalDate.of(2024, 5, 1);
-            givenExternalApiAlwaysFailsForDate(testDate);
+            givenExternalApiAlwaysFails();
 
             // When & Then: Should throw exception (after retries handled by API client)
-            assertThatThrownBy(() -> service.fetchAndStoreExchangeRateByDate(testDate))
+            assertThatThrownBy(() -> service.fetchAndStoreLatestExchangeRate())
                     .hasMessageContaining("Exchange rate service unavailable");
 
             // And: Database should remain unchanged (transaction rolled back)
@@ -299,7 +292,6 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should complete successfully without saving any data")
         void thenShouldCompleteSuccessfullyWithoutSavingAnyData() {
             // Given: External API returns empty conversion rates
-            LocalDate testDate = LocalDate.of(2024, 6, 1);
             String emptyResponse = """
                 {
                     "result": "success",
@@ -307,10 +299,10 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
                     "conversion_rates": {}
                 }
                 """;
-            givenExternalApiReturnsCustomResponse(testDate, emptyResponse);
+            givenExternalApiReturnsCustomResponse(emptyResponse);
 
             // When: Updating exchange rates
-            int result = service.fetchAndStoreExchangeRateByDate(testDate);
+            int result = service.fetchAndStoreLatestExchangeRate();
 
             // Then: Should return 0 without error
             assertThat(result).isZero();
@@ -324,7 +316,7 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     // ========== Helper Methods for Test Setup ==========
 
-    private void givenExternalApiReturnsValidRatesForDate(LocalDate date) {
+    private void givenExternalApiReturnsValidLatestRates() {
         String responseBody = """
             {
                 "result": "success",
@@ -336,12 +328,11 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
                 }
             }
             """;
-        givenExternalApiReturnsCustomResponse(date, responseBody);
+        givenExternalApiReturnsCustomResponse(responseBody);
     }
 
-    private void givenExternalApiReturnsCustomResponse(LocalDate date, String responseBody) {
-        String url = String.format("/%s/history/JPY/%d/%d/%d",
-                TEST_API_KEY, date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+    private void givenExternalApiReturnsCustomResponse(String responseBody) {
+        String url = String.format("/%s/latest/JPY", TEST_API_KEY);
         stubFor(get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -349,9 +340,8 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
                         .withBody(responseBody)));
     }
 
-    private void givenExternalApiAlwaysFailsForDate(LocalDate date) {
-        String url = String.format("/%s/history/JPY/%d/%d/%d",
-                TEST_API_KEY, date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+    private void givenExternalApiAlwaysFails() {
+        String url = String.format("/%s/latest/JPY", TEST_API_KEY);
         stubFor(get(urlEqualTo(url))
                 .willReturn(aResponse().withStatus(500)));
     }

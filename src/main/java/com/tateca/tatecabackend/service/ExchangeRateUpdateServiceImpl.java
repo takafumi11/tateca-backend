@@ -32,12 +32,13 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
 
     @Override
     @Transactional
-    public int fetchAndStoreExchangeRateByDate(LocalDate targetDate) {
+    public int fetchAndStoreLatestExchangeRate() {
         ExchangeRateClientResponse exchangeRateClientResponse =
-                exchangeRateApiClient.fetchExchangeRateByDate(targetDate);
+                exchangeRateApiClient.fetchLatestExchangeRate();
 
+        LocalDate currentDate = LocalDate.now();
         List<ExchangeRateEntity> exchangeRateEntities =
-                updateExchangeRateEntities(exchangeRateClientResponse, targetDate);
+                updateExchangeRateEntities(exchangeRateClientResponse, currentDate);
 
         exchangeRateAccessor.saveAll(exchangeRateEntities);
 

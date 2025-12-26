@@ -11,12 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientException;
 
-import java.time.LocalDate;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,60 +80,6 @@ class ExchangeRateApiClientUnitTest {
                     .hasMessageContaining("Connection failed");
 
             verify(httpClient).fetchLatest(TEST_API_KEY);
-        }
-    }
-
-    @Nested
-    @DisplayName("fetchExchangeRateByDate")
-    class FetchExchangeRateByDateTests {
-
-        @Test
-        @DisplayName("Should call ExchangeRateHttpClient with correct parameters")
-        void shouldCallHttpClientWithCorrectParameters() {
-            // Given
-            LocalDate date = LocalDate.of(2024, 1, 15);
-            ExchangeRateClientResponse expectedResponse = TestFixtures.ExchangeRateApiResponses.success();
-            when(httpClient.fetchByDate(eq(TEST_API_KEY), anyInt(), anyInt(), anyInt()))
-                    .thenReturn(expectedResponse);
-
-            // When
-            apiClient.fetchExchangeRateByDate(date);
-
-            // Then
-            verify(httpClient).fetchByDate(TEST_API_KEY, 2024, 1, 15);
-        }
-
-        @Test
-        @DisplayName("Should return exchange rate response for specific date")
-        void shouldReturnExchangeRateResponseForDate() {
-            // Given
-            LocalDate date = LocalDate.of(2024, 1, 15);
-            ExchangeRateClientResponse expectedResponse = TestFixtures.ExchangeRateApiResponses.success();
-            when(httpClient.fetchByDate(eq(TEST_API_KEY), anyInt(), anyInt(), anyInt()))
-                    .thenReturn(expectedResponse);
-
-            // When
-            ExchangeRateClientResponse result = apiClient.fetchExchangeRateByDate(date);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getResult()).isEqualTo("success");
-        }
-
-        @Test
-        @DisplayName("Should throw exception when API call fails")
-        void shouldThrowExceptionWhenApiCallFails() {
-            // Given
-            LocalDate date = LocalDate.of(2024, 1, 15);
-            when(httpClient.fetchByDate(eq(TEST_API_KEY), anyInt(), anyInt(), anyInt()))
-                    .thenThrow(new RestClientException("API error"));
-
-            // When & Then
-            assertThatThrownBy(() -> apiClient.fetchExchangeRateByDate(date))
-                    .isInstanceOf(RestClientException.class)
-                    .hasMessageContaining("API error");
-
-            verify(httpClient).fetchByDate(TEST_API_KEY, 2024, 1, 15);
         }
     }
 }
