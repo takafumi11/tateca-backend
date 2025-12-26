@@ -28,9 +28,11 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 - `/entity` - Domain models
 
 **Authentication:**
-- Firebase JWT tokens via `BearerTokenInterceptor`
-- Lambda API keys for system endpoints
-- `@UId` annotation extracts user ID
+- Firebase JWT tokens via `TatecaAuthenticationFilter` (user endpoints)
+- X-API-Key header for `/internal/**` endpoints (Lambda/EventBridge)
+- Path-based routing: `/internal/**` = API key, others = Firebase JWT
+- Constant-time API key comparison to prevent timing attacks
+- `@UId` annotation extracts user ID or system ID
 
 **Integrations:**
 - Exchange rates updated daily at 00:01 UTC
