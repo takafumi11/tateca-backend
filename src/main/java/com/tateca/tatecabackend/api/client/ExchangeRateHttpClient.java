@@ -10,12 +10,4 @@ public interface ExchangeRateHttpClient {
 
     @GetExchange("/latest/JPY")
     ExchangeRateClientResponse fetchLatest(@PathVariable String apiKey);
-
-    @GetExchange("/history/JPY/{year}/{month}/{day}")
-    ExchangeRateClientResponse fetchByDate(
-            @PathVariable String apiKey,
-            @PathVariable int year,
-            @PathVariable int month,
-            @PathVariable int day
-    );
 }

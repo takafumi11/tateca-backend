@@ -8,10 +8,10 @@ import java.time.LocalDate;
 public interface ExchangeRateUpdateService {
 
     /**
-     * Fetches exchange rates for a specific date from external API and stores them in database.
+     * Fetches latest exchange rates from external API and stores them in database.
+     * The rates are stored with the current date (LocalDate.now()).
      *
-     * @param targetDate Target date for exchange rate data (UTC)
      * @return Number of exchange rate records updated
      */
-    int fetchAndStoreExchangeRateByDate(LocalDate targetDate);
+    int fetchAndStoreLatestExchangeRate();
 }

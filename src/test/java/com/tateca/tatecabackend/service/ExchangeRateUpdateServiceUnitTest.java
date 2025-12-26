@@ -51,11 +51,11 @@ class ExchangeRateUpdateServiceUnitTest {
 
     private ExchangeRateClientResponse apiResponse;
     private List<CurrencyNameEntity> currencies;
-    private LocalDate testDate;
+    private LocalDate today;
 
     @BeforeEach
     void setUp() {
-        testDate = LocalDate.of(2024, 1, 15);
+        today = LocalDate.now();
         apiResponse = TestFixtures.ExchangeRateApiResponses.success();
         currencies = List.of(
                 TestFixtures.Currencies.jpy(),
@@ -65,18 +65,18 @@ class ExchangeRateUpdateServiceUnitTest {
     }
 
     @Test
-    @DisplayName("Should create new exchange rate records for specified date")
-    void shouldCreateNewExchangeRateRecordsForSpecifiedDate() {
-        // Given: API returns rates for a specified date and currencies exist
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(apiResponse);
+    @DisplayName("Should create new exchange rate records for current date")
+    void shouldCreateNewExchangeRateRecordsForCurrentDate() {
+        // Given: API returns rates for the current date and currencies exist
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // Empty list = no existing records
 
         // When: Service fetches and stores exchange rates
-        int result = service.fetchAndStoreExchangeRateByDate(testDate);
+        int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save new records for a specified date only (not next date)
+        // Then: Should save new records for current date only
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
@@ -84,9 +84,9 @@ class ExchangeRateUpdateServiceUnitTest {
         assertThat(savedEntities).hasSize(3);
         assertThat(result).isEqualTo(3);
 
-        // Verify: All entities have the correct date
+        // Verify: All entities have the current date
         assertThat(savedEntities)
-                .allMatch(entity -> entity.getDate().equals(testDate))
+                .allMatch(entity -> entity.getDate().equals(today))
                 .allMatch(entity -> entity.getCurrencyCode() != null)
                 .allMatch(entity -> entity.getExchangeRate() != null);
 
@@ -102,18 +102,18 @@ class ExchangeRateUpdateServiceUnitTest {
         // Given: Existing records in a database
         ExchangeRateEntity existingJpy = ExchangeRateEntity.builder()
                 .currencyCode("JPY")
-                .date(testDate)
+                .date(today)
                 .currencyName(TestFixtures.Currencies.jpy())
                 .exchangeRate(BigDecimal.valueOf(0.99))  // Old rate
                 .build();
 
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(apiResponse);
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy)); // Only JPY exists
 
         // When: Service updates exchange rates
-        int result = service.fetchAndStoreExchangeRateByDate(testDate);
+        int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save updated records
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
@@ -128,7 +128,7 @@ class ExchangeRateUpdateServiceUnitTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(updatedJpy.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        // Note: updatedAt is set by @PreUpdate, which is not called in unit tests with mocks
+        assertThat(updatedJpy.getDate()).isEqualTo(today);
     }
 
     @Test
@@ -148,13 +148,13 @@ class ExchangeRateUpdateServiceUnitTest {
                 TestFixtures.Currencies.usd()
         );
 
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(responseWithUnknown);
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(responseWithUnknown);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(knownCurrencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // No existing records
 
         // When: Service processes rates
-        int result = service.fetchAndStoreExchangeRateByDate(testDate);
+        int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save only known currencies (JPY, USD) = 2 records
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
@@ -178,13 +178,13 @@ class ExchangeRateUpdateServiceUnitTest {
         ExchangeRateClientResponse emptyResponse =
                 TestFixtures.ExchangeRateApiResponses.withRates(emptyRates);
 
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(emptyResponse);
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(emptyResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(List.of());
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // No existing records
 
         // When: Service processes empty rates
-        int result = service.fetchAndStoreExchangeRateByDate(testDate);
+        int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save nothing
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
@@ -200,25 +200,25 @@ class ExchangeRateUpdateServiceUnitTest {
         // Given: Existing records with same rates as API response
         ExchangeRateEntity existingJpy = ExchangeRateEntity.builder()
                 .currencyCode("JPY")
-                .date(testDate)
+                .date(today)
                 .currencyName(TestFixtures.Currencies.jpy())
                 .exchangeRate(BigDecimal.valueOf(1.0))  // Same rate as API
                 .build();
 
         ExchangeRateEntity existingUsd = ExchangeRateEntity.builder()
                 .currencyCode("USD")
-                .date(testDate)
+                .date(today)
                 .currencyName(TestFixtures.Currencies.usd())
                 .exchangeRate(BigDecimal.valueOf(0.0067))  // Same rate as API
                 .build();
 
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(apiResponse);
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy, existingUsd)); // JPY and USD exist with same rates
 
         // When: Service processes exchange rates
-        int result = service.fetchAndStoreExchangeRateByDate(testDate);
+        int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should still save all entities (3 records: 2 unchanged + 1 new EUR)
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
@@ -233,12 +233,14 @@ class ExchangeRateUpdateServiceUnitTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(savedJpy.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
+        assertThat(savedJpy.getDate()).isEqualTo(today);
 
         ExchangeRateEntity savedUsd = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("USD"))
                 .findFirst()
                 .orElseThrow();
         assertThat(savedUsd.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
+        assertThat(savedUsd.getDate()).isEqualTo(today);
 
         // Verify: EUR is a new record
         ExchangeRateEntity savedEur = savedEntities.stream()
@@ -246,19 +248,20 @@ class ExchangeRateUpdateServiceUnitTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(savedEur.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
+        assertThat(savedEur.getDate()).isEqualTo(today);
     }
 
     @Test
     @DisplayName("Should call batch query method once")
     void shouldCallBatchQueryOnce() {
         // Given: API returns rates and currencies exist
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(apiResponse);
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
         // When: Service fetches and stores exchange rates
-        service.fetchAndStoreExchangeRateByDate(testDate);
+        service.fetchAndStoreLatestExchangeRate();
 
         // Then: Batch query method should be called exactly once (N+1 problem solved)
         verify(exchangeRateAccessor, times(1)).findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class));
@@ -276,25 +279,25 @@ class ExchangeRateUpdateServiceUnitTest {
         // - EUR does not exist (will be created)
         ExchangeRateEntity existingJpy = ExchangeRateEntity.builder()
                 .currencyCode("JPY")
-                .date(testDate)
+                .date(today)
                 .currencyName(TestFixtures.Currencies.jpy())
                 .exchangeRate(BigDecimal.valueOf(0.95))  // Old rate, different from API (1.0)
                 .build();
 
         ExchangeRateEntity existingUsd = ExchangeRateEntity.builder()
                 .currencyCode("USD")
-                .date(testDate)
+                .date(today)
                 .currencyName(TestFixtures.Currencies.usd())
                 .exchangeRate(BigDecimal.valueOf(0.0067))  // Same rate as API
                 .build();
 
-        when(exchangeRateApiClient.fetchExchangeRateByDate(testDate)).thenReturn(apiResponse);
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy, existingUsd));
 
         // When: Service processes exchange rates
-        int result = service.fetchAndStoreExchangeRateByDate(testDate);
+        int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save 3 records (1 updated + 1 unchanged + 1 new)
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
@@ -309,7 +312,7 @@ class ExchangeRateUpdateServiceUnitTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(savedJpy.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        // Note: updatedAt is set by @PreUpdate, which is not called in unit tests with mocks
+        assertThat(savedJpy.getDate()).isEqualTo(today);
 
         // Verify: USD rate is unchanged (but still in the list)
         ExchangeRateEntity savedUsd = savedEntities.stream()
@@ -317,6 +320,7 @@ class ExchangeRateUpdateServiceUnitTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(savedUsd.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
+        assertThat(savedUsd.getDate()).isEqualTo(today);
 
         // Verify: EUR is a new record
         ExchangeRateEntity savedEur = savedEntities.stream()
@@ -324,6 +328,6 @@ class ExchangeRateUpdateServiceUnitTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(savedEur.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
-        // Note: createdAt is set by @PrePersist, which is not called in unit tests with mocks
+        assertThat(savedEur.getDate()).isEqualTo(today);
     }
 }

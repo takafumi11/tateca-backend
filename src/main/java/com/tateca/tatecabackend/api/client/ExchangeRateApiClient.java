@@ -30,19 +30,8 @@ public class ExchangeRateApiClient {
         return httpClient.fetchLatest(apiKey);
     }
 
-    @Retry(name = "exchangeRateApi", fallbackMethod = "fetchByDateFallback")
-    public ExchangeRateClientResponse fetchExchangeRateByDate(LocalDate date) {
-        logger.debug("Fetching exchange rate for date: {}", date);
-        return httpClient.fetchByDate(apiKey, date.getYear(), date.getMonthValue(), date.getDayOfMonth());
-    }
-
     private ExchangeRateClientResponse fetchLatestFallback(Exception e) {
         logger.error("Failed to fetch latest exchange rate after retries, detail: {}", e.getMessage());
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Exchange rate service unavailable", e);
-    }
-
-    private ExchangeRateClientResponse fetchByDateFallback(LocalDate date, Exception e) {
-        logger.error("Failed to fetch exchange rate for date {} after retries, detail: {}", date, e.getMessage());
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Exchange rate service unavailable for date: " + date, e);
     }
 }
