@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -12,9 +13,15 @@ import java.time.LocalDate;
  *                   This should be interpreted as a UTC date regardless of the client's timezone.
  *                   Examples: "2024-01-15", "2023-12-31"
  */
+@Schema(description = "Request body for exchange rate update")
 public record ExchangeRateUpdateRequestDTO(
         @JsonProperty("target_date")
         @NotNull(message = "target_date is required")
+        @Schema(
+            description = "Target date for exchange rate data (YYYY-MM-DD format in UTC)",
+            example = "2024-12-26",
+            requiredMode = Schema.RequiredMode.REQUIRED
+        )
         LocalDate targetDate
 ) {
 }
