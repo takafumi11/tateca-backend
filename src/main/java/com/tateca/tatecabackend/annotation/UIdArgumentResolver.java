@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.annotation;
 
 import com.tateca.tatecabackend.security.FirebaseAuthentication;
-import com.tateca.tatecabackend.security.LambdaAuthentication;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,7 +11,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
  * Resolves @UId annotation by extracting UID from Spring Security context.
- * Compatible with both FirebaseAuthentication and LambdaAuthentication.
+ * Compatible with FirebaseAuthentication.
  */
 @Component
 public class UIdArgumentResolver implements HandlerMethodArgumentResolver {
@@ -29,8 +28,6 @@ public class UIdArgumentResolver implements HandlerMethodArgumentResolver {
 
         if (authentication instanceof FirebaseAuthentication) {
             return ((FirebaseAuthentication) authentication).getUid();
-        } else if (authentication instanceof LambdaAuthentication) {
-            return ((LambdaAuthentication) authentication).getUid();
         }
 
         // Fallback to principal name (should not happen with proper security config)

@@ -69,7 +69,6 @@ tasks.withType<Test> {
 	environment("FIREBASE_SERVICE_ACCOUNT_KEY", "mock-service-account-key")
 	environment("FIREBASE_PROJECT_ID", "test-project-id")
 	environment("EXCHANGE_RATE_API_KEY", "test-exchange-rate-api-key")
-	environment("LAMBDA_API_KEY", "test-lambda-api-key")
 }
 
 // JaCoCo configuration for code coverage

@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.interceptor;
 
 import com.tateca.tatecabackend.security.FirebaseAuthentication;
-import com.tateca.tatecabackend.security.LambdaAuthentication;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -61,8 +60,6 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         if (authentication instanceof FirebaseAuthentication) {
             return ((FirebaseAuthentication) authentication).getUid();
-        } else if (authentication instanceof LambdaAuthentication) {
-            return ((LambdaAuthentication) authentication).getUid();
         }
 
         return null;
