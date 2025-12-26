@@ -1,17 +1,24 @@
 package com.tateca.tatecabackend.config;
 
-import com.tateca.tatecabackend.interceptor.BearerTokenInterceptor;
+import com.tateca.tatecabackend.security.FirebaseAuthentication;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import static com.tateca.tatecabackend.constants.AttributeConstants.UID_ATTRIBUTE;
+import java.io.IOException;
 
 /**
  * Test configuration that bypasses Firebase authentication.
- * Replaces BearerTokenInterceptor with a mock that always sets TEST_UID.
+ * Sets TEST_UID in Security Context for all requests.
  */
 @TestConfiguration
 public class TestSecurityConfig {
@@ -20,14 +27,24 @@ public class TestSecurityConfig {
 
     @Bean
     @Primary
-    public BearerTokenInterceptor testBearerTokenInterceptor() {
-        return new BearerTokenInterceptor() {
-            @Override
-            public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                // Always set test UID without Firebase validation
-                request.setAttribute(UID_ATTRIBUTE, TEST_UID);
-                return true;
-            }
-        };
+    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .addFilterBefore(new OncePerRequestFilter() {
+                @Override
+                protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                              FilterChain filterChain) throws ServletException, IOException {
+                    FirebaseAuthentication authentication = new FirebaseAuthentication(TEST_UID);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    try {
+                        filterChain.doFilter(request, response);
+                    } finally {
+                        SecurityContextHolder.clearContext();
+                    }
+                }
+            }, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }

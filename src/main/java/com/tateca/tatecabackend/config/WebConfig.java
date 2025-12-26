@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.config;
 
 import com.tateca.tatecabackend.annotation.UIdArgumentResolver;
-import com.tateca.tatecabackend.interceptor.BearerTokenInterceptor;
 import com.tateca.tatecabackend.interceptor.LoggingInterceptor;
 
 import jakarta.servlet.FilterChain;
@@ -28,7 +27,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     private final UIdArgumentResolver UIdArgumentResolver;
-    private final BearerTokenInterceptor bearerTokenInterceptor;
     private final LoggingInterceptor loggingInterceptor;
 
     @Override
@@ -41,21 +39,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(loggingInterceptor)
                 .addPathPatterns("/**")
                 .order(1);
-
-        registry.addInterceptor(bearerTokenInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/public/**",
-                        "/error",
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/v3/api-docs.*",
-                        "/swagger-resources/**",
-                        "/webjars/**"
-                )
-                .order(2);
     }
 
     @Bean
