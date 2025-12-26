@@ -1,23 +1,26 @@
 package com.tateca.tatecabackend.security;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
 import com.tateca.tatecabackend.dto.request.ExchangeRateUpdateRequestDTO;
+import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.fixtures.TestFixtures;
+import com.tateca.tatecabackend.repository.CurrencyNameRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
+import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("API Key Authentication Integration Tests")
@@ -26,13 +29,54 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @MockitoBean
-    private ExchangeRateUpdateService exchangeRateUpdateService;
+    @Autowired
+    private CurrencyNameRepository currencyNameRepository;
 
     @Value("${lambda.api.key}")
     private String validApiKey;
 
     private static final String ENDPOINT = "/internal/exchange-rates";
+    private static final String TEST_API_KEY = "test-exchange-rate-api-key";
+
+    @BeforeEach
+    void setUp() {
+        WireMock.configureFor(wireMock.getHost(), wireMock.getPort());
+        WireMock.reset();
+
+        // Setup currency data in database
+        List<CurrencyNameEntity> currencies = List.of(
+                TestFixtures.Currencies.jpy(),
+                TestFixtures.Currencies.usd(),
+                TestFixtures.Currencies.eur()
+        );
+        currencyNameRepository.saveAll(currencies);
+        flushAndClear();
+    }
+
+    /**
+     * Stubs WireMock to return valid exchange rate data for a specific date
+     */
+    private void givenExternalApiReturnsValidRatesForDate(LocalDate date) {
+        int year = date.getYear();
+        int month = date.getMonthValue();
+        int day = date.getDayOfMonth();
+
+        stubFor(get(urlEqualTo(String.format("/%s/history/JPY/%d/%d/%d", TEST_API_KEY, year, month, day)))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "result": "success",
+                                  "time_last_update_unix": "1704067200",
+                                  "conversion_rates": {
+                                    "JPY": 1.0,
+                                    "USD": 0.0067,
+                                    "EUR": 0.0061
+                                  }
+                                }
+                                """)));
+    }
 
     @Nested
     @DisplayName("Valid API Key Authentication")
@@ -41,21 +85,21 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("Should authenticate /internal/exchange-rates with valid X-API-Key")
         void shouldAuthenticateInternalEndpointWithValidApiKey() {
-            // Given
-            when(exchangeRateUpdateService.fetchAndStoreExchangeRateByDate(any(LocalDate.class)))
-                    .thenReturn(3);
+            // Given: Real authentication with X-API-Key, real service, WireMock for external API
+            LocalDate testDate = LocalDate.of(2024, 1, 15);
+            givenExternalApiReturnsValidRatesForDate(testDate);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-Key", validApiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(LocalDate.now());
+                    new ExchangeRateUpdateRequestDTO(testDate);
 
             HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
                     new HttpEntity<>(request, headers);
 
-            // When
+            // When: Full integration test (authentication -> controller -> service -> repository -> external API)
             ResponseEntity<Void> response = restTemplate.exchange(
                     ENDPOINT,
                     HttpMethod.POST,
@@ -63,28 +107,28 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
                     Void.class
             );
 
-            // Then
+            // Then: Should successfully update exchange rates
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         }
 
         @Test
         @DisplayName("Should accept X-API-Key for /internal/** paths")
         void shouldAcceptApiKeyForAllInternalPaths() {
-            // Given
-            when(exchangeRateUpdateService.fetchAndStoreExchangeRateByDate(any(LocalDate.class)))
-                    .thenReturn(3);
+            // Given: Real authentication with X-API-Key
+            LocalDate testDate = LocalDate.of(2024, 2, 1);
+            givenExternalApiReturnsValidRatesForDate(testDate);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-Key", validApiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(LocalDate.of(2024, 1, 1));
+                    new ExchangeRateUpdateRequestDTO(testDate);
 
             HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
                     new HttpEntity<>(request, headers);
 
-            // When
+            // When: Full integration test
             ResponseEntity<Void> response = restTemplate.exchange(
                     ENDPOINT,
                     HttpMethod.POST,
@@ -92,7 +136,7 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
                     Void.class
             );
 
-            // Then
+            // Then: Should successfully update exchange rates
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         }
     }
