@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.security;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.dto.request.ExchangeRateUpdateRequestDTO;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.CurrencyNameRepository;
@@ -16,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -54,14 +52,10 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
-     * Stubs WireMock to return valid exchange rate data for a specific date
+     * Stubs WireMock to return valid exchange rate data
      */
-    private void givenExternalApiReturnsValidRatesForDate(LocalDate date) {
-        int year = date.getYear();
-        int month = date.getMonthValue();
-        int day = date.getDayOfMonth();
-
-        stubFor(get(urlEqualTo(String.format("/%s/history/JPY/%d/%d/%d", TEST_API_KEY, year, month, day)))
+    private void givenExternalApiReturnsValidLatestRates() {
+        stubFor(get(urlEqualTo(String.format("/%s/latest/JPY", TEST_API_KEY)))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -86,18 +80,12 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Should authenticate /internal/exchange-rates with valid X-API-Key")
         void shouldAuthenticateInternalEndpointWithValidApiKey() {
             // Given: Real authentication with X-API-Key, real service, WireMock for external API
-            LocalDate testDate = LocalDate.of(2024, 1, 15);
-            givenExternalApiReturnsValidRatesForDate(testDate);
+            givenExternalApiReturnsValidLatestRates();
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-Key", validApiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(testDate);
-
-            HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
-                    new HttpEntity<>(request, headers);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
             // When: Full integration test (authentication -> controller -> service -> repository -> external API)
             ResponseEntity<Void> response = restTemplate.exchange(
@@ -115,18 +103,12 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Should accept X-API-Key for /internal/** paths")
         void shouldAcceptApiKeyForAllInternalPaths() {
             // Given: Real authentication with X-API-Key
-            LocalDate testDate = LocalDate.of(2024, 2, 1);
-            givenExternalApiReturnsValidRatesForDate(testDate);
+            givenExternalApiReturnsValidLatestRates();
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-Key", validApiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(testDate);
-
-            HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
-                    new HttpEntity<>(request, headers);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
             // When: Full integration test
             ResponseEntity<Void> response = restTemplate.exchange(
@@ -150,13 +132,8 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
         void shouldRejectInternalEndpointWithoutApiKey() {
             // Given
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(LocalDate.now());
-
-            HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
-                    new HttpEntity<>(request, headers);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
             // When
             ResponseEntity<String> response = restTemplate.exchange(
@@ -176,13 +153,8 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
             // Given
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-Key", "invalid-api-key-12345");
-            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(LocalDate.now());
-
-            HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
-                    new HttpEntity<>(request, headers);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
             // When
             ResponseEntity<String> response = restTemplate.exchange(
@@ -202,13 +174,8 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
             // Given
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-Key", "");
-            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(LocalDate.now());
-
-            HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
-                    new HttpEntity<>(request, headers);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
             // When
             ResponseEntity<String> response = restTemplate.exchange(
@@ -228,13 +195,8 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
             // Given
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer fake-firebase-token");
-            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ExchangeRateUpdateRequestDTO request =
-                    new ExchangeRateUpdateRequestDTO(LocalDate.now());
-
-            HttpEntity<ExchangeRateUpdateRequestDTO> httpEntity =
-                    new HttpEntity<>(request, headers);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
             // When
             ResponseEntity<String> response = restTemplate.exchange(
