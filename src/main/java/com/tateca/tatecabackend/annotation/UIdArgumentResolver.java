@@ -1,12 +1,19 @@
 package com.tateca.tatecabackend.annotation;
 
+import com.tateca.tatecabackend.security.FirebaseAuthentication;
+import com.tateca.tatecabackend.security.LambdaAuthentication;
 import org.springframework.core.MethodParameter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-
+/**
+ * Resolves @UId annotation by extracting UID from Spring Security context.
+ * Compatible with both FirebaseAuthentication and LambdaAuthentication.
+ */
 @Component
 public class UIdArgumentResolver implements HandlerMethodArgumentResolver {
     @Override
@@ -15,7 +22,18 @@ public class UIdArgumentResolver implements HandlerMethodArgumentResolver {
     }
 
     @Override
-    public String resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
-        return (String) webRequest.getAttribute("uid", NativeWebRequest.SCOPE_REQUEST);
+    public String resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                 NativeWebRequest webRequest,
+                                 org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof FirebaseAuthentication) {
+            return ((FirebaseAuthentication) authentication).getUid();
+        } else if (authentication instanceof LambdaAuthentication) {
+            return ((LambdaAuthentication) authentication).getUid();
+        }
+
+        // Fallback to principal name (should not happen with proper security config)
+        return authentication != null ? authentication.getName() : null;
     }
 }
