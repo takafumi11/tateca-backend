@@ -13,6 +13,14 @@ public interface ObligationRepository extends JpaRepository<TransactionObligatio
     @Query("SELECT o FROM TransactionObligationEntity o WHERE o.transaction.uuid = :loanId")
     List<TransactionObligationEntity> findByTransactionId(UUID loanId);
 
-    @Query("SELECT o FROM TransactionObligationEntity o WHERE o.transaction.group.uuid = :groupId")
+    @Query("""
+            SELECT DISTINCT o
+            FROM TransactionObligationEntity o
+            JOIN FETCH o.transaction t
+            JOIN FETCH o.user
+            JOIN FETCH t.payer
+            JOIN FETCH t.exchangeRate
+            WHERE t.group.uuid = :groupId
+            """)
     List<TransactionObligationEntity> findByGroupId(UUID groupId);
 }
