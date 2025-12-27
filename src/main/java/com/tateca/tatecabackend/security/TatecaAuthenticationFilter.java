@@ -4,13 +4,16 @@ import com.google.common.net.HttpHeaders;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.tateca.tatecabackend.constants.ApiConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,11 +29,15 @@ import java.util.List;
  * Spring Security filter that handles multiple authentication methods:
  * - API Key authentication for internal endpoints (/internal/**)
  * - Firebase JWT authentication for user endpoints
+ * - Dev mode: x-uid header bypass (dev profile only)
  */
+@RequiredArgsConstructor
 public class TatecaAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(TatecaAuthenticationFilter.class);
     private static final String X_API_KEY_HEADER = "X-API-Key";
+
+    private final Environment environment;
 
     @Value("${firebase.project.id}")
     private String firebaseProjectId;
@@ -105,6 +112,18 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void authenticateWithFirebaseToken(HttpServletRequest request) throws FirebaseAuthException {
+        // Dev mode: Allow x-uid header bypass
+        if (isDevProfile()) {
+            String xUid = request.getHeader(ApiConstants.X_UID_HEADER);
+            if (xUid != null && !xUid.isEmpty()) {
+                logger.debug("Dev mode: Authenticating with x-uid header: {}", xUid);
+                FirebaseAuthentication authentication = new FirebaseAuthentication(xUid);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                return;
+            }
+        }
+
+        // Production mode: Verify Firebase ID token
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (bearerToken == null || bearerToken.isEmpty()) {
@@ -141,6 +160,10 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
 
         FirebaseAuthentication authentication = new FirebaseAuthentication(firebaseToken.getUid());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private boolean isDevProfile() {
+        return Arrays.asList(environment.getActiveProfiles()).contains("dev");
     }
 
     private void logAuthenticationFailure(String method, String path, String reason) {

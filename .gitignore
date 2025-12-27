@@ -26,6 +26,10 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
+# Exclude personal run configurations, but include shared project configurations
+.run/
+!.run/TatecaBackendApplication.run.xml
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

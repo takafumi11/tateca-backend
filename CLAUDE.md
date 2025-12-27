@@ -46,8 +46,10 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 
 **Required Variables:**
 - Database: `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD`
-- Auth: `FIREBASE_SERVICE_ACCOUNT_KEY`, `LAMBDA_API_KEY`
+- Auth: `FIREBASE_SERVICE_ACCOUNT_KEY`, `FIREBASE_PROJECT_ID`, `LAMBDA_API_KEY`
 - External: `EXCHANGE_RATE_API_KEY`
+
+**Note:** Dev profile provides default values for Firebase and Lambda API key for local testing.
 
 ## CI/CD
 
