@@ -90,11 +90,11 @@ class UserServiceUnitTest {
         }
 
         @Test
-        @DisplayName("Then should not update when name is null")
-        void thenShouldNotUpdateWhenNameIsNull() {
-            // Given: User exists and name is null
+        @DisplayName("Then should update name with valid non-empty string")
+        void thenShouldUpdateNameWithValidNonEmptyString() {
+            // Given: User exists and name is valid
             UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName(null);
+            request.setName("Valid Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -102,32 +102,10 @@ class UserServiceUnitTest {
             // When: Updating user name
             userService.updateUserName(testUserId, request);
 
-            // Then: Should call findById once
-            verify(userAccessor, times(1)).findById(testUserId);
-
-            // And: Should save user without changing name
+            // Then: Should save user with new name
             verify(userAccessor, times(1)).save(userEntityCaptor.capture());
             UserEntity savedUser = userEntityCaptor.getValue();
-            assertThat(savedUser.getName()).isEqualTo("Original Name");
-        }
-
-        @Test
-        @DisplayName("Then should update name with empty string")
-        void thenShouldUpdateNameWithEmptyString() {
-            // Given: User exists and name is empty string
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("");
-
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // When: Updating user name
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should save user with empty name
-            verify(userAccessor, times(1)).save(userEntityCaptor.capture());
-            UserEntity savedUser = userEntityCaptor.getValue();
-            assertThat(savedUser.getName()).isEmpty();
+            assertThat(savedUser.getName()).isEqualTo("Valid Name");
         }
 
         @Test

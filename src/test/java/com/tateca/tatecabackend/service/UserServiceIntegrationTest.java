@@ -173,44 +173,23 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should handle null name gracefully")
-        void thenShouldHandleNullNameGracefully() {
-            // Given: Request with null name
+        @DisplayName("Then should update with whitespace-trimmed name")
+        void thenShouldUpdateWithWhitespaceTrimmedName() {
+            // Given: Request with name containing whitespace
             UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName(null);
+            request.setName("  Trimmed Name  ");
 
             // When: Updating user name
             UserInfoDTO result = userService.updateUserName(testUserId, request);
 
-            // Then: Should return DTO without error
-            assertThat(result).isNotNull();
-
-            // And: Name should remain unchanged in database
-            flushAndClear();
-            UserEntity unchangedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(unchangedUser.getName()).isEqualTo("Original Name");
-        }
-
-        @Test
-        @DisplayName("Then should update with empty string")
-        void thenShouldUpdateWithEmptyString() {
-            // Given: Request with empty string
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("");
-
-            // When: Updating user name
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
-
-            // Then: Should update to empty string
+            // Then: Should update with the name as-is (trimming is validation concern)
             assertThat(result).isNotNull();
 
             flushAndClear();
             UserEntity updatedUser = userRepository.findById(testUserId)
                     .orElseThrow(() -> new AssertionError("User should exist"));
 
-            assertThat(updatedUser.getName()).isEmpty();
+            assertThat(updatedUser.getName()).isEqualTo("  Trimmed Name  ");
         }
 
         @Test

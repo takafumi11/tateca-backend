@@ -19,10 +19,8 @@ public class UserService {
     public UserInfoDTO updateUserName(UUID userId, UpdateUserNameDTO request) {
         UserEntity user = accessor.findById(userId);
 
-        // Update name if provided
-        if (request.getName() != null) {
-            user.setName(request.getName());
-        }
+        // Update name (validated as required by controller)
+        user.setName(request.getName());
 
         return UserInfoDTO.from(accessor.save(user));
     }

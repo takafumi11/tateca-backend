@@ -113,35 +113,24 @@ class UserControllerTest {
         }
 
         @Test
-        @DisplayName("Should handle empty request body gracefully")
-        void shouldHandleEmptyRequestBodyGracefully() throws Exception {
-            // Given: Empty request body
+        @DisplayName("Should return 400 when user_name is missing")
+        void shouldReturn400WhenUserNameIsMissing() throws Exception {
+            // Given: Empty request body (user_name missing)
             UUID userId = UUID.randomUUID();
             String emptyRequest = "{}";
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("Original Name")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
-
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should process empty request
+            // When & Then: Should return 400
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(emptyRequest))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.uuid").value(userId.toString()));
+                    .andExpect(status().isBadRequest());
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, never()).updateUserName(any(), any());
         }
 
         @Test
-        @DisplayName("Should handle null user_name in request")
-        void shouldHandleNullUserNameInRequest() throws Exception {
+        @DisplayName("Should return 400 when user_name is null")
+        void shouldReturn400WhenUserNameIsNull() throws Exception {
             // Given: Request with null user_name
             UUID userId = UUID.randomUUID();
             String requestWithNull = """
@@ -150,51 +139,47 @@ class UserControllerTest {
                 }
                 """;
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("Original Name")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
-
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should process request with null value
+            // When & Then: Should return 400
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestWithNull))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isBadRequest());
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, never()).updateUserName(any(), any());
         }
 
         @Test
-        @DisplayName("Should update with empty string name")
-        void shouldUpdateWithEmptyStringName() throws Exception {
+        @DisplayName("Should return 400 when user_name is empty string")
+        void shouldReturn400WhenUserNameIsEmpty() throws Exception {
             // Given: Request with empty string
             UUID userId = UUID.randomUUID();
             UpdateUserNameDTO request = new UpdateUserNameDTO();
             request.setName("");
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
-
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should process empty string
+            // When & Then: Should return 400
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.name").value(""));
+                    .andExpect(status().isBadRequest());
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, never()).updateUserName(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when user_name is only whitespace")
+        void shouldReturn400WhenUserNameIsOnlyWhitespace() throws Exception {
+            // Given: Request with only whitespace
+            UUID userId = UUID.randomUUID();
+            UpdateUserNameDTO request = new UpdateUserNameDTO();
+            request.setName("   ");
+
+            // When & Then: Should return 400
+            mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+
+            verify(userService, never()).updateUserName(any(), any());
         }
 
         @Test

@@ -6,6 +6,7 @@ import com.tateca.tatecabackend.dto.response.UserInfoDTO;
 import com.tateca.tatecabackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,7 +28,7 @@ public class UserController {
     @Operation(summary = "Update user name")
     public ResponseEntity<UserInfoDTO> updateUserName(
             @PathVariable("userId") UUID userId,
-            @RequestBody UpdateUserNameDTO nameRequestDTO
+            @Valid @RequestBody UpdateUserNameDTO nameRequestDTO
             ) {
         UserInfoDTO responseDTO = service.updateUserName(userId, nameRequestDTO);
         return ResponseEntity.ok(responseDTO);
