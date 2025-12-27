@@ -19,7 +19,6 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
         return entityManager.createQuery("""
                 SELECT t FROM TransactionHistoryEntity t
                 JOIN FETCH t.payer p
-                JOIN FETCH p.currencyName
                 JOIN FETCH t.exchangeRate
                 WHERE t.group.uuid = :groupId
                 ORDER BY t.createdAt DESC

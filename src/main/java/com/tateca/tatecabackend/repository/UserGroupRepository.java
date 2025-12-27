@@ -18,7 +18,7 @@ public interface UserGroupRepository extends JpaRepository<UserGroupEntity, User
     Optional<UserGroupEntity> findByUserUuidAndGroupUuid(@Param("userUuid") UUID userUuid, @Param("groupUuid") UUID groupUuid);
 
     // EntityGraph to eagerly fetch related entities (avoid N+1 queries)
-    @EntityGraph(attributePaths = {"user", "user.currencyName"})
+    @EntityGraph(attributePaths = {"user"})
     @Query("SELECT uge FROM UserGroupEntity uge WHERE uge.groupUuid = :groupUuid")
     List<UserGroupEntity> findByGroupUuidWithUserDetails(@Param("groupUuid") UUID groupUuid);
 
