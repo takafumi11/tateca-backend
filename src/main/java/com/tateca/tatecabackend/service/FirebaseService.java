@@ -6,6 +6,7 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -17,20 +18,20 @@ import java.io.InputStream;
 @Service
 public class FirebaseService {
 
+    @Value("${firebase.serviceAccountKey}")
+    private String serviceAccountKey;
+
     @PostConstruct
     public synchronized void initialize() {
         try {
             // Check if FirebaseApp is already initialized
             if (FirebaseApp.getApps().isEmpty()) {
-                String serviceAccountKey = System.getenv("FIREBASE_SERVICE_ACCOUNT_KEY");
                 if (serviceAccountKey == null || serviceAccountKey.trim().isEmpty()) {
                     throw new RuntimeException("FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set");
                 }
 
                 // Skip Firebase initialization in test environment
-                if ("mock-service-account-key".equals(serviceAccountKey) ||
-                    "mock-key".equals(serviceAccountKey) ||
-                    "test-api-key".equals(serviceAccountKey)) {
+                if ("mock-service-account-key".equals(serviceAccountKey)) {
                     System.out.println("Firebase initialization skipped (test environment)");
                     return;
                 }

@@ -1,8 +1,10 @@
 package com.tateca.tatecabackend.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,10 +20,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * - No authorization layer (trusts UID from client)
  * - CORS enabled for iOS client
  * - Security headers for production
+ * - Dev mode: x-uid header bypass (dev profile only)
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final Environment environment;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -71,6 +77,6 @@ public class SecurityConfig {
 
     @Bean
     public TatecaAuthenticationFilter tatecaAuthenticationFilter() {
-        return new TatecaAuthenticationFilter();
+        return new TatecaAuthenticationFilter(environment);
     }
 }

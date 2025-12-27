@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.tateca"
-version = "0.1.2"
+version = "0.1.3"
 
 java {
 	toolchain {
@@ -30,6 +30,7 @@ dependencies {
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-mysql")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	developmentOnly("me.paulschwarz:spring-dotenv:4.0.0")
 	implementation ("com.google.firebase:firebase-admin:9.2.0")
 	implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
 	implementation("org.springframework.boot:spring-boot-starter-aop")

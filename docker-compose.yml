@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     build:
@@ -7,7 +5,7 @@ services:
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: examplepassword
-      MYSQL_DATABASE: railway
+      MYSQL_DATABASE: db
       MYSQL_USER: a
       MYSQL_PASSWORD: a
     ports:
