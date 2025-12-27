@@ -87,22 +87,18 @@ public class GroupService {
         // Create new records into users table
         AuthUserEntity authUser = authUserAccessor.findByUid(uid);
 
-        // Set currency. Default is JPY. Use getReference to avoid unnecessary DB query.
-        CurrencyNameEntity currencyName = entityManager.getReference(CurrencyNameEntity.class, "JPY");
         List<UserEntity> userEntityList = new ArrayList<>();
 
         UserEntity host = UserEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getHostName())
                 .authUser(authUser)
-                .currencyName(currencyName)
                 .build();
         userEntityList.add(host);
         request.getParticipantsName().forEach(userName -> {
             UserEntity user = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name(userName)
-                    .currencyName(currencyName)
                     .build();
             userEntityList.add(user);
         });

@@ -179,8 +179,12 @@ public class TransactionServiceImpl implements TransactionService {
 
             assert creditor != null;
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            if (minAmount.intValue() != 0) {
-                transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), minAmount.intValue()));
+            // Convert JPY to cents (multiply by 100 and round)
+            long amountInCents = minAmount.multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValue();
+            if (amountInCents != 0) {
+                transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), amountInCents));
             }
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);

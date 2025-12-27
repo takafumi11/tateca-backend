@@ -6,12 +6,9 @@ import lombok.Data;
 
 @Data
 @Schema(description = "Request to update user information")
-public class UpdateUserRequestDTO {
+public class UpdateUserNameDTO {
     @JsonProperty("user_name")
     @Schema(description = "User's display name", example = "John Doe")
     String name;
 
-    @JsonProperty("currency_code")
-    @Schema(description = "User's preferred currency code (ISO 4217)", example = "USD")
-    String currencyCode;
 }

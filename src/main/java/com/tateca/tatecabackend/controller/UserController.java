@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.constants.ApiConstants;
-import com.tateca.tatecabackend.dto.request.UpdateUserRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserNameDTO;
 import com.tateca.tatecabackend.dto.response.UserInfoDTO;
 import com.tateca.tatecabackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,10 +24,10 @@ public class UserController {
     private final UserService service;
 
     @PatchMapping("/{userId}")
-    @Operation(summary = "Update user information")
+    @Operation(summary = "Update user name")
     public ResponseEntity<UserInfoDTO> updateUserName(
             @PathVariable("userId") UUID userId,
-            @RequestBody UpdateUserRequestDTO nameRequestDTO
+            @RequestBody UpdateUserNameDTO nameRequestDTO
             ) {
         UserInfoDTO responseDTO = service.updateUserName(userId, nameRequestDTO);
         return ResponseEntity.ok(responseDTO);

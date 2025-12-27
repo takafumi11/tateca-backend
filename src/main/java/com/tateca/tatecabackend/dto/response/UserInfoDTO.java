@@ -19,10 +19,6 @@ public class UserInfoDTO {
     @Schema(description = "User's display name", example = "John Doe")
     String userName;
 
-    @JsonProperty("currency")
-    @Schema(description = "User's preferred currency information")
-    CurrencyNameDTO currency;
-
     @JsonProperty("auth_user")
     @Schema(description = "Authentication user details")
     AuthUserInfoDTO authUser;
@@ -39,7 +35,6 @@ public class UserInfoDTO {
         return UserInfoDTO.builder()
                 .uuid(user.getUuid().toString())
                 .userName(user.getName())
-                .currency(CurrencyNameDTO.from(user.getCurrencyName()))
                 .authUser(user.getAuthUser() != null ? AuthUserInfoDTO.from(user.getAuthUser()) : null)
                 .createdAt(TimeHelper.convertToTokyoTime(user.getCreatedAt()))
                 .updatedAt(TimeHelper.convertToTokyoTime(user.getUpdatedAt()))
