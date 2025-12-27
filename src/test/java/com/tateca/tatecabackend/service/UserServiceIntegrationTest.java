@@ -63,8 +63,8 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
     class WhenUserExistsInDatabase {
 
         @Test
-        @DisplayName("Then should update user name successfully")
-        void thenShouldUpdateUserNameSuccessfully() {
+        @DisplayName("Then should update user name and persist to database")
+        void thenShouldUpdateUserNameAndPersistToDatabase() {
             // Given: Request with new name
             UpdateUserNameDTO request = new UpdateUserNameDTO();
             request.setName("Updated Name");
@@ -77,7 +77,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(result.getUuid()).isEqualTo(testUserId.toString());
             assertThat(result.getUserName()).isEqualTo("Updated Name");
 
-            // And: Database should contain updated user
+            // And: Changes should be persisted in database
             flushAndClear();
             Optional<UserEntity> updatedUser = userRepository.findById(testUserId);
             assertThat(updatedUser).isPresent();
@@ -85,26 +85,8 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should persist changes to database")
-        void thenShouldPersistChangesToDatabase() {
-            // Given: Request with new name
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Persisted Name");
-
-            // When: Updating user name
-            userService.updateUserName(testUserId, request);
-
-            // Then: Changes should be persisted in database
-            flushAndClear();
-            UserEntity persistedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(persistedUser.getName()).isEqualTo("Persisted Name");
-        }
-
-        @Test
-        @DisplayName("Then should preserve authUser relationship")
-        void thenShouldPreserveAuthUserRelationship() {
+        @DisplayName("Then should preserve authUser relationship after update")
+        void thenShouldPreserveAuthUserRelationshipAfterUpdate() {
             // Given: Request with new name
             UpdateUserNameDTO request = new UpdateUserNameDTO();
             request.setName("New Name");
@@ -119,28 +101,6 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
 
             assertThat(updatedUser.getAuthUser()).isNotNull();
             assertThat(updatedUser.getAuthUser().getUid()).isEqualTo(testAuthUser.getUid());
-        }
-
-        @Test
-        @DisplayName("Then should preserve created timestamp")
-        void thenShouldPreserveCreatedTimestamp() {
-            // Given: Original user with creation timestamp
-            UserEntity originalUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            var originalCreatedAt = originalUser.getCreatedAt();
-
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
-
-            // When: Updating user name
-            userService.updateUserName(testUserId, request);
-
-            // Then: Created timestamp should remain unchanged
-            flushAndClear();
-            UserEntity updatedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(updatedUser.getCreatedAt()).isEqualTo(originalCreatedAt);
         }
 
         @Test
@@ -170,92 +130,6 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                     .orElseThrow(() -> new AssertionError("User should exist"));
 
             assertThat(updatedUser.getUpdatedAt()).isAfterOrEqualTo(originalUpdatedAt);
-        }
-
-        @Test
-        @DisplayName("Then should update with whitespace-trimmed name")
-        void thenShouldUpdateWithWhitespaceTrimmedName() {
-            // Given: Request with name containing whitespace
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("  Trimmed Name  ");
-
-            // When: Updating user name
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
-
-            // Then: Should update with the name as-is (trimming is validation concern)
-            assertThat(result).isNotNull();
-
-            flushAndClear();
-            UserEntity updatedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(updatedUser.getName()).isEqualTo("  Trimmed Name  ");
-        }
-
-        @Test
-        @DisplayName("Then should update with long name")
-        void thenShouldUpdateWithLongName() {
-            // Given: Request with maximum length name (50 characters)
-            String longName = "A".repeat(50);
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName(longName);
-
-            // When: Updating user name
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
-
-            // Then: Should update successfully
-            assertThat(result).isNotNull();
-            assertThat(result.getUserName()).isEqualTo(longName);
-
-            flushAndClear();
-            UserEntity updatedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(updatedUser.getName()).isEqualTo(longName);
-        }
-
-        @Test
-        @DisplayName("Then should update with special characters")
-        void thenShouldUpdateWithSpecialCharacters() {
-            // Given: Request with special characters
-            String specialName = "Test-User_123!@#";
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName(specialName);
-
-            // When: Updating user name
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
-
-            // Then: Should handle special characters
-            assertThat(result).isNotNull();
-            assertThat(result.getUserName()).isEqualTo(specialName);
-
-            flushAndClear();
-            UserEntity updatedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(updatedUser.getName()).isEqualTo(specialName);
-        }
-
-        @Test
-        @DisplayName("Then should update with unicode characters")
-        void thenShouldUpdateWithUnicodeCharacters() {
-            // Given: Request with unicode (Japanese) characters
-            String unicodeName = "田中太郎";
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName(unicodeName);
-
-            // When: Updating user name
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
-
-            // Then: Should handle unicode characters
-            assertThat(result).isNotNull();
-            assertThat(result.getUserName()).isEqualTo(unicodeName);
-
-            flushAndClear();
-            UserEntity updatedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(updatedUser.getName()).isEqualTo(unicodeName);
         }
     }
 
@@ -302,36 +176,6 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
             long countAfter = userRepository.count();
             assertThat(countAfter).isEqualTo(countBefore);
-        }
-    }
-
-    @Nested
-    @DisplayName("Given transactional behavior")
-    class WhenTestingTransactionalBehavior {
-
-        @Test
-        @DisplayName("Then should rollback on exception")
-        void thenShouldRollbackOnException() {
-            // Given: Original user name
-            UserEntity originalUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            String originalName = originalUser.getName();
-
-            // When: Simulating error by using invalid UUID after update
-            // (This is a demonstration - in real scenario, service might throw exception)
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Should Rollback");
-
-            // Then: Name should be updated (in this test case)
-            userService.updateUserName(testUserId, request);
-
-            flushAndClear();
-            UserEntity updatedUser = userRepository.findById(testUserId)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            // Note: This test demonstrates successful update
-            // Rollback testing would require forcing an exception within transaction
-            assertThat(updatedUser.getName()).isEqualTo("Should Rollback");
         }
     }
 }

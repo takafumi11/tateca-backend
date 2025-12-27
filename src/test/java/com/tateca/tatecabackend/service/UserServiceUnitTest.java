@@ -31,7 +31,7 @@ class UserServiceUnitTest {
     private UserAccessor userAccessor;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Captor
     private ArgumentCaptor<UserEntity> userEntityCaptor;
