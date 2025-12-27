@@ -31,7 +31,7 @@ public class TransactionDetailResponseDTO {
     long amount;
 
     @Schema(description = "User who made the payment")
-    UserInfoDTO payer;
+    UserResponseDTO payer;
 
     @Schema(description = "Exchange rate at the time of transaction")
     ExchangeRateResponseDTO exchangeRate;
@@ -68,7 +68,7 @@ public class TransactionDetailResponseDTO {
                 .transactionType(transaction.getTransactionType())
                 .title(transaction.getTitle())
                 .amount(transaction.getAmount())
-                .payer(UserInfoDTO.from(transaction.getPayer()))
+                .payer(UserResponseDTO.from(transaction.getPayer()))
                 .dateStr(convertToTokyoTime(transaction.getTransactionDate()))
                 .exchangeRate(ExchangeRateResponseDTO.from(transaction.getExchangeRate()));
     }

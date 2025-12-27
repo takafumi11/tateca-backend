@@ -20,7 +20,7 @@ public class GroupDetailsResponseDTO {
 
     @JsonProperty("users")
     @Schema(description = "List of users in the group")
-    List<UserInfoDTO> users;
+    List<UserResponseDTO> users;
 
     @JsonProperty("transaction_count")
     @Schema(description = "Total number of transactions in the group", example = "42")
@@ -29,7 +29,7 @@ public class GroupDetailsResponseDTO {
     static public GroupDetailsResponseDTO from(List<UserEntity> userEntityList, GroupEntity groupEntity, Long transactionCount) {
         return GroupDetailsResponseDTO.builder()
                 .groupInfo(GroupInfoDTO.from(groupEntity))
-                .users(userEntityList.stream().map(UserInfoDTO::from).toList())
+                .users(userEntityList.stream().map(UserResponseDTO::from).toList())
                 .transactionCount(transactionCount)
                 .build();
     }

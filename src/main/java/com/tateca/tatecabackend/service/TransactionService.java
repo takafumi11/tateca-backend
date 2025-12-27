@@ -11,7 +11,7 @@ import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
@@ -164,14 +164,14 @@ public class TransactionService {
     }
 
     private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<UserGroupEntity> userGroups) {
-        Map<String, UserInfoDTO> userMap = userGroups.stream()
+        Map<String, UserResponseDTO> userMap = userGroups.stream()
                 .collect(Collectors.toMap(
                         u -> u.getUserUuid().toString(),
-                        u -> UserInfoDTO.from(u.getUser())
+                        u -> UserResponseDTO.from(u.getUser())
                 ));
 
         balances.forEach((userId, amount) -> {
-            UserInfoDTO user = userMap.get(userId);
+            UserResponseDTO user = userMap.get(userId);
             if (amount.compareTo(BigDecimal.ZERO) < 0) {
                 creditors.add(new ParticipantModel(user, amount.negate()));
             } else if (amount.compareTo(BigDecimal.ZERO) > 0) {

@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 public class TransactionSettlementResponseDTO {
     @JsonProperty("from")
     @Schema(description = "User who owes money")
-    UserInfoDTO from;
+    UserResponseDTO from;
 
     @JsonProperty("to")
     @Schema(description = "User who is owed money")
-    UserInfoDTO to;
+    UserResponseDTO to;
 
     @JsonProperty("amount")
     @Schema(description = "Amount to be settled in cents", example = "3500")

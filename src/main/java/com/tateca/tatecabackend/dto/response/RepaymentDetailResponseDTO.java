@@ -12,11 +12,11 @@ import lombok.Data;
 public class RepaymentDetailResponseDTO {
     @JsonProperty("recipient")
     @Schema(description = "User receiving the repayment")
-    UserInfoDTO recipient;
+    UserResponseDTO recipient;
 
     public static RepaymentDetailResponseDTO from(UserEntity recipientEntity) {
         return RepaymentDetailResponseDTO.builder()
-                .recipient(UserInfoDTO.from(recipientEntity))
+                .recipient(UserResponseDTO.from(recipientEntity))
                 .build();
     }
 }

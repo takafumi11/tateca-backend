@@ -10,7 +10,6 @@ import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
@@ -87,22 +86,18 @@ public class GroupService {
         // Create new records into users table
         AuthUserEntity authUser = authUserAccessor.findByUid(uid);
 
-        // Set currency. Default is JPY. Use getReference to avoid unnecessary DB query.
-        CurrencyNameEntity currencyName = entityManager.getReference(CurrencyNameEntity.class, "JPY");
         List<UserEntity> userEntityList = new ArrayList<>();
 
         UserEntity host = UserEntity.builder()
                 .uuid(UUID.randomUUID())
                 .name(request.getHostName())
                 .authUser(authUser)
-                .currencyName(currencyName)
                 .build();
         userEntityList.add(host);
         request.getParticipantsName().forEach(userName -> {
             UserEntity user = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name(userName)
-                    .currencyName(currencyName)
                     .build();
             userEntityList.add(user);
         });
