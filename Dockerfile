@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk AS builder
+FROM eclipse-temurin:25-jdk AS builder
 
 WORKDIR /workspace
 
@@ -8,7 +8,7 @@ COPY . /workspace
 # Skip tests for faster Docker image builds (TODO: Re-enable tests after fixing)
 RUN ./gradlew build -x test --no-daemon
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 WORKDIR /app
 
