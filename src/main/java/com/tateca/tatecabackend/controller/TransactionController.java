@@ -45,12 +45,11 @@ public class TransactionController {
     }
 
     @GetMapping(PATH_SETTLEMENT)
-    @Operation(summary = "Get settlement information for a group")
+    @Operation(summary = "Get settlement information for a group in JPY")
     public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
-            @PathVariable UUID groupId,
-            @RequestParam(required = false) String currencyCode
+            @PathVariable UUID groupId
     ) {
-        TransactionsSettlementResponseDTO response = service.getSettlements(groupId, currencyCode);
+        TransactionsSettlementResponseDTO response = service.getSettlements(groupId);
         return ResponseEntity.ok(response);
     }
 
