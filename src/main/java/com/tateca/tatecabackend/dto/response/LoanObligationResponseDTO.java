@@ -10,7 +10,7 @@ import lombok.Builder;
 public class LoanObligationResponseDTO {
     @JsonProperty("user")
     @Schema(description = "User who owes this amount")
-    UserInfoDTO user;
+    UserResponseDTO user;
 
     @JsonProperty("amount")
     @Schema(description = "Amount owed in cents", example = "2500")
@@ -18,7 +18,7 @@ public class LoanObligationResponseDTO {
 
     public static LoanObligationResponseDTO from(TransactionObligationEntity obligation) {
         return LoanObligationResponseDTO.builder()
-                .user(UserInfoDTO.from(obligation.getUser()))
+                .user(UserResponseDTO.from(obligation.getUser()))
                 .amount(obligation.getAmount())
                 .build();
     }

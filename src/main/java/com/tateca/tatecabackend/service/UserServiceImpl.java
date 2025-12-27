@@ -1,8 +1,8 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.UserAccessor;
-import com.tateca.tatecabackend.dto.request.UpdateUserNameDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInfoDTO updateUserName(UUID userId, UpdateUserNameDTO request) {
+    public UserResponseDTO updateUserName(UUID userId, UpdateUserNameRequestDTO request) {
         UserEntity user = accessor.findById(userId);
 
         // Update name (validated as required by controller)
-        user.setName(request.getName());
+        user.setName(request.name());
 
-        return UserInfoDTO.from(accessor.save(user));
+        return UserResponseDTO.from(accessor.save(user));
     }
 }

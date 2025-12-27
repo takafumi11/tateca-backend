@@ -2,8 +2,8 @@ package com.tateca.tatecabackend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
-import com.tateca.tatecabackend.dto.request.UpdateUserNameDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -53,17 +53,17 @@ class UserControllerTest {
         void shouldReturn200WhenUpdateSucceeds() throws Exception {
             // Given: Valid request and service returns updated user
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Updated Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Updated Name");
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("Updated Name")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
+            UserResponseDTO expectedResponse = new UserResponseDTO(
+                    userId.toString(),
+                    "Updated Name",
+                    null,
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-15T09:00:00+09:00"
+            );
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenReturn(expectedResponse);
 
             // When & Then: Should return 200 with updated user info
@@ -78,7 +78,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.updated_at").exists());
 
             // And: Service should be called once
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
         }
 
         @Test
@@ -92,14 +92,15 @@ class UserControllerTest {
                 }
                 """;
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("New Name")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
+            UserResponseDTO expectedResponse = new UserResponseDTO(
+                    userId.toString(),
+                    "New Name",
+                    null,
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-15T09:00:00+09:00"
+            );
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenReturn(expectedResponse);
 
             // When & Then: Should accept and process request
@@ -109,7 +110,7 @@ class UserControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value("New Name"));
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
         }
 
         @Test
@@ -153,8 +154,7 @@ class UserControllerTest {
         void shouldReturn400WhenUserNameIsEmpty() throws Exception {
             // Given: Request with empty string
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("");
 
             // When & Then: Should return 400
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
@@ -170,8 +170,7 @@ class UserControllerTest {
         void shouldReturn400WhenUserNameIsOnlyWhitespace() throws Exception {
             // Given: Request with only whitespace
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("   ");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("   ");
 
             // When & Then: Should return 400
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
@@ -187,17 +186,17 @@ class UserControllerTest {
         void shouldUpdateWithUnicodeCharacters() throws Exception {
             // Given: Request with Japanese characters
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("田中太郎");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("田中太郎");
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("田中太郎")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
+            UserResponseDTO expectedResponse = new UserResponseDTO(
+                    userId.toString(),
+                    "田中太郎",
+                    null,
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-15T09:00:00+09:00"
+            );
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenReturn(expectedResponse);
 
             // When & Then: Should handle unicode
@@ -208,7 +207,7 @@ class UserControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value("田中太郎"));
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
         }
     }
 
@@ -221,10 +220,9 @@ class UserControllerTest {
         void shouldReturn404WhenUserNotFound() throws Exception {
             // Given: Service throws NOT_FOUND exception
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
             // When & Then: Should return 404
@@ -235,7 +233,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.status").value(404))
                     .andExpect(jsonPath("$.message").exists());
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
         }
 
         @Test
@@ -243,10 +241,9 @@ class UserControllerTest {
         void shouldReturn500WhenInternalServerError() throws Exception {
             // Given: Service throws internal server error
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error"));
 
             // When & Then: Should return 500
@@ -257,7 +254,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.status").value(500))
                     .andExpect(jsonPath("$.message").exists());
 
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
         }
 
         @Test
@@ -265,8 +262,7 @@ class UserControllerTest {
         void shouldReturn400WhenInvalidUUIDFormat() throws Exception {
             // Given: Invalid UUID format
             String invalidUUID = "not-a-valid-uuid";
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             // When & Then: Should return 400
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", invalidUUID)
@@ -283,8 +279,7 @@ class UserControllerTest {
         void shouldReturn400WhenContentTypeIsMissing() throws Exception {
             // Given: Request without Content-Type header
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             // When & Then: Should return 415 Unsupported Media Type
             mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
@@ -320,17 +315,17 @@ class UserControllerTest {
         void shouldPassCorrectUserIdToService() throws Exception {
             // Given: Specific user ID
             UUID userId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Test Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Test Name");
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("Test Name")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
+            UserResponseDTO expectedResponse = new UserResponseDTO(
+                    userId.toString(),
+                    "Test Name",
+                    null,
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-15T09:00:00+09:00"
+            );
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenReturn(expectedResponse);
 
             // When: Calling endpoint
@@ -340,7 +335,7 @@ class UserControllerTest {
                     .andExpect(status().isOk());
 
             // Then: Service should receive exact UUID
-            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameDTO.class));
+            verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
         }
 
         @Test
@@ -348,17 +343,17 @@ class UserControllerTest {
         void shouldPassCorrectDTOToService() throws Exception {
             // Given: Request with specific name
             UUID userId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Specific Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Specific Name");
 
-            UserInfoDTO expectedResponse = UserInfoDTO.builder()
-                    .uuid(userId.toString())
-                    .userName("Specific Name")
-                    .createdAt("2024-01-01T09:00:00+09:00")
-                    .updatedAt("2024-01-15T09:00:00+09:00")
-                    .build();
+            UserResponseDTO expectedResponse = new UserResponseDTO(
+                    userId.toString(),
+                    "Specific Name",
+                    null,
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-15T09:00:00+09:00"
+            );
 
-            when(userService.updateUserName(eq(userId), any(UpdateUserNameDTO.class)))
+            when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
                     .thenReturn(expectedResponse);
 
             // When: Calling endpoint
@@ -370,7 +365,7 @@ class UserControllerTest {
             // Then: Service should receive DTO with correct name
             verify(userService, times(1)).updateUserName(
                     eq(userId),
-                    argThat(dto -> "Specific Name".equals(dto.getName()))
+                    argThat(dto -> "Specific Name".equals(dto.name()))
             );
         }
     }

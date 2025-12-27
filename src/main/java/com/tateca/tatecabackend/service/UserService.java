@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.dto.request.UpdateUserNameDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 
 import java.util.UUID;
 
 public interface UserService {
-    UserInfoDTO updateUserName(UUID userId, UpdateUserNameDTO request);
+    UserResponseDTO updateUserName(UUID userId, UpdateUserNameRequestDTO request);
 }

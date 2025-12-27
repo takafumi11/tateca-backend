@@ -1,8 +1,8 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.UserAccessor;
-import com.tateca.tatecabackend.dto.request.UpdateUserNameDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,8 +71,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should update user name when name is provided")
         void thenShouldUpdateUserNameWhenNameProvided() {
             // Given: User exists and new name is provided
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -93,8 +92,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should update name with valid non-empty string")
         void thenShouldUpdateNameWithValidNonEmptyString() {
             // Given: User exists and name is valid
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Valid Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Valid Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -112,8 +110,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should preserve other user properties")
         void thenShouldPreserveOtherUserProperties() {
             // Given: User exists with authUser
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             UUID originalUuid = testUser.getUuid();
             AuthUserEntity originalAuthUser = testUser.getAuthUser();
@@ -144,8 +141,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should call findById exactly once")
         void thenShouldCallFindByIdExactlyOnce() {
             // Given
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -161,8 +157,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should call save exactly once")
         void thenShouldCallSaveExactlyOnce() {
             // Given
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -178,8 +173,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should save the same entity instance returned from findById")
         void thenShouldSaveSameEntityInstance() {
             // Given
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -202,8 +196,7 @@ class UserServiceUnitTest {
         @DisplayName("Then should return DTO with updated user data")
         void thenShouldReturnDTOWithUpdatedUserData() {
             // Given
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Updated Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Updated Name");
 
             when(userAccessor.findById(testUserId)).thenReturn(testUser);
             when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> {
@@ -212,14 +205,14 @@ class UserServiceUnitTest {
             });
 
             // When
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
+            UserResponseDTO result = userService.updateUserName(testUserId, request);
 
             // Then: Should return DTO with correct data
             assertThat(result).isNotNull();
-            assertThat(result.getUuid()).isEqualTo(testUserId.toString());
-            assertThat(result.getUserName()).isEqualTo("Updated Name");
-            assertThat(result.getCreatedAt()).isNotNull();
-            assertThat(result.getUpdatedAt()).isNotNull();
+            assertThat(result.uuid()).isEqualTo(testUserId.toString());
+            assertThat(result.userName()).isEqualTo("Updated Name");
+            assertThat(result.createdAt()).isNotNull();
+            assertThat(result.updatedAt()).isNotNull();
         }
     }
 }

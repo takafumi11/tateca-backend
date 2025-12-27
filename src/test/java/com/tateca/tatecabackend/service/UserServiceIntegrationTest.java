@@ -1,8 +1,8 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.dto.request.UpdateUserNameDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
@@ -66,16 +66,15 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should update user name and persist to database")
         void thenShouldUpdateUserNameAndPersistToDatabase() {
             // Given: Request with new name
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("Updated Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Updated Name");
 
             // When: Updating user name
-            UserInfoDTO result = userService.updateUserName(testUserId, request);
+            UserResponseDTO result = userService.updateUserName(testUserId, request);
 
             // Then: Should return DTO with updated name
             assertThat(result).isNotNull();
-            assertThat(result.getUuid()).isEqualTo(testUserId.toString());
-            assertThat(result.getUserName()).isEqualTo("Updated Name");
+            assertThat(result.uuid()).isEqualTo(testUserId.toString());
+            assertThat(result.userName()).isEqualTo("Updated Name");
 
             // And: Changes should be persisted in database
             flushAndClear();
@@ -88,8 +87,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Then should preserve authUser relationship after update")
         void thenShouldPreserveAuthUserRelationshipAfterUpdate() {
             // Given: Request with new name
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             // When: Updating user name
             userService.updateUserName(testUserId, request);
@@ -118,8 +116,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 Thread.currentThread().interrupt();
             }
 
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             // When: Updating user name
             userService.updateUserName(testUserId, request);
@@ -142,8 +139,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
             // Given: Non-existent user ID
             UUID nonExistentUserId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             // When & Then: Should throw ResponseStatusException
             assertThatThrownBy(() -> userService.updateUserName(nonExistentUserId, request))
@@ -160,8 +156,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         void thenShouldNotCreateNewUserWhenUserNotFound() {
             // Given: Non-existent user ID
             UUID nonExistentUserId = UUID.randomUUID();
-            UpdateUserNameDTO request = new UpdateUserNameDTO();
-            request.setName("New Name");
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
             long countBefore = userRepository.count();
 
