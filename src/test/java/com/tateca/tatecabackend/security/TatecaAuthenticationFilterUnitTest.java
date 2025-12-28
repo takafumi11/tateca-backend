@@ -44,12 +44,19 @@ class TatecaAuthenticationFilterUnitTest {
     @Mock
     private SecurityContext securityContext;
 
+    @Mock
+    private org.springframework.core.env.Environment environment;
+
     private static final String TEST_API_KEY = "test-api-key-12345";
     private static final String TEST_PROJECT_ID = "test-project-id";
 
     @BeforeEach
     void setUp() {
-        filter = new TatecaAuthenticationFilter();
+        // Configure environment mock to return empty active profiles (not dev mode)
+        // Use lenient() to avoid UnnecessaryStubbingException in tests that don't call this method
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{});
+
+        filter = new TatecaAuthenticationFilter(environment);
         ReflectionTestUtils.setField(filter, "lambdaApiKey", TEST_API_KEY);
         ReflectionTestUtils.setField(filter, "firebaseProjectId", TEST_PROJECT_ID);
 

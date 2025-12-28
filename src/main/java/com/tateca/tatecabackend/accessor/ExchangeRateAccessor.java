@@ -65,4 +65,16 @@ public class ExchangeRateAccessor {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
         }
     }
+
+    public ExchangeRateEntity findLatestByCurrencyCode(String currencyCode) {
+        try {
+            return repository.findLatestByCurrencyCode(currencyCode)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "No exchange rate found for currency code: " + currencyCode
+                    ));
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error", e);
+        }
+    }
 }

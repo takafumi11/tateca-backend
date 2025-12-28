@@ -89,11 +89,11 @@ public class TransactionService {
             userRatesCache = rates.stream()
                     .collect(Collectors.toMap(ExchangeRateEntity::getDate, rate -> rate));
 
-            // If some rates are missing, fall back to current rate
+            // If some rates are missing, fall back to latest available rate
             if (userRatesCache.size() < transactionDates.size()) {
-                ExchangeRateEntity currentRate = exchangeRateAccessor.findByCurrencyCodeAndDate(effectiveCurrencyCode, LocalDate.now(UTC_ZONE_ID));
+                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(effectiveCurrencyCode);
                 for (LocalDate date : transactionDates) {
-                    userRatesCache.putIfAbsent(date, currentRate);
+                    userRatesCache.putIfAbsent(date, latestRate);
                 }
             }
         }
@@ -217,17 +217,21 @@ public class TransactionService {
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 /*
-                If the client sends data with a future date that isn't present in the database, we temporarily substitute it with the most recent available value.
-                However, since the scheduler updates the value the day before, if a repayment occurs before that update, the value may become inaccurate.
+                If the exchange rate for the specified date doesn't exist, use the latest
+                (most recent) available exchange rate for that currency. This provides a
+                more accurate fallback than LocalDate.now(), especially for historical dates
+                or when the current date's rate hasn't been updated yet.
                 */
-                ExchangeRateEntity existing = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), LocalDate.now(UTC_ZONE_ID));
+                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(request.getCurrencyCode());
                 ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
-                        .currencyCode(existing.getCurrencyCode())
+                        .currencyCode(latestRate.getCurrencyCode())
                         .date(date)
-                        .exchangeRate(existing.getExchangeRate())
-                        .currencyName(existing.getCurrencyName())
+                        .exchangeRate(latestRate.getExchangeRate())
+                        .currencyName(latestRate.getCurrencyName())
                         .build();
                 exchangeRate = exchangeRateAccessor.save(newExchangeRateEntity);
+            } else {
+                throw e;
             }
         }
 
