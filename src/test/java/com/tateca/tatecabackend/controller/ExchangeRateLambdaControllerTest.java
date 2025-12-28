@@ -38,8 +38,8 @@ class ExchangeRateLambdaControllerTest {
     @Test
     @DisplayName("Should return 204 No Content when update succeeds")
     void shouldReturn204WhenUpdateSucceeds() throws Exception {
-        // Given: Service successfully updates rates
-        when(exchangeRateUpdateService.fetchAndStoreLatestExchangeRate()).thenReturn(3);
+        // Given: Service successfully updates rates (3 currencies × 2 dates = 6 records)
+        when(exchangeRateUpdateService.fetchAndStoreLatestExchangeRate()).thenReturn(6);
 
         // When: Calling endpoint without request body
         mockMvc.perform(post(ENDPOINT))
@@ -70,8 +70,8 @@ class ExchangeRateLambdaControllerTest {
     @Test
     @DisplayName("Should update latest exchange rates without parameters")
     void shouldUpdateLatestExchangeRatesWithoutParameters() throws Exception {
-        // Given: Service successfully fetches and stores latest rates
-        when(exchangeRateUpdateService.fetchAndStoreLatestExchangeRate()).thenReturn(5);
+        // Given: Service successfully fetches and stores latest rates (for today and tomorrow)
+        when(exchangeRateUpdateService.fetchAndStoreLatestExchangeRate()).thenReturn(6);
 
         // When: Calling endpoint
         mockMvc.perform(post(ENDPOINT))
