@@ -49,4 +49,21 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
         @Param("currencyCode") String currencyCode,
         @Param("dates") List<LocalDate> dates
     );
+
+    /**
+     * Find the latest (most recent) exchange rate for a given currency code.
+     * This is useful as a fallback when a specific date's rate doesn't exist.
+     *
+     * @param currencyCode Currency code to fetch
+     * @return Optional containing the latest exchange rate, or empty if no rates exist
+     */
+    @Query("""
+            SELECT er FROM ExchangeRateEntity er
+            WHERE er.currencyCode = :currencyCode
+            ORDER BY er.date DESC
+            LIMIT 1
+            """)
+    Optional<ExchangeRateEntity> findLatestByCurrencyCode(
+        @Param("currencyCode") String currencyCode
+    );
 }
