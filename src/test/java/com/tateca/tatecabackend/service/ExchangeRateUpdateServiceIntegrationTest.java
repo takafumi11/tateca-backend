@@ -66,27 +66,39 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
             // When: Updating exchange rates
             int result = service.fetchAndStoreLatestExchangeRate();
 
-            // Then: Should store 3 currency rates in database
-            assertThat(result).isEqualTo(3);
+            // Then: Should store 6 currency rates in database (3 currencies × 2 dates)
+            assertThat(result).isEqualTo(6);
 
-            // And: Database should contain exchange rates for the current date
+            // And: Database should contain exchange rates for today and tomorrow
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
-            assertThat(savedRates).hasSize(3);
-            assertThat(savedRates).allMatch(e -> e.getDate().equals(LocalDate.now()));
+            assertThat(savedRates).hasSize(6);
 
-            // And: Rates should match API response
-            ExchangeRateEntity jpyRate = savedRates.stream()
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
+            long todayCount = savedRates.stream()
+                    .filter(e -> e.getDate().equals(today))
+                    .count();
+            long tomorrowCount = savedRates.stream()
+                    .filter(e -> e.getDate().equals(tomorrow))
+                    .count();
+            assertThat(todayCount).isEqualTo(3);
+            assertThat(tomorrowCount).isEqualTo(3);
+
+            // And: Rates should match API response for today
+            ExchangeRateEntity jpyRateToday = savedRates.stream()
                     .filter(e -> e.getCurrencyCode().equals("JPY"))
+                    .filter(e -> e.getDate().equals(today))
                     .findFirst()
                     .orElseThrow();
-            assertThat(jpyRate.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
+            assertThat(jpyRateToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
 
-            ExchangeRateEntity usdRate = savedRates.stream()
+            ExchangeRateEntity usdRateToday = savedRates.stream()
                     .filter(e -> e.getCurrencyCode().equals("USD"))
+                    .filter(e -> e.getDate().equals(today))
                     .findFirst()
                     .orElseThrow();
-            assertThat(usdRate.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
+            assertThat(usdRateToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
         }
 
         @Test
@@ -98,33 +110,45 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
             // When: Updating exchange rates
             int result = service.fetchAndStoreLatestExchangeRate();
 
-            // Then: Should successfully store latest data
-            assertThat(result).isEqualTo(3);
+            // Then: Should successfully store latest data (3 currencies × 2 dates)
+            assertThat(result).isEqualTo(6);
 
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
+            assertThat(savedRates).hasSize(6);
+
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
             assertThat(savedRates)
-                    .hasSize(3)
-                    .allMatch(e -> e.getDate().equals(LocalDate.now()));
+                    .allMatch(e -> e.getDate().equals(today) || e.getDate().equals(tomorrow));
         }
 
         @Test
-        @DisplayName("Then should store rates with current date")
-        void thenShouldStoreRatesWithCurrentDate() {
+        @DisplayName("Then should store rates with today and tomorrow dates")
+        void thenShouldStoreRatesWithTodayAndTomorrowDates() {
             // Given: External API returns latest exchange rates
             givenExternalApiReturnsValidLatestRates();
 
             // When: Updating exchange rates
             int result = service.fetchAndStoreLatestExchangeRate();
 
-            // Then: Should successfully store data with current date
-            assertThat(result).isEqualTo(3);
+            // Then: Should successfully store data with today and tomorrow dates
+            assertThat(result).isEqualTo(6);
 
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
-            assertThat(savedRates)
-                    .hasSize(3)
-                    .allMatch(e -> e.getDate().equals(LocalDate.now()));
+            assertThat(savedRates).hasSize(6);
+
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
+            long todayCount = savedRates.stream()
+                    .filter(e -> e.getDate().equals(today))
+                    .count();
+            long tomorrowCount = savedRates.stream()
+                    .filter(e -> e.getDate().equals(tomorrow))
+                    .count();
+            assertThat(todayCount).isEqualTo(3);
+            assertThat(tomorrowCount).isEqualTo(3);
         }
     }
 
@@ -250,15 +274,15 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
             // When: Updating exchange rates
             int result = service.fetchAndStoreLatestExchangeRate();
 
-            // Then: Should save only known currencies (JPY, USD, EUR)
-            assertThat(result).isEqualTo(3);
+            // Then: Should save only known currencies (3 currencies × 2 dates = 6 records)
+            assertThat(result).isEqualTo(6);
 
             flushAndClear();
             List<ExchangeRateEntity> savedRates = exchangeRateRepository.findAll();
+            assertThat(savedRates).hasSize(6);
             assertThat(savedRates)
-                    .hasSize(3)
                     .extracting(ExchangeRateEntity::getCurrencyCode)
-                    .containsExactlyInAnyOrder("JPY", "USD", "EUR")
+                    .containsOnly("JPY", "USD", "EUR", "JPY", "USD", "EUR")
                     .doesNotContain("UNKNOWN_CURRENCY");
         }
     }

@@ -76,24 +76,34 @@ class ExchangeRateUpdateServiceUnitTest {
         // When: Service fetches and stores exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save new records for current date only
+        // Then: Should save new records for today and tomorrow
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        // Verify: 3 currencies × 1 date = 3 records
-        assertThat(savedEntities).hasSize(3);
-        assertThat(result).isEqualTo(3);
+        // Verify: 3 currencies × 2 dates = 6 records
+        assertThat(savedEntities).hasSize(6);
+        assertThat(result).isEqualTo(6);
 
-        // Verify: All entities have the current date
+        // Verify: All entities have valid data
         assertThat(savedEntities)
-                .allMatch(entity -> entity.getDate().equals(today))
                 .allMatch(entity -> entity.getCurrencyCode() != null)
                 .allMatch(entity -> entity.getExchangeRate() != null);
 
-        // Verify: Contains expected currency codes
+        // Verify: 3 entities for today, 3 for tomorrow
+        LocalDate tomorrow = today.plusDays(1);
+        long todayCount = savedEntities.stream()
+                .filter(e -> e.getDate().equals(today))
+                .count();
+        long tomorrowCount = savedEntities.stream()
+                .filter(e -> e.getDate().equals(tomorrow))
+                .count();
+        assertThat(todayCount).isEqualTo(3);
+        assertThat(tomorrowCount).isEqualTo(3);
+
+        // Verify: Contains expected currency codes (each appears twice)
         assertThat(savedEntities)
                 .extracting(ExchangeRateEntity::getCurrencyCode)
-                .containsExactlyInAnyOrder("JPY", "USD", "EUR");
+                .containsExactlyInAnyOrder("JPY", "USD", "EUR", "JPY", "USD", "EUR");
     }
 
     @Test
@@ -115,20 +125,22 @@ class ExchangeRateUpdateServiceUnitTest {
         // When: Service updates exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save updated records
+        // Then: Should save updated records for both today and tomorrow
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(3);
-        assertThat(result).isEqualTo(3);
+        assertThat(savedEntities).hasSize(6);
+        assertThat(result).isEqualTo(6);
 
-        // Verify: JPY rate is updated to a new value
-        ExchangeRateEntity updatedJpy = savedEntities.stream()
+        // Verify: JPY rate for today is updated to new value
+        LocalDate tomorrow = today.plusDays(1);
+        ExchangeRateEntity updatedJpyToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("JPY"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(updatedJpy.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        assertThat(updatedJpy.getDate()).isEqualTo(today);
+        assertThat(updatedJpyToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
+        assertThat(updatedJpyToday.getDate()).isEqualTo(today);
     }
 
     @Test
@@ -156,17 +168,17 @@ class ExchangeRateUpdateServiceUnitTest {
         // When: Service processes rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save only known currencies (JPY, USD) = 2 records
+        // Then: Should save only known currencies (JPY, USD) × 2 dates = 4 records
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(2);
-        assertThat(result).isEqualTo(2);
+        assertThat(savedEntities).hasSize(4);
+        assertThat(result).isEqualTo(4);
 
         // Verify: UNKNOWN currency is not saved
         assertThat(savedEntities)
                 .extracting(ExchangeRateEntity::getCurrencyCode)
-                .containsOnly("JPY", "USD")
+                .containsOnly("JPY", "USD", "JPY", "USD")
                 .doesNotContain("UNKNOWN");
     }
 
@@ -220,40 +232,44 @@ class ExchangeRateUpdateServiceUnitTest {
         // When: Service processes exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should still save all entities (3 records: 2 unchanged + 1 new EUR)
+        // Then: Should save all entities for both dates (3 currencies × 2 dates = 6 records)
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(3);
-        assertThat(result).isEqualTo(3);
+        assertThat(savedEntities).hasSize(6);
+        assertThat(result).isEqualTo(6);
 
-        // Verify: JPY and USD rates remain unchanged
-        ExchangeRateEntity savedJpy = savedEntities.stream()
+        // Verify: JPY rate for today remains unchanged
+        ExchangeRateEntity savedJpyToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("JPY"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(savedJpy.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        assertThat(savedJpy.getDate()).isEqualTo(today);
+        assertThat(savedJpyToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
+        assertThat(savedJpyToday.getDate()).isEqualTo(today);
 
-        ExchangeRateEntity savedUsd = savedEntities.stream()
+        // Verify: USD rate for today remains unchanged
+        ExchangeRateEntity savedUsdToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("USD"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(savedUsd.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
-        assertThat(savedUsd.getDate()).isEqualTo(today);
+        assertThat(savedUsdToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
+        assertThat(savedUsdToday.getDate()).isEqualTo(today);
 
-        // Verify: EUR is a new record
-        ExchangeRateEntity savedEur = savedEntities.stream()
+        // Verify: EUR for today is a new record
+        ExchangeRateEntity savedEurToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("EUR"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(savedEur.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
-        assertThat(savedEur.getDate()).isEqualTo(today);
+        assertThat(savedEurToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
+        assertThat(savedEurToday.getDate()).isEqualTo(today);
     }
 
     @Test
-    @DisplayName("Should call batch query method once")
-    void shouldCallBatchQueryOnce() {
+    @DisplayName("Should call batch query method twice (once for today, once for tomorrow)")
+    void shouldCallBatchQueryTwice() {
         // Given: API returns rates and currencies exist
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
@@ -263,10 +279,10 @@ class ExchangeRateUpdateServiceUnitTest {
         // When: Service fetches and stores exchange rates
         service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Batch query method should be called exactly once (N+1 problem solved)
-        verify(exchangeRateAccessor, times(1)).findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class));
+        // Then: Batch query method should be called twice (once for today, once for tomorrow)
+        verify(exchangeRateAccessor, times(2)).findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class));
 
-        // And: saveAll should be called exactly once
+        // And: saveAll should be called exactly once (with combined entities)
         verify(exchangeRateAccessor, times(1)).saveAll(anyList());
     }
 
@@ -299,35 +315,83 @@ class ExchangeRateUpdateServiceUnitTest {
         // When: Service processes exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save 3 records (1 updated + 1 unchanged + 1 new)
+        // Then: Should save 6 records (3 for today + 3 for tomorrow)
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(3);
-        assertThat(result).isEqualTo(3);
+        assertThat(savedEntities).hasSize(6);
+        assertThat(result).isEqualTo(6);
 
-        // Verify: JPY rate is updated
-        ExchangeRateEntity savedJpy = savedEntities.stream()
+        // Verify: JPY rate for today is updated
+        ExchangeRateEntity savedJpyToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("JPY"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(savedJpy.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        assertThat(savedJpy.getDate()).isEqualTo(today);
+        assertThat(savedJpyToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
+        assertThat(savedJpyToday.getDate()).isEqualTo(today);
 
-        // Verify: USD rate is unchanged (but still in the list)
-        ExchangeRateEntity savedUsd = savedEntities.stream()
+        // Verify: USD rate for today is unchanged (but still in the list)
+        ExchangeRateEntity savedUsdToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("USD"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(savedUsd.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
-        assertThat(savedUsd.getDate()).isEqualTo(today);
+        assertThat(savedUsdToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
+        assertThat(savedUsdToday.getDate()).isEqualTo(today);
 
-        // Verify: EUR is a new record
-        ExchangeRateEntity savedEur = savedEntities.stream()
+        // Verify: EUR for today is a new record
+        ExchangeRateEntity savedEurToday = savedEntities.stream()
                 .filter(e -> e.getCurrencyCode().equals("EUR"))
+                .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
-        assertThat(savedEur.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
-        assertThat(savedEur.getDate()).isEqualTo(today);
+        assertThat(savedEurToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
+        assertThat(savedEurToday.getDate()).isEqualTo(today);
+    }
+
+    @Test
+    @DisplayName("Should store exchange rates for both today and tomorrow")
+    void shouldStoreExchangeRatesForBothTodayAndTomorrow() {
+        // Given: API returns rates and no existing records
+        when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
+        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+                .thenReturn(List.of());
+
+        LocalDate tomorrow = today.plusDays(1);
+
+        // When: Service fetches and stores exchange rates
+        int result = service.fetchAndStoreLatestExchangeRate();
+
+        // Then: Should save 6 records (3 currencies × 2 dates)
+        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
+
+        assertThat(savedEntities).hasSize(6);
+        assertThat(result).isEqualTo(6);
+
+        // Verify: 3 entities for today, 3 for tomorrow
+        long todayCount = savedEntities.stream()
+                .filter(e -> e.getDate().equals(today))
+                .count();
+        long tomorrowCount = savedEntities.stream()
+                .filter(e -> e.getDate().equals(tomorrow))
+                .count();
+
+        assertThat(todayCount).isEqualTo(3);
+        assertThat(tomorrowCount).isEqualTo(3);
+
+        // Verify: Each currency appears twice (once for each date)
+        Map<String, Long> currencyFrequency = savedEntities.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        ExchangeRateEntity::getCurrencyCode,
+                        java.util.stream.Collectors.counting()
+                ));
+
+        assertThat(currencyFrequency)
+                .containsEntry("JPY", 2L)
+                .containsEntry("USD", 2L)
+                .containsEntry("EUR", 2L);
     }
 }

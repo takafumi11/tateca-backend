@@ -36,13 +36,27 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         ExchangeRateClientResponse exchangeRateClientResponse =
                 exchangeRateApiClient.fetchLatestExchangeRate();
 
-        LocalDate currentDate = LocalDate.now();
-        List<ExchangeRateEntity> exchangeRateEntities =
-                updateExchangeRateEntities(exchangeRateClientResponse, currentDate);
+        // Store rates for today
+        LocalDate today = LocalDate.now();
+        List<ExchangeRateEntity> todayEntities =
+                updateExchangeRateEntities(exchangeRateClientResponse, today);
 
-        exchangeRateAccessor.saveAll(exchangeRateEntities);
+        // Store rates for tomorrow
+        LocalDate tomorrow = today.plusDays(1);
+        List<ExchangeRateEntity> tomorrowEntities =
+                updateExchangeRateEntities(exchangeRateClientResponse, tomorrow);
 
-        return exchangeRateEntities.size();
+        // Combine and save all entities
+        List<ExchangeRateEntity> allEntities = new ArrayList<>();
+        allEntities.addAll(todayEntities);
+        allEntities.addAll(tomorrowEntities);
+
+        exchangeRateAccessor.saveAll(allEntities);
+
+        logger.info("Stored exchange rates: {} for today ({}), {} for tomorrow ({})",
+                todayEntities.size(), today, tomorrowEntities.size(), tomorrow);
+
+        return allEntities.size();
     }
 
     private List<ExchangeRateEntity> updateExchangeRateEntities(

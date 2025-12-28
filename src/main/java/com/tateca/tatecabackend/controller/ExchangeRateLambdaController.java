@@ -86,7 +86,7 @@ public class ExchangeRateLambdaController {
 
         int ratesUpdated = exchangeRateUpdateService.fetchAndStoreLatestExchangeRate();
 
-        logger.info("Exchange rate update completed successfully. Updated {} rates for current date", ratesUpdated);
+        logger.info("Exchange rate update completed successfully. Stored {} total rates (today + tomorrow)", ratesUpdated);
 
         return ResponseEntity.noContent().build();
     }
