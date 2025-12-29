@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -89,7 +89,7 @@ class TransactionServiceRoundingTest extends AbstractIntegrationTest {
             // Verify that Record conversion maintains compatibility
             // Records provide immutability and automatic accessor methods
 
-            assertThat(TransactionSettlementResponseDTO.class.isRecord()).isTrue();
+            assertThat(TransactionSettlement.class.isRecord()).isTrue();
             assertThat(TransactionsSettlementResponseDTO.class.isRecord()).isTrue();
         }
     }

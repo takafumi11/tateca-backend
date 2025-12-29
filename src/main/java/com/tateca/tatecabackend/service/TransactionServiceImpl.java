@@ -7,10 +7,10 @@ import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
 import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
-import com.tateca.tatecabackend.dto.response.UserInfoDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
@@ -66,28 +66,28 @@ public class TransactionServiceImpl implements TransactionService {
         List<TransactionObligationEntity> obligations = obligationAccessor.findByGroupId(groupId);
 
         Map<String, BigDecimal> balances = getUserBalances(obligations);
-        Map<String, UserInfoDTO> userMap = extractUserMap(obligations);
+        Map<String, UserResponseDTO> userMap = extractUserMap(obligations);
 
-        List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userMap);
+        List<TransactionSettlement> transactions = optimizeTransactions(balances, userMap);
 
         return new TransactionsSettlementResponseDTO(transactions);
     }
 
     /**
-     * Extract UserInfoDTO map from obligations (avoid additional DB query).
+     * Extract UserResponseDTO map from obligations (avoid additional DB query).
      */
-    private Map<String, UserInfoDTO> extractUserMap(List<TransactionObligationEntity> obligations) {
-        Map<String, UserInfoDTO> userMap = new HashMap<>();
+    private Map<String, UserResponseDTO> extractUserMap(List<TransactionObligationEntity> obligations) {
+        Map<String, UserResponseDTO> userMap = new HashMap<>();
 
         for (TransactionObligationEntity obligation : obligations) {
             String userId = obligation.getUser().getUuid().toString();
             if (!userMap.containsKey(userId)) {
-                userMap.put(userId, UserInfoDTO.from(obligation.getUser()));
+                userMap.put(userId, UserResponseDTO.from(obligation.getUser()));
             }
 
             String payerId = obligation.getTransaction().getPayer().getUuid().toString();
             if (!userMap.containsKey(payerId)) {
-                userMap.put(payerId, UserInfoDTO.from(obligation.getTransaction().getPayer()));
+                userMap.put(payerId, UserResponseDTO.from(obligation.getTransaction().getPayer()));
             }
         }
 
@@ -148,22 +148,22 @@ public class TransactionServiceImpl implements TransactionService {
         return balances;
     }
 
-    private List<TransactionSettlementResponseDTO> optimizeTransactions(Map<String, BigDecimal> balances, Map<String, UserInfoDTO> userMap) {
+    private List<TransactionSettlement> optimizeTransactions(Map<String, BigDecimal> balances, Map<String, UserResponseDTO> userMap) {
         PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
         PriorityQueue<ParticipantModel> debtors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
 
         classifyParticipants(balances, creditors, debtors, userMap);
 
-        List<TransactionSettlementResponseDTO> transactions = new ArrayList<>();
+        List<TransactionSettlement> transactions = new ArrayList<>();
 
         processTransactions(creditors, debtors, transactions);
 
         return transactions;
     }
 
-    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, Map<String, UserInfoDTO> userMap) {
+    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, Map<String, UserResponseDTO> userMap) {
         balances.forEach((userId, amount) -> {
-            UserInfoDTO user = userMap.get(userId);
+            UserResponseDTO user = userMap.get(userId);
             if (amount.compareTo(BigDecimal.ZERO) < 0) {
                 creditors.add(new ParticipantModel(user, amount.negate()));
             } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
@@ -172,7 +172,7 @@ public class TransactionServiceImpl implements TransactionService {
         });
     }
 
-    private void processTransactions(PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<TransactionSettlementResponseDTO> transactions) {
+    private void processTransactions(PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<TransactionSettlement> transactions) {
         while (!debtors.isEmpty() && !creditors.isEmpty()) {
             ParticipantModel debtor = debtors.poll();
             ParticipantModel creditor = creditors.poll();
@@ -184,7 +184,7 @@ public class TransactionServiceImpl implements TransactionService {
                     .setScale(0, RoundingMode.HALF_UP)
                     .longValue();
             if (amountInCents != 0) {
-                transactions.add(new TransactionSettlementResponseDTO(debtor.getUserId(), creditor.getUserId(), amountInCents));
+                transactions.add(new TransactionSettlement(debtor.getUserId(), creditor.getUserId(), amountInCents));
             }
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);

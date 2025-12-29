@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
@@ -234,29 +234,29 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             // Debug: Print actual results
             System.out.println("Settlement results: " + result.transactionsSettlement().size() + " transactions");
             result.transactionsSettlement().forEach(t ->
-                System.out.println("  " + t.from().getUserName() + " -> " + t.to().getUserName() + ": " + t.amount())
+                System.out.println("  " + t.from().userName() + " -> " + t.to().userName() + ": " + t.amount())
             );
 
             // Then: Should have 2 settlement transactions
             assertThat(result.transactionsSettlement()).hasSize(2);
 
             // Then: Bob should pay Alice
-            TransactionSettlementResponseDTO bobPayment = result.transactionsSettlement().stream()
-                    .filter(t -> t.from().getUuid().equals(bob.getUuid().toString()))
+            TransactionSettlement bobPayment = result.transactionsSettlement().stream()
+                    .filter(t -> t.from().uuid().equals(bob.getUuid().toString()))
                     .findFirst()
                     .orElseThrow();
 
-            assertThat(bobPayment.to().getUuid()).isEqualTo(alice.getUuid().toString());
+            assertThat(bobPayment.to().uuid()).isEqualTo(alice.getUuid().toString());
             // 5000 cents / 148.7 = 33.6249... → 3362 cents (33.62 JPY)
             assertThat(bobPayment.amount()).isEqualTo(3362);
 
             // Then: Carol should pay Alice
-            TransactionSettlementResponseDTO carolPayment = result.transactionsSettlement().stream()
-                    .filter(t -> t.from().getUuid().equals(carol.getUuid().toString()))
+            TransactionSettlement carolPayment = result.transactionsSettlement().stream()
+                    .filter(t -> t.from().uuid().equals(carol.getUuid().toString()))
                     .findFirst()
                     .orElseThrow();
 
-            assertThat(carolPayment.to().getUuid()).isEqualTo(alice.getUuid().toString());
+            assertThat(carolPayment.to().uuid()).isEqualTo(alice.getUuid().toString());
             // 5000 cents / 148.7 = 33.6249... → 3362 cents (33.62 JPY)
             assertThat(carolPayment.amount()).isEqualTo(3362);
 
@@ -320,15 +320,15 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
 
             // Then: Sum of all payments (sum of individual rounded amounts)
             long totalPayment = result.transactionsSettlement().stream()
-                    .mapToLong(TransactionSettlementResponseDTO::amount)
+                    .mapToLong(TransactionSettlement::amount)
                     .sum();
 
             // 2241 + 2241 + 2242 = 6724 cents (due to rounding of individual amounts)
             assertThat(totalPayment).isEqualTo(6724);
 
             // Then: David (maximum debtor) should have received the rounding adjustment
-            TransactionSettlementResponseDTO davidPayment = result.transactionsSettlement().stream()
-                    .filter(t -> t.from().getUuid().equals(david.getUuid().toString()))
+            TransactionSettlement davidPayment = result.transactionsSettlement().stream()
+                    .filter(t -> t.from().uuid().equals(david.getUuid().toString()))
                     .findFirst()
                     .orElseThrow();
 
@@ -400,12 +400,12 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             // Net: Alice should receive 6725 - 3115 = 3610 cents
 
             long aliceNet = result.transactionsSettlement().stream()
-                    .filter(t -> t.to().getUuid().equals(alice.getUuid().toString()))
-                    .mapToLong(TransactionSettlementResponseDTO::amount)
+                    .filter(t -> t.to().uuid().equals(alice.getUuid().toString()))
+                    .mapToLong(TransactionSettlement::amount)
                     .sum()
                     - result.transactionsSettlement().stream()
-                    .filter(t -> t.from().getUuid().equals(alice.getUuid().toString()))
-                    .mapToLong(TransactionSettlementResponseDTO::amount)
+                    .filter(t -> t.from().uuid().equals(alice.getUuid().toString()))
+                    .mapToLong(TransactionSettlement::amount)
                     .sum();
 
             assertThat(aliceNet).isEqualTo(3610);
@@ -494,11 +494,11 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: Sum of all payments should equal sum of all receipts
             // (total amount paid = total amount received, ensuring conservation of money)
             long totalPaid = result.transactionsSettlement().stream()
-                    .mapToLong(TransactionSettlementResponseDTO::amount)
+                    .mapToLong(TransactionSettlement::amount)
                     .sum();
 
             long totalReceived = result.transactionsSettlement().stream()
-                    .mapToLong(TransactionSettlementResponseDTO::amount)
+                    .mapToLong(TransactionSettlement::amount)
                     .sum();
 
             // Total paid equals total received (same list of transactions)
@@ -510,13 +510,13 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
 
             for (UserEntity user : users) {
                 long received = result.transactionsSettlement().stream()
-                        .filter(t -> t.to().getUuid().equals(user.getUuid().toString()))
-                        .mapToLong(TransactionSettlementResponseDTO::amount)
+                        .filter(t -> t.to().uuid().equals(user.getUuid().toString()))
+                        .mapToLong(TransactionSettlement::amount)
                         .sum();
 
                 long paid = result.transactionsSettlement().stream()
-                        .filter(t -> t.from().getUuid().equals(user.getUuid().toString()))
-                        .mapToLong(TransactionSettlementResponseDTO::amount)
+                        .filter(t -> t.from().uuid().equals(user.getUuid().toString()))
+                        .mapToLong(TransactionSettlement::amount)
                         .sum();
 
                 sumOfNetBalances += (received - paid);
