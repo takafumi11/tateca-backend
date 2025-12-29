@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.controller;
 
-import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
 import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
@@ -24,7 +23,6 @@ import java.util.UUID;
 
 import static com.tateca.tatecabackend.constants.ApiConstants.PATH_GROUPS;
 import static com.tateca.tatecabackend.constants.ApiConstants.PATH_HISTORY;
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_SETTLEMENT;
 import static com.tateca.tatecabackend.constants.ApiConstants.PATH_TRANSACTIONS;
 
 @RestController
@@ -44,8 +42,8 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(PATH_SETTLEMENT)
-    @Operation(summary = "Get settlement information for a group")
+    @GetMapping("/settlement")
+    @Operation(summary = "Get settlement information for a group in JPY")
     public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
             @PathVariable UUID groupId
     ) {
