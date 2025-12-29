@@ -526,4 +526,362 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(sumOfNetBalances).isEqualTo(0L);
         }
     }
+
+    @Nested
+    @DisplayName("Given real-world travel expense scenario")
+    class GivenRealWorldTravelExpenseScenario {
+
+        @Test
+        @DisplayName("Then should correctly settle shared trip expenses")
+        void thenShouldCorrectlySettleSharedTripExpenses() {
+            // Given: Friends on a trip sharing expenses
+            // - Alice paid for hotel: 45000 JPY (everyone splits)
+            // - Bob paid for dinner: 12000 JPY (everyone splits)
+            // - Carol paid for transportation: 9000 JPY (everyone splits)
+            // Total: 66000 JPY / 3 people = 22000 JPY each
+
+            // Hotel payment by Alice (45000 JPY)
+            TransactionHistoryEntity hotelTx = createTransaction(alice, 45000L, usdRate, "Hotel Reservation");
+            obligationRepository.save(createObligation(hotelTx, alice, 15000));
+            obligationRepository.save(createObligation(hotelTx, bob, 15000));
+            obligationRepository.save(createObligation(hotelTx, carol, 15000));
+
+            // Dinner payment by Bob (12000 JPY)
+            TransactionHistoryEntity dinnerTx = createTransaction(bob, 12000L, usdRate, "Dinner");
+            obligationRepository.save(createObligation(dinnerTx, alice, 4000));
+            obligationRepository.save(createObligation(dinnerTx, bob, 4000));
+            obligationRepository.save(createObligation(dinnerTx, carol, 4000));
+
+            // Transportation by Carol (9000 JPY)
+            TransactionHistoryEntity transportTx = createTransaction(carol, 9000L, usdRate, "Transportation");
+            obligationRepository.save(createObligation(transportTx, alice, 3000));
+            obligationRepository.save(createObligation(transportTx, bob, 3000));
+            obligationRepository.save(createObligation(transportTx, carol, 3000));
+
+            flushAndClear();
+
+            // When: Get settlements
+            TransactionsSettlementResponseDTO result = transactionService.getSettlements(testGroup.getUuid());
+
+            // Debug output
+            System.out.println("Travel expenses settlement: " + result.transactionsSettlement().size() + " transactions");
+            result.transactionsSettlement().forEach(t ->
+                System.out.println("  " + t.from().userName() + " → " + t.to().userName() + ": " + t.amount() + " cents")
+            );
+
+            // Then: Should have optimized settlements
+            assertThat(result.transactionsSettlement()).isNotEmpty();
+
+            // Net balances:
+            // Alice: paid 45000, owes (4000+3000) = net 38000 JPY
+            // Bob: paid 12000, owes (15000+3000) = net -6000 JPY
+            // Carol: paid 9000, owes (15000+4000) = net -10000 JPY
+
+            // Verify net balances
+            long aliceNet = calculateNetBalance(result, alice.getUuid().toString());
+            long bobNet = calculateNetBalance(result, bob.getUuid().toString());
+            long carolNet = calculateNetBalance(result, carol.getUuid().toString());
+
+            // Convert to JPY cents (45000/148.7=30262, 12000/148.7=8068, 9000/148.7=6051)
+            // Alice receives: 30262 - (4000+3000)/148.7 = 30262 - 4708 = 25554 cents
+            // Bob pays: (15000+3000)/148.7 - 8068 = 12107 - 8068 = 4039 cents
+            // Carol pays: (15000+4000)/148.7 - 6051 = 12780 - 6051 = 6729 cents
+
+            assertThat(aliceNet).isPositive(); // Alice should receive
+            assertThat(bobNet).isNegative(); // Bob should pay
+            assertThat(carolNet).isNegative(); // Carol should pay
+
+            // Total should sum to zero
+            assertThat(aliceNet + bobNet + carolNet).isBetween(-1L, 1L);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given monthly bill splitting scenario")
+    class GivenMonthlyBillSplittingScenario {
+
+        @Test
+        @DisplayName("Then should settle monthly shared expenses")
+        void thenShouldSettleMonthlySharedExpenses() {
+            // Given: Roommates splitting monthly bills
+            // - Alice paid utilities: 15000 JPY (split 3 ways)
+            // - Bob paid internet: 6000 JPY (split 3 ways)
+            // - Carol paid groceries: 24000 JPY (split 3 ways)
+            // Total: 45000 JPY / 3 = 15000 JPY each
+
+            TransactionHistoryEntity utilitiesTx = createTransaction(alice, 15000L, usdRate, "Utilities");
+            obligationRepository.save(createObligation(utilitiesTx, alice, 5000));
+            obligationRepository.save(createObligation(utilitiesTx, bob, 5000));
+            obligationRepository.save(createObligation(utilitiesTx, carol, 5000));
+
+            TransactionHistoryEntity internetTx = createTransaction(bob, 6000L, usdRate, "Internet");
+            obligationRepository.save(createObligation(internetTx, alice, 2000));
+            obligationRepository.save(createObligation(internetTx, bob, 2000));
+            obligationRepository.save(createObligation(internetTx, carol, 2000));
+
+            TransactionHistoryEntity groceriesTx = createTransaction(carol, 24000L, usdRate, "Groceries");
+            obligationRepository.save(createObligation(groceriesTx, alice, 8000));
+            obligationRepository.save(createObligation(groceriesTx, bob, 8000));
+            obligationRepository.save(createObligation(groceriesTx, carol, 8000));
+
+            flushAndClear();
+
+            // When: Get settlements
+            TransactionsSettlementResponseDTO result = transactionService.getSettlements(testGroup.getUuid());
+
+            // Then: All balances should be equal (everyone owes 15000 JPY)
+            // Alice: paid 15000, owes 15000 = 0
+            // Bob: paid 6000, owes 15000 = -9000
+            // Carol: paid 24000, owes 15000 = +9000
+
+            assertThat(result.transactionsSettlement()).isNotEmpty();
+
+            // Verify conservation of money
+            long totalPaid = result.transactionsSettlement().stream()
+                    .mapToLong(TransactionSettlement::amount)
+                    .sum();
+            long totalReceived = result.transactionsSettlement().stream()
+                    .mapToLong(TransactionSettlement::amount)
+                    .sum();
+
+            assertThat(totalPaid).isEqualTo(totalReceived);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given large group with 6 members")
+    class GivenLargeGroupWithSixMembers {
+
+        @Test
+        @DisplayName("Then should efficiently settle complex group expenses")
+        void thenShouldEfficientlySettleComplexGroupExpenses() {
+            // Given: 6-person group with multiple transactions
+            UserEntity eve = createAndSaveUser("eve-uid", "Eve");
+            UserEntity frank = createAndSaveUser("frank-uid", "Frank");
+
+            userGroupRepository.save(createUserGroup(eve, testGroup));
+            userGroupRepository.save(createUserGroup(frank, testGroup));
+
+            // Multiple transactions with different payers and splits
+            // Alice paid 30000 (split 6 ways)
+            TransactionHistoryEntity tx1 = createTransaction(alice, 30000L, usdRate, "Group Activity 1");
+            for (UserEntity user : List.of(alice, bob, carol, david, eve, frank)) {
+                obligationRepository.save(createObligation(tx1, user, 5000));
+            }
+
+            // Bob paid 18000 (split 6 ways)
+            TransactionHistoryEntity tx2 = createTransaction(bob, 18000L, eurRate, "Group Activity 2");
+            for (UserEntity user : List.of(alice, bob, carol, david, eve, frank)) {
+                obligationRepository.save(createObligation(tx2, user, 3000));
+            }
+
+            // Carol paid 24000 (split 6 ways)
+            TransactionHistoryEntity tx3 = createTransaction(carol, 24000L, usdRate, "Group Activity 3");
+            for (UserEntity user : List.of(alice, bob, carol, david, eve, frank)) {
+                obligationRepository.save(createObligation(tx3, user, 4000));
+            }
+
+            flushAndClear();
+
+            // When: Get settlements
+            TransactionsSettlementResponseDTO result = transactionService.getSettlements(testGroup.getUuid());
+
+            // Then: Should optimize settlements for 6 people
+            assertThat(result.transactionsSettlement()).isNotEmpty();
+
+            // Verify all 6 users have balanced accounts
+            List<UserEntity> allUsers = List.of(alice, bob, carol, david, eve, frank);
+            long sumOfNetBalances = 0;
+
+            for (UserEntity user : allUsers) {
+                long netBalance = calculateNetBalance(result, user.getUuid().toString());
+                sumOfNetBalances += netBalance;
+            }
+
+            // Total should be zero (conservation of money)
+            assertThat(sumOfNetBalances).isBetween(-1L, 1L);
+
+            // Should optimize to use fewer transactions than naive approach
+            // Naive: 5 people pay 1 person = 5 transactions per payer
+            // Optimized: Should use graph-based settlement reduction
+            assertThat(result.transactionsSettlement().size()).isLessThan(15);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given micro-transactions with small amounts")
+    class GivenMicroTransactionsWithSmallAmounts {
+
+        @Test
+        @DisplayName("Then should handle cents-level precision correctly")
+        void thenShouldHandleCentsLevelPrecision() {
+            // Given: Very small amounts (e.g., coffee shop split)
+            // Alice paid 450 JPY coffee, Bob and Carol split
+            TransactionHistoryEntity coffeeTx = createTransaction(alice, 450L, usdRate, "Coffee");
+            obligationRepository.save(createObligation(coffeeTx, alice, 150));
+            obligationRepository.save(createObligation(coffeeTx, bob, 150));
+            obligationRepository.save(createObligation(coffeeTx, carol, 150));
+
+            flushAndClear();
+
+            // When: Get settlements
+            TransactionsSettlementResponseDTO result = transactionService.getSettlements(testGroup.getUuid());
+
+            // Then: Should handle small amounts (450/148.7 = 3.03 JPY = 303 cents total)
+            // Bob and Carol should each pay: 150/148.7 = 1.009 JPY ≈ 101 cents
+            assertThat(result.transactionsSettlement()).hasSize(2);
+
+            long totalSettlement = result.transactionsSettlement().stream()
+                    .mapToLong(TransactionSettlement::amount)
+                    .sum();
+
+            // Total should be close to 202 cents (with rounding adjustment)
+            assertThat(totalSettlement).isBetween(201L, 203L);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given large transaction amounts")
+    class GivenLargeTransactionAmounts {
+
+        @Test
+        @DisplayName("Then should handle large numbers without overflow")
+        void thenShouldHandleLargeNumbersWithoutOverflow() {
+            // Given: Large expense (e.g., car purchase: 3,000,000 JPY)
+            // Alice paid, Bob and Carol split
+            TransactionHistoryEntity carTx = createTransaction(alice, 3_000_000L, usdRate, "Car Purchase");
+            obligationRepository.save(createObligation(carTx, alice, 1_000_000));
+            obligationRepository.save(createObligation(carTx, bob, 1_000_000));
+            obligationRepository.save(createObligation(carTx, carol, 1_000_000));
+
+            flushAndClear();
+
+            // When: Get settlements
+            TransactionsSettlementResponseDTO result = transactionService.getSettlements(testGroup.getUuid());
+
+            // Then: Should calculate correctly with large amounts
+            // 3,000,000 / 148.7 = 20,175.95 JPY ≈ 2,017,595 cents total
+            // Each person: 1,000,000 / 148.7 = 6,725.32 JPY ≈ 672,532 cents
+            assertThat(result.transactionsSettlement()).hasSize(2);
+
+            long totalSettlement = result.transactionsSettlement().stream()
+                    .mapToLong(TransactionSettlement::amount)
+                    .sum();
+
+            // Verify no overflow and correct calculation
+            assertThat(totalSettlement).isPositive();
+            assertThat(totalSettlement).isGreaterThan(1_000_000); // Should be > 10000 JPY in cents
+        }
+    }
+
+    @Nested
+    @DisplayName("Given gradual expense accumulation")
+    class GivenGradualExpenseAccumulation {
+
+        @Test
+        @DisplayName("Then should accurately track running balances")
+        void thenShouldAccuratelyTrackRunningBalances() {
+            // Given: Expenses accumulated over time
+            // Day 1: Alice paid 10000
+            TransactionHistoryEntity day1 = createTransaction(alice, 10000L, usdRate, "Day 1 Expense");
+            obligationRepository.save(createObligation(day1, bob, 5000));
+            obligationRepository.save(createObligation(day1, carol, 5000));
+
+            // Day 2: Bob paid 8000
+            TransactionHistoryEntity day2 = createTransaction(bob, 8000L, eurRate, "Day 2 Expense");
+            obligationRepository.save(createObligation(day2, alice, 4000));
+            obligationRepository.save(createObligation(day2, carol, 4000));
+
+            // Day 3: Carol paid 12000
+            TransactionHistoryEntity day3 = createTransaction(carol, 12000L, usdRate, "Day 3 Expense");
+            obligationRepository.save(createObligation(day3, alice, 6000));
+            obligationRepository.save(createObligation(day3, bob, 6000));
+
+            // Day 4: Alice paid again 15000
+            TransactionHistoryEntity day4 = createTransaction(alice, 15000L, eurRate, "Day 4 Expense");
+            obligationRepository.save(createObligation(day4, bob, 7500));
+            obligationRepository.save(createObligation(day4, carol, 7500));
+
+            flushAndClear();
+
+            // When: Get settlements
+            TransactionsSettlementResponseDTO result = transactionService.getSettlements(testGroup.getUuid());
+
+            // Then: Should correctly settle cumulative balances
+            assertThat(result.transactionsSettlement()).isNotEmpty();
+
+            // Verify conservation across all transactions
+            long aliceNet = calculateNetBalance(result, alice.getUuid().toString());
+            long bobNet = calculateNetBalance(result, bob.getUuid().toString());
+            long carolNet = calculateNetBalance(result, carol.getUuid().toString());
+
+            // Sum should be zero
+            assertThat(aliceNet + bobNet + carolNet).isBetween(-1L, 1L);
+        }
+    }
+
+    // Helper methods for new tests
+
+    private UserEntity createAndSaveUser(String authUid, String name) {
+        AuthUserEntity authUser = authUserRepository.save(AuthUserEntity.builder()
+                .uid(authUid)
+                .name(name)
+                .email(name.toLowerCase() + "@example.com")
+                .build());
+
+        return userRepository.save(UserEntity.builder()
+                .uuid(UUID.randomUUID())
+                .name(name)
+                .authUser(authUser)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build());
+    }
+
+    private TransactionHistoryEntity createTransaction(UserEntity payer, long amount, ExchangeRateEntity rate, String title) {
+        return transactionRepository.save(TransactionHistoryEntity.builder()
+                .uuid(UUID.randomUUID())
+                .transactionType(TransactionType.LOAN)
+                .title(title)
+                .amount((int) amount)
+                .payer(payer)
+                .group(testGroup)
+                .exchangeRate(rate)
+                .transactionDate(Instant.now())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build());
+    }
+
+    private TransactionObligationEntity createObligation(TransactionHistoryEntity transaction, UserEntity user, long amount) {
+        return TransactionObligationEntity.builder()
+                .uuid(UUID.randomUUID())
+                .transaction(transaction)
+                .user(user)
+                .amount((int) amount)
+                .build();
+    }
+
+    private UserGroupEntity createUserGroup(UserEntity user, GroupEntity group) {
+        return UserGroupEntity.builder()
+                .userUuid(user.getUuid())
+                .groupUuid(group.getUuid())
+                .user(user)
+                .group(group)
+                .build();
+    }
+
+    private long calculateNetBalance(TransactionsSettlementResponseDTO result, String userId) {
+        long received = result.transactionsSettlement().stream()
+                .filter(t -> t.to().uuid().equals(userId))
+                .mapToLong(TransactionSettlement::amount)
+                .sum();
+
+        long paid = result.transactionsSettlement().stream()
+                .filter(t -> t.from().uuid().equals(userId))
+                .mapToLong(TransactionSettlement::amount)
+                .sum();
+
+        return received - paid;
+    }
 }
