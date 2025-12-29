@@ -12,9 +12,5 @@ public class TransactionsSettlementResponseDTO {
    @JsonProperty("transactions_settlement")
    @Schema(description = "List of settlements needed to balance accounts")
    List<TransactionSettlementResponseDTO> transactionsSettlement;
-
-   @JsonProperty("currency_code")
-   @Schema(description = "Currency code for settlements", example = "JPY")
-   String currencyCode;
 }
 

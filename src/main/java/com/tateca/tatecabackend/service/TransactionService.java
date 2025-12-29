@@ -63,10 +63,7 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public TransactionsSettlementResponseDTO getSettlements(UUID groupId, String currencyCode) {
-        // Default to JPY if currencyCode is null
-        String effectiveCurrencyCode = currencyCode != null ? currencyCode : "JPY";
-
+    public TransactionsSettlementResponseDTO getSettlements(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
 
         List<String> userIds = userGroups.stream()
@@ -76,38 +73,15 @@ public class TransactionService {
 
         List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByGroupId(groupId);
 
-        // Build exchange rate cache for user currency
-        Map<LocalDate, ExchangeRateEntity> userRatesCache = new HashMap<>();
-        if (!"JPY".equals(effectiveCurrencyCode)) {
-            List<LocalDate> transactionDates = transactionObligationEntityList.stream()
-                    .map(o -> o.getTransaction().getExchangeRate().getDate())
-                    .distinct()
-                    .toList();
-
-            // Batch fetch user currency rates for all dates (avoid N+1)
-            List<ExchangeRateEntity> rates = exchangeRateAccessor.findByCurrencyCodeAndDates(effectiveCurrencyCode, transactionDates);
-            userRatesCache = rates.stream()
-                    .collect(Collectors.toMap(ExchangeRateEntity::getDate, rate -> rate));
-
-            // If some rates are missing, fall back to latest available rate
-            if (userRatesCache.size() < transactionDates.size()) {
-                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(effectiveCurrencyCode);
-                for (LocalDate date : transactionDates) {
-                    userRatesCache.putIfAbsent(date, latestRate);
-                }
-            }
-        }
-
-        Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList, userRatesCache);
+        Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList);
         List<TransactionSettlementResponseDTO> transactions = optimizeTransactions(balances, userGroups);
 
         return TransactionsSettlementResponseDTO.builder()
                 .transactionsSettlement(transactions)
-                .currencyCode(effectiveCurrencyCode)
                 .build();
     }
 
-    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList, Map<LocalDate, ExchangeRateEntity> userRatesCache) {
+    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList) {
         Map<String, BigDecimal> balances = new HashMap<>();
 
         for (String userId : userIds) {
@@ -117,30 +91,17 @@ public class TransactionService {
                 String obligationUserId = obligation.getUser().getUuid().toString();
                 String payerId = obligation.getTransaction().getPayer().getUuid().toString();
 
-                // Step1: Convert transaction currency to JPY
+                // Convert transaction currency to JPY
                 BigDecimal transactionRate = obligation.getTransaction().getExchangeRate().getExchangeRate();
                 BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
                         .divide(transactionRate, 7, RoundingMode.HALF_UP);
 
-                // Step2: Convert JPY to user currency using transaction date rate
-                BigDecimal obligationAmount;
-                if (userRatesCache.isEmpty()) {
-                    // User currency is JPY
-                    obligationAmount = amountInJpy;
-                } else {
-                    // User currency is foreign currency - use rate from transaction date
-                    LocalDate transactionDate = obligation.getTransaction().getExchangeRate().getDate();
-                    ExchangeRateEntity userRate = userRatesCache.get(transactionDate);
-                    obligationAmount = amountInJpy.multiply(userRate.getExchangeRate())
-                            .setScale(7, RoundingMode.HALF_UP);
-                }
-
                 if (obligationUserId.equals(userId)) {
-                    balance = balance.add(obligationAmount);
+                    balance = balance.add(amountInJpy);
                 }
 
                 if (payerId.equals(userId)) {
-                    balance = balance.subtract(obligationAmount);
+                    balance = balance.subtract(amountInJpy);
                 }
             }
 
