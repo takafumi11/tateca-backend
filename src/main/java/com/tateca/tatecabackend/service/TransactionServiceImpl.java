@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
+import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
 import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
@@ -16,6 +17,7 @@ import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.ParticipantModel;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.util.LogFactory;
@@ -48,6 +50,7 @@ public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LogFactory.getLogger(TransactionServiceImpl.class);
     private final UserAccessor userAccessor;
     private final GroupAccessor groupAccessor;
+    private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor accessor;
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateAccessor exchangeRateAccessor;
@@ -63,10 +66,18 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public TransactionsSettlementResponseDTO getSettlements(UUID groupId) {
+        // Fetch all users in group (not just those with obligations)
+        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+
+        List<String> userIds = userGroups.stream()
+                .map(UserGroupEntity::getUserUuid)
+                .map(UUID::toString)
+                .toList();
+
         List<TransactionObligationEntity> obligations = obligationAccessor.findByGroupId(groupId);
 
-        Map<String, BigDecimal> balances = getUserBalances(obligations);
-        Map<String, UserResponseDTO> userMap = extractUserMap(obligations);
+        Map<String, BigDecimal> balances = getUserBalances(userIds, obligations);
+        Map<String, UserResponseDTO> userMap = extractUserMapFromGroups(userGroups);
 
         List<TransactionSettlement> transactions = optimizeTransactions(balances, userMap);
 
@@ -74,49 +85,86 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Extract UserResponseDTO map from obligations (avoid additional DB query).
+     * Extract UserResponseDTO map from UserGroupEntity list.
+     * This includes ALL users in the group, not just those with obligations.
      */
-    private Map<String, UserResponseDTO> extractUserMap(List<TransactionObligationEntity> obligations) {
-        Map<String, UserResponseDTO> userMap = new HashMap<>();
-
-        for (TransactionObligationEntity obligation : obligations) {
-            String userId = obligation.getUser().getUuid().toString();
-            if (!userMap.containsKey(userId)) {
-                userMap.put(userId, UserResponseDTO.from(obligation.getUser()));
-            }
-
-            String payerId = obligation.getTransaction().getPayer().getUuid().toString();
-            if (!userMap.containsKey(payerId)) {
-                userMap.put(payerId, UserResponseDTO.from(obligation.getTransaction().getPayer()));
-            }
-        }
-
-        return userMap;
+    private Map<String, UserResponseDTO> extractUserMapFromGroups(List<UserGroupEntity> userGroups) {
+        return userGroups.stream()
+                .collect(Collectors.toMap(
+                        ug -> ug.getUserUuid().toString(),
+                        ug -> UserResponseDTO.from(ug.getUser())
+                ));
     }
 
-    private Map<String, BigDecimal> getUserBalances(List<TransactionObligationEntity> obligations) {
+    /**
+     * Calculate user balances in JPY with two-phase approach:
+     * Phase 1: User-based loop (handles LOAN and REPAYMENT correctly)
+     * Phase 2: Transaction-based rounding adjustment
+     */
+    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> obligations) {
+        // Phase 1: Calculate base balances per user
         Map<String, BigDecimal> balances = new HashMap<>();
 
+        // Initialize all users with zero balance
+        for (String userId : userIds) {
+            balances.put(userId, BigDecimal.ZERO);
+        }
+
+        // Calculate balances by iterating through users and their obligations
+        for (String userId : userIds) {
+            BigDecimal balance = BigDecimal.ZERO;
+
+            for (TransactionObligationEntity obligation : obligations) {
+                String obligationUserId = obligation.getUser().getUuid().toString();
+                String payerId = obligation.getTransaction().getPayer().getUuid().toString();
+
+                // Convert to JPY
+                BigDecimal transactionRate = obligation.getTransaction().getExchangeRate().getExchangeRate();
+                BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
+                        .divide(transactionRate, 7, RoundingMode.HALF_UP);
+
+                // If user is the debtor (obligation.user), they owe money → positive balance
+                if (obligationUserId.equals(userId)) {
+                    balance = balance.add(amountInJpy);
+                }
+
+                // If user is the payer (creditor), they are owed money → negative balance
+                if (payerId.equals(userId)) {
+                    balance = balance.subtract(amountInJpy);
+                }
+            }
+
+            balances.put(userId, balance);
+        }
+
+        // Phase 2: Apply rounding error adjustments per transaction
+        applyRoundingAdjustments(balances, obligations);
+
+        return balances;
+    }
+
+    /**
+     * Apply rounding error adjustments per transaction.
+     * Ensures that the sum of individual obligation amounts equals the total transaction amount.
+     */
+    private void applyRoundingAdjustments(Map<String, BigDecimal> balances, List<TransactionObligationEntity> obligations) {
         // Group obligations by transaction UUID
         Map<UUID, List<TransactionObligationEntity>> obligationsByTransaction =
                 obligations.stream()
                         .collect(Collectors.groupingBy(o -> o.getTransaction().getUuid()));
 
-        // Process each transaction (adjust rounding errors)
+        // Process each transaction to adjust rounding errors
         for (List<TransactionObligationEntity> transactionObligations : obligationsByTransaction.values()) {
             if (transactionObligations.isEmpty()) continue;
 
             TransactionHistoryEntity transaction = transactionObligations.getFirst().getTransaction();
             BigDecimal transactionRate = transaction.getExchangeRate().getExchangeRate();
 
-            // Calculate payer's total payment in JPY
-            String payerId = transaction.getPayer().getUuid().toString();
+            // Calculate total amount in JPY
             BigDecimal totalAmountInJpy = BigDecimal.valueOf(transaction.getAmount())
                     .divide(transactionRate, 7, RoundingMode.HALF_UP);
 
-            balances.merge(payerId, totalAmountInJpy.negate(), BigDecimal::add);
-
-            // Calculate individual debtor amounts and find maximum debtor
+            // Calculate sum of individual obligation amounts in JPY
             BigDecimal individualSum = BigDecimal.ZERO;
             String maxDebtorId = null;
             BigDecimal maxDebtorAmount = BigDecimal.ZERO;
@@ -126,10 +174,9 @@ public class TransactionServiceImpl implements TransactionService {
                 BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
                         .divide(transactionRate, 7, RoundingMode.HALF_UP);
 
-                balances.merge(debtorId, amountInJpy, BigDecimal::add);
                 individualSum = individualSum.add(amountInJpy);
 
-                // Track maximum debtor
+                // Track maximum debtor for this transaction
                 if (amountInJpy.compareTo(maxDebtorAmount) > 0) {
                     maxDebtorId = debtorId;
                     maxDebtorAmount = amountInJpy;
@@ -144,8 +191,6 @@ public class TransactionServiceImpl implements TransactionService {
                         difference, transaction.getUuid(), maxDebtorId);
             }
         }
-
-        return balances;
     }
 
     private List<TransactionSettlement> optimizeTransactions(Map<String, BigDecimal> balances, Map<String, UserResponseDTO> userMap) {

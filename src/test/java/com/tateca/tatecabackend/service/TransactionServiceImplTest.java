@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
+import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -14,6 +15,7 @@ import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.TransactionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,6 +54,9 @@ class TransactionServiceImplTest {
     private GroupAccessor groupAccessor;
 
     @Mock
+    private UserGroupAccessor userGroupAccessor;
+
+    @Mock
     private TransactionAccessor transactionAccessor;
 
     @Mock
@@ -76,6 +81,8 @@ class TransactionServiceImplTest {
             void thenShouldReturnEmptySettlementList() {
                 // Given: Empty obligations list
                 UUID groupId = UUID.randomUUID();
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(new ArrayList<>());
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(new ArrayList<>());
 
@@ -105,8 +112,11 @@ class TransactionServiceImplTest {
                 TransactionHistoryEntity transaction = createTransaction(alice, 10000, usdRate);
                 TransactionObligationEntity obligation = createObligation(transaction, bob, 10000);
 
+                List<TransactionObligationEntity> obligations = List.of(obligation);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(obligation));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -147,8 +157,11 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity tx2Ob1 = createObligation(tx2, alice, 4500);
                 TransactionObligationEntity tx2Ob2 = createObligation(tx2, carol, 4500);
 
+                List<TransactionObligationEntity> obligations = List.of(tx1Ob1, tx1Ob2, tx2Ob1, tx2Ob2);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(tx1Ob1, tx1Ob2, tx2Ob1, tx2Ob2));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -182,8 +195,11 @@ class TransactionServiceImplTest {
                 TransactionHistoryEntity transaction = createTransaction(alice, 10000, usdRate);
                 TransactionObligationEntity obligation = createObligation(transaction, alice, 10000);
 
+                List<TransactionObligationEntity> obligations = List.of(obligation);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(obligation));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -217,8 +233,11 @@ class TransactionServiceImplTest {
                 TransactionHistoryEntity tx2 = createTransaction(bob, 24000, eurRate);
                 TransactionObligationEntity tx2Ob = createObligation(tx2, alice, 24000);
 
+                List<TransactionObligationEntity> obligations = List.of(tx1Ob, tx2Ob);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(tx1Ob, tx2Ob));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -265,6 +284,8 @@ class TransactionServiceImplTest {
                 obligations.add(createObligation(tx2, alice, 6000));
                 obligations.add(createObligation(tx2, carol, 6000));
 
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
 
@@ -303,8 +324,11 @@ class TransactionServiceImplTest {
                 TransactionHistoryEntity transaction = createTransaction(alice, 100, usdRate);
                 TransactionObligationEntity obligation = createObligation(transaction, bob, 100);
 
+                List<TransactionObligationEntity> obligations = List.of(obligation);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(obligation));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -334,8 +358,11 @@ class TransactionServiceImplTest {
                 TransactionHistoryEntity transaction = createTransaction(alice, 1_000_000, usdRate);
                 TransactionObligationEntity obligation = createObligation(transaction, bob, 1_000_000);
 
+                List<TransactionObligationEntity> obligations = List.of(obligation);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(obligation));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -374,8 +401,11 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity ob2 = createObligation(transaction, carol, 3333);
                 TransactionObligationEntity ob3 = createObligation(transaction, david, 3334);
 
+                List<TransactionObligationEntity> obligations = List.of(ob1, ob2, ob3);
+                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                        .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
-                        .thenReturn(List.of(ob1, ob2, ob3));
+                        .thenReturn(obligations);
 
                 // When: Get settlements
                 TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
@@ -483,5 +513,26 @@ class TransactionServiceImplTest {
                 .sum();
 
         return received - paid;
+    }
+
+    /**
+     * Extract unique users from obligations and create UserGroupEntity list for mocking.
+     */
+    private List<UserGroupEntity> createUserGroupsFromObligations(List<TransactionObligationEntity> obligations) {
+        // Collect unique users (both debtors and payers)
+        var uniqueUsers = new java.util.HashSet<UserEntity>();
+        for (TransactionObligationEntity obligation : obligations) {
+            uniqueUsers.add(obligation.getUser());
+            uniqueUsers.add(obligation.getTransaction().getPayer());
+        }
+
+        // Convert to UserGroupEntity list
+        return uniqueUsers.stream()
+                .map(user -> UserGroupEntity.builder()
+                        .userUuid(user.getUuid())
+                        .groupUuid(UUID.randomUUID())
+                        .user(user)
+                        .build())
+                .toList();
     }
 }
