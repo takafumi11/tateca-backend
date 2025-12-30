@@ -108,63 +108,10 @@ public class TransactionServiceImpl implements TransactionService {
             balances.put(userId, balance);
         }
 
-        // Apply rounding error adjustments per transaction
-        applyRoundingAdjustments(balances, transactionObligationEntityList);
-
         // Apply final adjustment to ensure perfect balance
         applyFinalBalanceAdjustment(balances);
 
         return balances;
-    }
-
-    /**
-     * Apply rounding error adjustments per transaction.
-     * Ensures that the sum of individual obligation amounts equals the total transaction amount.
-     */
-    private void applyRoundingAdjustments(Map<String, BigDecimal> balances, List<TransactionObligationEntity> obligations) {
-        // Group obligations by transaction UUID
-        Map<UUID, List<TransactionObligationEntity>> obligationsByTransaction =
-                obligations.stream()
-                        .collect(Collectors.groupingBy(o -> o.getTransaction().getUuid()));
-
-        // Process each transaction to adjust rounding errors
-        for (List<TransactionObligationEntity> transactionObligations : obligationsByTransaction.values()) {
-            if (transactionObligations.isEmpty()) continue;
-
-            TransactionHistoryEntity transaction = transactionObligations.getFirst().getTransaction();
-            BigDecimal transactionRate = transaction.getExchangeRate().getExchangeRate();
-
-            // Calculate total amount in JPY
-            BigDecimal totalAmountInJpy = BigDecimal.valueOf(transaction.getAmount())
-                    .divide(transactionRate, 7, RoundingMode.HALF_UP);
-
-            // Calculate sum of individual obligation amounts in JPY
-            BigDecimal individualSum = BigDecimal.ZERO;
-            String maxDebtorId = null;
-            BigDecimal maxDebtorAmount = BigDecimal.ZERO;
-
-            for (TransactionObligationEntity obligation : transactionObligations) {
-                String debtorId = obligation.getUser().getUuid().toString();
-                BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
-                        .divide(transactionRate, 7, RoundingMode.HALF_UP);
-
-                individualSum = individualSum.add(amountInJpy);
-
-                // Track maximum debtor for this transaction
-                if (amountInJpy.compareTo(maxDebtorAmount) > 0) {
-                    maxDebtorId = debtorId;
-                    maxDebtorAmount = amountInJpy;
-                }
-            }
-
-            // Adjust rounding error to maximum debtor
-            BigDecimal difference = totalAmountInJpy.subtract(individualSum);
-            if (difference.compareTo(BigDecimal.ZERO) != 0 && maxDebtorId != null) {
-                balances.merge(maxDebtorId, difference, BigDecimal::add);
-                logger.debug("Adjusted rounding error {} JPY for transaction {} to user {}",
-                        difference, transaction.getUuid(), maxDebtorId);
-            }
-        }
     }
 
     /**
