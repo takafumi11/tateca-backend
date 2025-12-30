@@ -3,7 +3,7 @@ plugins {
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.4"
 	jacoco
-	id("org.owasp.dependencycheck") version "11.1.1"
+	id("org.owasp.dependencycheck") version "12.1.9"
 }
 
 group = "com.tateca"
