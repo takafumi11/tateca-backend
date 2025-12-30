@@ -108,7 +108,37 @@ public class TransactionServiceImpl implements TransactionService {
             balances.put(userId, balance);
         }
 
+        // Apply final adjustment to ensure perfect balance
+        applyFinalBalanceAdjustment(balances);
+
         return balances;
+    }
+
+    /**
+     * Apply final balance adjustment to ensure perfect conservation of money.
+     * Ensures that the sum of all user balances equals zero by adjusting the largest debtor.
+     */
+    private void applyFinalBalanceAdjustment(Map<String, BigDecimal> balances) {
+        // Calculate total net balance (should be zero, may have rounding residual)
+        BigDecimal totalBalance = balances.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // If there's a rounding residual, adjust the largest debtor
+        if (totalBalance.compareTo(BigDecimal.ZERO) != 0) {
+            // Find largest debtor (positive balance = owes money)
+            String largestDebtor = balances.entrySet().stream()
+                    .filter(e -> e.getValue().compareTo(BigDecimal.ZERO) > 0)
+                    .max(Comparator.comparing(Map.Entry::getValue))
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+
+            if (largestDebtor != null) {
+                // Adjust largest debtor's balance to ensure total = 0
+                balances.merge(largestDebtor, totalBalance.negate(), BigDecimal::add);
+                logger.debug("Applied final balance adjustment: {} JPY to largest debtor {}",
+                        totalBalance.negate(), largestDebtor);
+            }
+        }
     }
 
     private List<TransactionSettlement> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
@@ -147,8 +177,11 @@ public class TransactionServiceImpl implements TransactionService {
             ParticipantModel creditor = creditors.poll();
 
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            if (minAmount.intValue() != 0) {
-                transactions.add(new TransactionSettlement(debtor.getUserId(), creditor.getUserId(), minAmount.intValue()));
+            // Convert JPY to cents (multiply by 100) and round to nearest integer using HALF_UP
+            long roundedAmount = minAmount.multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP).longValue();
+            if (roundedAmount != 0) {
+                transactions.add(new TransactionSettlement(debtor.getUserId(), creditor.getUserId(), roundedAmount));
             }
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);
