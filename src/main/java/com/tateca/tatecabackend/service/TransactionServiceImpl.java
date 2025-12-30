@@ -66,6 +66,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public TransactionsSettlementResponseDTO getSettlements(UUID groupId) {
+        // Fetch all users in group (not just those with obligations)
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
 
         List<String> userIds = userGroups.stream()
@@ -73,33 +74,61 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(UUID::toString)
                 .toList();
 
-        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByGroupId(groupId);
+        List<TransactionObligationEntity> obligations = obligationAccessor.findByGroupId(groupId);
 
-        Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList);
-        List<TransactionSettlement> transactions = optimizeTransactions(balances, userGroups);
+        Map<String, BigDecimal> balances = getUserBalances(userIds, obligations);
+        Map<String, UserResponseDTO> userMap = extractUserMapFromGroups(userGroups);
+
+        List<TransactionSettlement> transactions = optimizeTransactions(balances, userMap);
 
         return new TransactionsSettlementResponseDTO(transactions);
     }
 
-    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList) {
+    /**
+     * Extract UserResponseDTO map from UserGroupEntity list.
+     * This includes ALL users in the group, not just those with obligations.
+     */
+    private Map<String, UserResponseDTO> extractUserMapFromGroups(List<UserGroupEntity> userGroups) {
+        return userGroups.stream()
+                .collect(Collectors.toMap(
+                        ug -> ug.getUserUuid().toString(),
+                        ug -> UserResponseDTO.from(ug.getUser())
+                ));
+    }
+
+    /**
+     * Calculate user balances in JPY with two-phase approach:
+     * Phase 1: User-based loop (handles LOAN and REPAYMENT correctly)
+     * Phase 2: Transaction-based rounding adjustment
+     */
+    private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> obligations) {
+        // Phase 1: Calculate base balances per user
         Map<String, BigDecimal> balances = new HashMap<>();
 
+        // Initialize all users with zero balance
+        for (String userId : userIds) {
+            balances.put(userId, BigDecimal.ZERO);
+        }
+
+        // Calculate balances by iterating through users and their obligations
         for (String userId : userIds) {
             BigDecimal balance = BigDecimal.ZERO;
 
-            for (TransactionObligationEntity obligation : transactionObligationEntityList) {
+            for (TransactionObligationEntity obligation : obligations) {
                 String obligationUserId = obligation.getUser().getUuid().toString();
                 String payerId = obligation.getTransaction().getPayer().getUuid().toString();
 
-                // Convert transaction currency to JPY
+                // Convert to JPY
                 BigDecimal transactionRate = obligation.getTransaction().getExchangeRate().getExchangeRate();
                 BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
                         .divide(transactionRate, 7, RoundingMode.HALF_UP);
 
+                // If user is the debtor (obligation.user), they owe money → positive balance
                 if (obligationUserId.equals(userId)) {
                     balance = balance.add(amountInJpy);
                 }
 
+                // If user is the payer (creditor), they are owed money → negative balance
                 if (payerId.equals(userId)) {
                     balance = balance.subtract(amountInJpy);
                 }
@@ -108,14 +137,67 @@ public class TransactionServiceImpl implements TransactionService {
             balances.put(userId, balance);
         }
 
+        // Phase 2: Apply rounding error adjustments per transaction
+        applyRoundingAdjustments(balances, obligations);
+
         return balances;
     }
 
-    private List<TransactionSettlement> optimizeTransactions(Map<String, BigDecimal> balances, List<UserGroupEntity> userGroups) {
+    /**
+     * Apply rounding error adjustments per transaction.
+     * Ensures that the sum of individual obligation amounts equals the total transaction amount.
+     */
+    private void applyRoundingAdjustments(Map<String, BigDecimal> balances, List<TransactionObligationEntity> obligations) {
+        // Group obligations by transaction UUID
+        Map<UUID, List<TransactionObligationEntity>> obligationsByTransaction =
+                obligations.stream()
+                        .collect(Collectors.groupingBy(o -> o.getTransaction().getUuid()));
+
+        // Process each transaction to adjust rounding errors
+        for (List<TransactionObligationEntity> transactionObligations : obligationsByTransaction.values()) {
+            if (transactionObligations.isEmpty()) continue;
+
+            TransactionHistoryEntity transaction = transactionObligations.getFirst().getTransaction();
+            BigDecimal transactionRate = transaction.getExchangeRate().getExchangeRate();
+
+            // Calculate total amount in JPY
+            BigDecimal totalAmountInJpy = BigDecimal.valueOf(transaction.getAmount())
+                    .divide(transactionRate, 7, RoundingMode.HALF_UP);
+
+            // Calculate sum of individual obligation amounts in JPY
+            BigDecimal individualSum = BigDecimal.ZERO;
+            String maxDebtorId = null;
+            BigDecimal maxDebtorAmount = BigDecimal.ZERO;
+
+            for (TransactionObligationEntity obligation : transactionObligations) {
+                String debtorId = obligation.getUser().getUuid().toString();
+                BigDecimal amountInJpy = BigDecimal.valueOf(obligation.getAmount())
+                        .divide(transactionRate, 7, RoundingMode.HALF_UP);
+
+                individualSum = individualSum.add(amountInJpy);
+
+                // Track maximum debtor for this transaction
+                if (amountInJpy.compareTo(maxDebtorAmount) > 0) {
+                    maxDebtorId = debtorId;
+                    maxDebtorAmount = amountInJpy;
+                }
+            }
+
+            // Adjust rounding error to maximum debtor
+            BigDecimal difference = totalAmountInJpy.subtract(individualSum);
+            if (difference.compareTo(BigDecimal.ZERO) != 0 && maxDebtorId != null) {
+                balances.merge(maxDebtorId, difference, BigDecimal::add);
+                logger.debug("Adjusted rounding error {} JPY for transaction {} to user {}",
+                        difference, transaction.getUuid(), maxDebtorId);
+            }
+        }
+    }
+
+    private List<TransactionSettlement> optimizeTransactions(Map<String, BigDecimal> balances, Map<String, UserResponseDTO> userMap) {
         PriorityQueue<ParticipantModel> creditors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
         PriorityQueue<ParticipantModel> debtors = new PriorityQueue<>(Comparator.comparing(ParticipantModel::getAmount));
 
-        classifyParticipants(balances, creditors, debtors, userGroups);
+        classifyParticipants(balances, creditors, debtors, userMap);
 
         List<TransactionSettlement> transactions = new ArrayList<>();
 
@@ -124,13 +206,7 @@ public class TransactionServiceImpl implements TransactionService {
         return transactions;
     }
 
-    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, List<UserGroupEntity> userGroups) {
-        Map<String, UserResponseDTO> userMap = userGroups.stream()
-                .collect(Collectors.toMap(
-                        u -> u.getUserUuid().toString(),
-                        u -> UserResponseDTO.from(u.getUser())
-                ));
-
+    private void classifyParticipants(Map<String, BigDecimal> balances, PriorityQueue<ParticipantModel> creditors, PriorityQueue<ParticipantModel> debtors, Map<String, UserResponseDTO> userMap) {
         balances.forEach((userId, amount) -> {
             UserResponseDTO user = userMap.get(userId);
             if (amount.compareTo(BigDecimal.ZERO) < 0) {
@@ -146,9 +222,14 @@ public class TransactionServiceImpl implements TransactionService {
             ParticipantModel debtor = debtors.poll();
             ParticipantModel creditor = creditors.poll();
 
+            assert creditor != null;
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            if (minAmount.intValue() != 0) {
-                transactions.add(new TransactionSettlement(debtor.getUserId(), creditor.getUserId(), minAmount.intValue()));
+            // Convert JPY to cents (multiply by 100 and round)
+            long amountInCents = minAmount.multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValue();
+            if (amountInCents != 0) {
+                transactions.add(new TransactionSettlement(debtor.getUserId(), creditor.getUserId(), amountInCents));
             }
 
             updateBalances(debtor, creditor, minAmount, debtors, creditors);
@@ -179,21 +260,17 @@ public class TransactionServiceImpl implements TransactionService {
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 /*
-                If the exchange rate for the specified date doesn't exist, use the latest
-                (most recent) available exchange rate for that currency. This provides a
-                more accurate fallback than LocalDate.now(), especially for historical dates
-                or when the current date's rate hasn't been updated yet.
+                If the client sends data with a future date that isn't present in the database, we temporarily substitute it with the most recent available value.
+                However, since the scheduler updates the value the day before, if a repayment occurs before that update, the value may become inaccurate.
                 */
-                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(request.getCurrencyCode());
+                ExchangeRateEntity existing = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), LocalDate.now(UTC_ZONE_ID));
                 ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
-                        .currencyCode(latestRate.getCurrencyCode())
+                        .currencyCode(existing.getCurrencyCode())
                         .date(date)
-                        .exchangeRate(latestRate.getExchangeRate())
-                        .currencyName(latestRate.getCurrencyName())
+                        .exchangeRate(existing.getExchangeRate())
+                        .currencyName(existing.getCurrencyName())
                         .build();
                 exchangeRate = exchangeRateAccessor.save(newExchangeRateEntity);
-            } else {
-                throw e;
             }
         }
 
