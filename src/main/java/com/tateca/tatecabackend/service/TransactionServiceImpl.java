@@ -177,9 +177,8 @@ public class TransactionServiceImpl implements TransactionService {
             ParticipantModel creditor = creditors.poll();
 
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
-            // Convert JPY to cents (multiply by 100) and round to nearest integer using HALF_UP
-            long roundedAmount = minAmount.multiply(BigDecimal.valueOf(100))
-                    .setScale(0, RoundingMode.HALF_UP).longValue();
+            // Round to nearest integer using HALF_UP (JPY doesn't have fractional units)
+            long roundedAmount = minAmount.setScale(0, RoundingMode.HALF_UP).longValue();
             if (roundedAmount != 0) {
                 transactions.add(new TransactionSettlement(debtor.getUserId(), creditor.getUserId(), roundedAmount));
             }

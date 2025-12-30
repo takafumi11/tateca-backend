@@ -418,12 +418,12 @@ class TransactionServiceImplTest {
 
                 long totalNet = aliceNet + bobNet + carolNet + davidNet;
 
-                // Should be zero or very close (within ±1 cent due to rounding)
+                // Should be zero or very close (within ±1 due to rounding)
                 assertThat(totalNet).isBetween(-1L, 1L);
 
-                // Alice should receive approximately 67.25 JPY (6725 cents)
+                // Alice should receive approximately 67 JPY (10000 USD cents ÷ 148.7 rate ≈ 67.25 JPY)
                 assertThat(aliceNet).isPositive(); // Alice paid, so she receives money back
-                assertThat(aliceNet).isBetween(6700L, 6750L);
+                assertThat(aliceNet).isBetween(66L, 68L);
             }
         }
     }
