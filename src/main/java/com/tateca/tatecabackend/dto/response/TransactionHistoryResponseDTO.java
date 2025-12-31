@@ -6,9 +6,8 @@ import com.tateca.tatecabackend.model.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.core.metrics.StartupStep;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
+import static com.tateca.tatecabackend.util.TimeHelper.convertToTokyoTime;
 
 @Data
 @Builder

@@ -1,4 +1,4 @@
-package com.tateca.tatecabackend.service.util;
+package com.tateca.tatecabackend.util;
 
 import java.time.Instant;
 import java.time.LocalDate;

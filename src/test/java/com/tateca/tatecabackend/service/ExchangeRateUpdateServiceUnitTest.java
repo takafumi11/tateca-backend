@@ -7,6 +7,7 @@ import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
+import com.tateca.tatecabackend.service.impl.ExchangeRateUpdateServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

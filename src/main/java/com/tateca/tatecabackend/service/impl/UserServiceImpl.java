@@ -1,9 +1,10 @@
-package com.tateca.tatecabackend.service;
+package com.tateca.tatecabackend.service.impl;
 
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
