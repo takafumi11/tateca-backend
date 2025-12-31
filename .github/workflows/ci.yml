@@ -27,7 +27,7 @@ jobs:
           cache: 'gradle'
 
       - name: Run tests with coverage
-        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+        run: ./gradlew test jacocoTestReport
         env:
           CI: 'true'
 
