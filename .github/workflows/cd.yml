@@ -1,12 +1,8 @@
 name: CD
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 concurrency:
@@ -17,7 +13,6 @@ jobs:
   railway-redeploy:
     name: Redeploy to Railway
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     container:
       image: ghcr.io/railwayapp/cli:latest
