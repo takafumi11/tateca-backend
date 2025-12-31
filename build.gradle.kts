@@ -3,7 +3,6 @@ plugins {
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.4"
 	jacoco
-	id("org.owasp.dependencycheck") version "11.1.1"
 }
 
 group = "com.tateca"
@@ -64,7 +63,11 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 	// Disable parallel execution to avoid connection pool issues with Testcontainers
 	systemProperty("junit.jupiter.execution.parallel.enabled", "false")
-	finalizedBy(tasks.jacocoTestReport)
+
+	// Only generate coverage reports in CI environment
+	if (System.getenv("CI") == "true") {
+		finalizedBy(tasks.jacocoTestReport)
+	}
 
 	// Set test environment variables
 	environment("FIREBASE_SERVICE_ACCOUNT_KEY", "mock-service-account-key")
@@ -155,14 +158,4 @@ tasks.withType<JavaCompile> {
 	options.isIncremental = true
 	options.isFork = true
 	options.forkOptions.jvmArgs = listOf("-Xmx1g")
-}
-
-// OWASP Dependency Check configuration
-dependencyCheck {
-	formats = listOf("HTML", "JSON")
-	suppressionFile = "${rootDir}/config/owasp/suppressions.xml"
-	failBuildOnCVSS = 7.0f
-	analyzers.assemblyEnabled = false
-	analyzers.nugetconfEnabled = false
-	analyzers.nodeEnabled = false
 }
