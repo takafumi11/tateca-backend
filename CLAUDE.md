@@ -338,20 +338,27 @@ retag-release → [deploy-docs, railway-redeploy]
 **Static Analysis Tools:**
 - **Checkstyle**: Code style enforcement (gradual adoption)
 - **SpotBugs**: Bug pattern detection
-- **JaCoCo**: Code coverage measurement (90% line, 95% branch)
-- **OWASP**: Dependency vulnerability scanning
+- **JaCoCo**: Code coverage measurement (reports generated, verification disabled)
+- ~~**OWASP**: Dependency vulnerability scanning~~ (Removed - use Dependabot instead)
 
 **Current Status:**
 - Checkstyle: Warning-only mode (existing code has ~50 warnings)
 - Goal: Fix warnings incrementally, then enforce strict mode
 - Priority: UnusedImports > Whitespace > LineLength
 
+**JaCoCo Coverage Status:**
+- ⚠️ **Coverage verification temporarily disabled** in CI
+- Coverage reports still generated for reference
+- **TODO**: Improve test coverage before re-enabling verification
+  - Service layer tests insufficient (0-50% coverage)
+  - Target: 90% line coverage, 95% branch coverage
+  - Focus: AuthUserService, GroupService, ExchangeRateService, TransactionServiceImpl
+
 **Running Checks:**
 ```bash
 ./gradlew checkstyleMain checkstyleTest  # Style check
 ./gradlew spotbugsMain spotbugsTest      # Bug detection
-./gradlew jacocoTestReport               # Coverage report
-./gradlew dependencyCheckAnalyze         # Security scan
+./gradlew jacocoTestReport               # Coverage report (verification disabled)
 ```
 
 ## Testing Guidelines

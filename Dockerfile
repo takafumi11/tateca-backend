@@ -2,10 +2,20 @@ FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /workspace
 
-COPY . /workspace
+# Layer 1: Copy Gradle wrapper and config files (changes rarely)
+COPY gradle gradle
+COPY gradlew .
+COPY gradle.properties .
+COPY settings.gradle.kts .
+COPY build.gradle.kts .
 
-# Use gradle wrapper to ensure version consistency with gradle-wrapper.properties
-# Skip tests for faster Docker image builds (TODO: Re-enable tests after fixing)
+# Layer 2: Download dependencies (cached unless build.gradle.kts changes)
+RUN ./gradlew dependencies --no-daemon || true
+
+# Layer 3: Copy source code (changes frequently)
+COPY src src
+
+# Layer 4: Build application (tests run in CI, skip here)
 RUN ./gradlew build -x test --no-daemon
 
 FROM eclipse-temurin:21-jre
