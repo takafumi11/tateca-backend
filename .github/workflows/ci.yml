@@ -97,7 +97,7 @@ jobs:
           tags: |
             type=ref,event=pr,prefix=pr-
             type=sha,prefix=sha-
-            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=${{ steps.version.outputs.version }},enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push Docker image
