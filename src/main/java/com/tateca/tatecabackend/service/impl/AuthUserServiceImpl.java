@@ -61,6 +61,9 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     @Transactional
     public void deleteAuthUser(String uid) {
+        // Verify auth user exists
+        accessor.findByUid(uid);
+
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
         userEntityList.forEach(user -> {
             user.setAuthUser(null);
