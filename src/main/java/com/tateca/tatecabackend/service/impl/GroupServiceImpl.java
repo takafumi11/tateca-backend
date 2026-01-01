@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.service.impl;
 
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
@@ -14,6 +13,7 @@ import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.GroupService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class GroupServiceImpl implements GroupService {
     private final EntityManager entityManager;
     private final GroupAccessor accessor;
-    private final UserAccessor userAccessor;
+    private final UserRepository userRepository;
     private final AuthUserRepository authUserRepository;
     private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor transactionAccessor;
@@ -65,7 +65,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional(readOnly = true)
     public GroupListResponseDTO getGroupList(String uid) {
-        List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
+        List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
 
         List<UUID> uuidList = userEntityList.stream().map(UserEntity::getUuid).toList();
         List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuidListWithGroup(uuidList);
@@ -108,7 +108,7 @@ public class GroupServiceImpl implements GroupService {
                     .build();
             userEntityList.add(user);
         });
-        List<UserEntity> userEntityListSaved = userAccessor.saveAll(userEntityList);
+        List<UserEntity> userEntityListSaved = userRepository.saveAll(userEntityList);
 
         // Create new records into user_groups table
         List<UserGroupEntity> userGroupEntityList = new ArrayList<>();
@@ -152,11 +152,12 @@ public class GroupServiceImpl implements GroupService {
         validateMaxGroupCount(uid);
 
         // Update users.auth_user_uid to link authUser and user
-        UserEntity userEntity = userAccessor.findById(request.userUuid());
+        UserEntity userEntity = userRepository.findById(request.userUuid())
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.userUuid()));
         AuthUserEntity authUserEntity = authUserRepository.findById(uid)
                 .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
         userEntity.setAuthUser(authUserEntity);
-        userAccessor.save(userEntity);
+        userRepository.save(userEntity);
 
         // Build response
         // Check if user has already in the group requested.
@@ -176,15 +177,16 @@ public class GroupServiceImpl implements GroupService {
         userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, groupId);
 
         // Get user entity
-        UserEntity userEntity = userAccessor.findById(userUuid);
+        UserEntity userEntity = userRepository.findById(userUuid)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userUuid));
 
         // Set auth_user to null (leave group)
         userEntity.setAuthUser(null);
-        userAccessor.save(userEntity);
+        userRepository.save(userEntity);
     }
 
     private void validateMaxGroupCount(String uid) {
-        List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
+        List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
         if (!uid.equals("v6CGVApOmVM4VWTijmRTg8m01Kj1") && userEntityList.size() >= 9) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 10 groups");
         }

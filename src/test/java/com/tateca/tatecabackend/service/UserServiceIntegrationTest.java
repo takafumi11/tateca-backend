@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
@@ -13,8 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -132,20 +131,16 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
     class WhenUserDoesNotExistInDatabase {
 
         @Test
-        @DisplayName("Then should throw ResponseStatusException with NOT_FOUND status")
+        @DisplayName("Then should throw EntityNotFoundException with NOT_FOUND status")
         void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
             // Given: Non-existent user ID
             UUID nonExistentUserId = UUID.randomUUID();
             UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-            // When & Then: Should throw ResponseStatusException
+            // When & Then: Should throw EntityNotFoundException
             assertThatThrownBy(() -> userService.updateUserName(nonExistentUserId, request))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("User not found")
-                    .satisfies(exception -> {
-                        ResponseStatusException rse = (ResponseStatusException) exception;
-                        assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    });
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("User not found");
         }
 
         @Test
@@ -160,7 +155,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
             // When: Attempting to update non-existent user
             try {
                 userService.updateUserName(nonExistentUserId, request);
-            } catch (ResponseStatusException e) {
+            } catch (EntityNotFoundException e) {
                 // Expected exception
             }
 

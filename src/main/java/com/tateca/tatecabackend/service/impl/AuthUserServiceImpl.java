@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
@@ -10,6 +9,7 @@ import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.AppReviewStatus;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.AuthUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthUserServiceImpl implements AuthUserService {
     private final AuthUserRepository repository;
-    private final UserAccessor userAccessor;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -65,12 +65,12 @@ public class AuthUserServiceImpl implements AuthUserService {
         repository.findById(uid)
                 .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
 
-        List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
+        List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
         userEntityList.forEach(user -> {
             user.setAuthUser(null);
         });
 
-        userAccessor.saveAll(userEntityList);
+        userRepository.saveAll(userEntityList);
         repository.deleteById(uid);
     }
 

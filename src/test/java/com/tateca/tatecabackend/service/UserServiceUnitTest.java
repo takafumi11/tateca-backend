@@ -1,10 +1,11 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,10 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 class UserServiceUnitTest {
 
     @Mock
-    private UserAccessor userAccessor;
+    private UserRepository repository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -57,44 +57,37 @@ class UserServiceUnitTest {
     }
 
     @Test
-    @DisplayName("Should propagate NOT_FOUND exception from accessor")
-    void shouldPropagateNotFoundExceptionFromAccessor() {
-        // Given: Accessor throws NOT_FOUND exception
+    @DisplayName("Should throw EntityNotFoundException when user not found")
+    void shouldThrowEntityNotFoundExceptionWhenUserNotFound() {
+        // Given: Repository returns empty
         UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-        when(userAccessor.findById(testUserId))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        when(repository.findById(testUserId))
+                .thenReturn(Optional.empty());
 
-        // When & Then: Should propagate exception without catching
+        // When & Then: Should throw EntityNotFoundException
         assertThatThrownBy(() -> userService.updateUserName(testUserId, request))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("User not found")
-                .satisfies(exception -> {
-                    ResponseStatusException rse = (ResponseStatusException) exception;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                });
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("User not found");
 
         // And: Save should not be called
-        verify(userAccessor, never()).save(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should propagate INTERNAL_SERVER_ERROR exception from accessor save")
-    void shouldPropagateInternalServerErrorFromAccessorSave() {
-        // Given: Accessor save throws INTERNAL_SERVER_ERROR exception
+    @DisplayName("Should update user name successfully")
+    void shouldUpdateUserNameSuccessfully() {
+        // Given: User exists
         UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-        when(userAccessor.findById(testUserId)).thenReturn(testUser);
-        when(userAccessor.save(any(UserEntity.class)))
-                .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error"));
+        when(repository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(repository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When & Then: Should propagate exception without catching
-        assertThatThrownBy(() -> userService.updateUserName(testUserId, request))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("Database error")
-                .satisfies(exception -> {
-                    ResponseStatusException rse = (ResponseStatusException) exception;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-                });
+        // When: Updating user name
+        userService.updateUserName(testUserId, request);
+
+        // Then: Should save with new name
+        verify(repository).save(any(UserEntity.class));
+        assertThat(testUser.getName()).isEqualTo("New Name");
     }
 }
