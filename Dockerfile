@@ -8,6 +8,7 @@ COPY gradlew .
 COPY gradle.properties .
 COPY settings.gradle.kts .
 COPY build.gradle.kts .
+COPY config config
 
 # Layer 2: Download dependencies (cached unless build.gradle.kts changes)
 RUN ./gradlew dependencies --no-daemon || true
