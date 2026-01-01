@@ -235,15 +235,15 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Save into transaction_obligations
         if (request.getTransactionType() == TransactionType.LOAN) {
-            List<TransactionObligationEntity> transactionObligationEntityList = request.getLoanRequest().getObligationRequestDTOs().stream()
+            List<TransactionObligationEntity> transactionObligationEntityList = request.getLoanRequest().obligationRequestDTOs().stream()
                     .map(obligation -> {
-                        UserEntity obligationUser = userAccessor.findById(obligation.getUserUuid());
+                        UserEntity obligationUser = userAccessor.findById(obligation.userUuid());
 
                         return TransactionObligationEntity.builder()
                                 .uuid(UUID.randomUUID())
                                 .transaction(savedTransaction)
                                 .user(obligationUser)
-                                .amount(obligation.getAmount())
+                                .amount(obligation.amount())
                                 .build();
                     })
                     .collect(Collectors.toList());
@@ -252,7 +252,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             return TransactionDetailResponseDTO.from(savedTransaction, savedObligations);
         } else {
-            UserEntity recipient = userAccessor.findById(request.getRepaymentRequest().getRecipientId());
+            UserEntity recipient = userAccessor.findById(request.getRepaymentRequest().recipientId());
 
             TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
 

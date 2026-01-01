@@ -65,12 +65,12 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     @Transactional
     public AuthUserInfoDTO createAuthUser(String uid, AuthUserRequestDTO request) {
-        accessor.validateEmail(request.getEmail());
+        accessor.validateEmail(request.email());
 
         AuthUserEntity authUser = AuthUserEntity.builder()
                 .uid(uid)
-                .name(request.getName())
-                .email(request.getEmail())
+                .name(request.name())
+                .email(request.email())
                 .lastLoginTime(Instant.now())
                 .totalLoginCount(1)
                 .appReviewStatus(AppReviewStatus.PENDING)
@@ -98,12 +98,12 @@ public class AuthUserServiceImpl implements AuthUserService {
     public AuthUserInfoDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
         AuthUserEntity authUser = accessor.findByUid(uid);
 
-        if (request.getShowDialog()) {
+        if (request.showDialog()) {
             authUser.setLastAppReviewDialogShownAt(Instant.now());
         }
 
-        if (request.getAppReviewStatus() != null) {
-            authUser.setAppReviewStatus(request.getAppReviewStatus());
+        if (request.appReviewStatus() != null) {
+            authUser.setAppReviewStatus(request.appReviewStatus());
         }
 
         AuthUserEntity updatedAuthUser = accessor.save(authUser);

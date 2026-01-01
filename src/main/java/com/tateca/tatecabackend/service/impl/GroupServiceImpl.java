@@ -83,7 +83,7 @@ public class GroupServiceImpl implements GroupService {
         // Create new record into groups table.
         GroupEntity groupEntity = GroupEntity.builder()
                 .uuid(UUID.randomUUID())
-                .name(request.getGroupName())
+                .name(request.groupName())
                 .joinToken(UUID.randomUUID())
                 .build();
         GroupEntity groupEntitySaved = accessor.save(groupEntity);
@@ -95,11 +95,11 @@ public class GroupServiceImpl implements GroupService {
 
         UserEntity host = UserEntity.builder()
                 .uuid(UUID.randomUUID())
-                .name(request.getHostName())
+                .name(request.hostName())
                 .authUser(authUser)
                 .build();
         userEntityList.add(host);
-        request.getParticipantsName().forEach(userName -> {
+        request.participantsName().forEach(userName -> {
             UserEntity user = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name(userName)
@@ -130,8 +130,8 @@ public class GroupServiceImpl implements GroupService {
     public GroupDetailsResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
         // check if token is valid or not
         GroupEntity groupEntity = accessor.findById(groupId);
-        if (!groupEntity.getJoinToken().equals(request.getJoinToken())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.getJoinToken());
+        if (!groupEntity.getJoinToken().equals(request.joinToken())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.joinToken());
         }
 
         // Check if user has already joined this group.
@@ -150,7 +150,7 @@ public class GroupServiceImpl implements GroupService {
         validateMaxGroupCount(uid);
 
         // Update users.auth_user_uid to link authUser and user
-        UserEntity userEntity = userAccessor.findById(request.getUserUuid());
+        UserEntity userEntity = userAccessor.findById(request.userUuid());
         AuthUserEntity authUserEntity = authUserAccessor.findByUid(uid);
         userEntity.setAuthUser(authUserEntity);
         userAccessor.save(userEntity);
