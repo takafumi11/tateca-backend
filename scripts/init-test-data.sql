@@ -227,11 +227,12 @@ INSERT INTO currency_names (currency_code, jp_currency_name, eng_currency_name, 
 
 -- ============================================================================
 -- Transaction History (Sample transactions)
+-- Note: exchange_rate_date uses CURDATE() to dynamically set to current date
 -- ============================================================================
 INSERT INTO transaction_history (uuid, transaction_type, group_uuid, title, amount, currency_code, exchange_rate_date, transaction_date, payer_id, created_at, updated_at) VALUES
-(UUID_TO_BIN('850e8400-e29b-41d4-a716-446655440001'), 'LOAN', UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440001'), 'Dinner at restaurant', 5000, 'JPY', '2025-12-28', DATE_SUB(NOW(), INTERVAL 2 DAY), UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440001'), NOW(), NOW()),
-(UUID_TO_BIN('850e8400-e29b-41d4-a716-446655440002'), 'LOAN', UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440001'), 'Coffee shop', 2000, 'JPY', '2025-12-28', DATE_SUB(NOW(), INTERVAL 1 DAY), UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440002'), NOW(), NOW()),
-(UUID_TO_BIN('850e8400-e29b-41d4-a716-446655440003'), 'REPAYMENT', UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440001'), 'Repay Bob', 1500, 'JPY', '2025-12-28', DATE_SUB(NOW(), INTERVAL 1 HOUR), UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440001'), NOW(), NOW());
+(UUID_TO_BIN('850e8400-e29b-41d4-a716-446655440001'), 'LOAN', UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440001'), 'Dinner at restaurant', 5000, 'JPY', CURDATE(), DATE_SUB(NOW(), INTERVAL 2 DAY), UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440001'), NOW(), NOW()),
+(UUID_TO_BIN('850e8400-e29b-41d4-a716-446655440002'), 'LOAN', UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440001'), 'Coffee shop', 2000, 'JPY', CURDATE(), DATE_SUB(NOW(), INTERVAL 1 DAY), UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440002'), NOW(), NOW()),
+(UUID_TO_BIN('850e8400-e29b-41d4-a716-446655440003'), 'REPAYMENT', UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440001'), 'Repay Bob', 1500, 'JPY', CURDATE(), DATE_SUB(NOW(), INTERVAL 1 HOUR), UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440001'), NOW(), NOW());
 
 -- ============================================================================
 -- Transaction Obligations (Who owes whom)
