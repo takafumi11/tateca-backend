@@ -47,9 +47,9 @@ class ExchangeRateResponseApiClientIntegrationTest extends AbstractIntegrationTe
 
             // Then: Should receive valid response
             assertThat(response).isNotNull();
-            assertThat(response.getResult()).isEqualTo("success");
-            assertThat(response.getTimeLastUpdateUnix()).isEqualTo("1704067200");
-            assertThat(response.getConversionRates())
+            assertThat(response.result()).isEqualTo("success");
+            assertThat(response.timeLastUpdateUnix()).isEqualTo("1704067200");
+            assertThat(response.conversionRates())
                     .containsEntry("JPY", 1.0)
                     .containsEntry("USD", 0.0067)
                     .containsEntry("EUR", 0.0061);
@@ -73,7 +73,7 @@ class ExchangeRateResponseApiClientIntegrationTest extends AbstractIntegrationTe
 
             // Then: Should succeed after retries
             assertThat(response).isNotNull();
-            assertThat(response.getResult()).isEqualTo("success");
+            assertThat(response.result()).isEqualTo("success");
 
             // And: Should have retried 3 times (2 failures + 1 success)
             verifyApiWasCalledThreeTimes("/latest/JPY");

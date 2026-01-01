@@ -65,22 +65,16 @@ public class TestFixtures {
 
     public static class ExchangeRateApiResponses {
         public static ExchangeRateClientResponse success() {
-            ExchangeRateClientResponse response = new ExchangeRateClientResponse();
-            response.setResult("success");
-            response.setTimeLastUpdateUnix("1704067200");
             java.util.Map<String, Double> rates = new java.util.HashMap<>();
             rates.put("JPY", 1.0);
             rates.put("USD", 0.0067);
             rates.put("EUR", 0.0061);
-            response.setConversionRates(rates);
-            return response;
+            return new ExchangeRateClientResponse("success", "1704067200", rates);
         }
 
         public static ExchangeRateClientResponse withRates(
                 java.util.Map<String, Double> rates) {
-            com.tateca.tatecabackend.api.response.ExchangeRateClientResponse response = success();
-            response.setConversionRates(rates);
-            return response;
+            return new ExchangeRateClientResponse("success", "1704067200", rates);
         }
     }
 

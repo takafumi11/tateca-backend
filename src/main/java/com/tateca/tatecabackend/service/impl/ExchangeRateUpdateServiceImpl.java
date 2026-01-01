@@ -67,14 +67,14 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
             LocalDate date) {
 
         List<ExchangeRateEntity> newEntities = new ArrayList<>();
-        List<String> currencyCodes = new ArrayList<>(exchangeRateClientResponse.getConversionRates().keySet());
+        List<String> currencyCodes = new ArrayList<>(exchangeRateClientResponse.conversionRates().keySet());
 
         // Build Maps for O(1) lookup
         Map<String, CurrencyNameEntity> currencyNameMap = buildCurrencyNameMap(currencyCodes);
         Map<String, ExchangeRateEntity> existingRatesMap = buildExistingRatesMap(currencyCodes, date);
 
         // Process each exchange rate
-        for (Map.Entry<String, Double> entry : exchangeRateClientResponse.getConversionRates().entrySet()) {
+        for (Map.Entry<String, Double> entry : exchangeRateClientResponse.conversionRates().entrySet()) {
             String currencyCode = entry.getKey();
             Double exchangeRate = entry.getValue();
 
