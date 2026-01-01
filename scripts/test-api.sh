@@ -239,7 +239,7 @@ main() {
             \"join_token\": \"$JOIN_TOKEN_1\"
         }"
 
-    test_endpoint DELETE "/groups/$GROUP_UUID_1/users/$USER_UUID_3" \
+    test_endpoint DELETE "/groups/$GROUP_UUID_1/users/$USER_UUID_2" \
         "4.6 Remove User from Group" \
         -H "x-uid: $TEST_USER_1"
 
@@ -273,7 +273,7 @@ main() {
             \"title\": \"Lunch at cafe\",
             \"amount\": 3000,
             \"currency_code\": \"JPY\",
-            \"date_str\": \"2025-12-28T09:00:00+09:00\",
+            \"date_str\": \"$(date +%Y-%m-%d)T09:00:00+09:00\",
             \"payer_id\": \"$USER_UUID_1\",
             \"loan\": {
                 \"obligations\": [
@@ -294,7 +294,7 @@ main() {
             \"title\": \"Repay Alice\",
             \"amount\": 1000,
             \"currency_code\": \"JPY\",
-            \"date_str\": \"2025-12-28T09:00:00+09:00\",
+            \"date_str\": \"$(date +%Y-%m-%d)T09:00:00+09:00\",
             \"payer_id\": \"$USER_UUID_2\",
             \"repayment\": {
                 \"recipient_id\": \"$USER_UUID_1\"
@@ -314,8 +314,8 @@ main() {
         "6.1 Get Exchange Rates (Today)" \
         -H "x-uid: $TEST_USER_1"
 
-    test_endpoint GET "/exchange-rate/2025-12-28" \
-        "6.2 Get Exchange Rates (Specific Date)" \
+    test_endpoint GET "/exchange-rate/$(date +%Y-%m-%d)" \
+        "6.2 Get Exchange Rates (Same Date as Test Data)" \
         -H "x-uid: $TEST_USER_1"
 
     # ========================================
