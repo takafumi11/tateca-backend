@@ -2,18 +2,17 @@ package com.tateca.tatecabackend.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 import java.util.UUID;
 
-@Data
 @Schema(description = "Request to join a group using invitation token")
-public class JoinGroupRequestDTO {
-    @JsonProperty("user_uuid")
-    @Schema(description = "UUID of the user joining the group", example = "550e8400-e29b-41d4-a716-446655440000")
-    UUID userUuid;
+public record JoinGroupRequestDTO(
+        @JsonProperty("user_uuid")
+        @Schema(description = "UUID of the user joining the group", example = "550e8400-e29b-41d4-a716-446655440000")
+        UUID userUuid,
 
-    @JsonProperty("join_token")
-    @Schema(description = "Invitation token for joining the group", example = "123e4567-e89b-12d3-a456-426614174000")
-    UUID joinToken;
+        @JsonProperty("join_token")
+        @Schema(description = "Invitation token for joining the group", example = "123e4567-e89b-12d3-a456-426614174000")
+        UUID joinToken
+) {
 }

@@ -3,22 +3,20 @@ package com.tateca.tatecabackend.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "List of groups")
-public class GroupListResponseDTO {
-    @JsonProperty("group_list")
-    @Schema(description = "List of groups the user belongs to")
-    List<GroupInfoDTO> groupList;
-
+public record GroupListResponseDTO(
+        @JsonProperty("group_list")
+        @Schema(description = "List of groups the user belongs to")
+        List<GroupInfoDTO> groupList
+) {
     public static GroupListResponseDTO from(List<GroupEntity> groupEntityList) {
-        return new GroupListResponseDTO(groupEntityList.stream().map(GroupInfoDTO::from).toList());
+        return new GroupListResponseDTO(
+                groupEntityList.stream()
+                        .map(GroupInfoDTO::from)
+                        .toList()
+        );
     }
 }

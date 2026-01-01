@@ -48,7 +48,7 @@ public class GroupController {
             @PathVariable("groupId") UUID groupId,
             @RequestBody UpdateGroupNameRequestDTO request
     ) {
-        GroupDetailsResponseDTO response = service.updateGroupName(groupId, request.getName());
+        GroupDetailsResponseDTO response = service.updateGroupName(groupId, request.name());
         return ResponseEntity.ok(response);
     }
 
