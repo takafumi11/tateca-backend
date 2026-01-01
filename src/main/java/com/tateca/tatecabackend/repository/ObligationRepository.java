@@ -19,7 +19,8 @@ public interface ObligationRepository extends JpaRepository<TransactionObligatio
             JOIN FETCH o.transaction t
             JOIN FETCH o.user
             JOIN FETCH t.payer
-            JOIN FETCH t.exchangeRate
+            JOIN FETCH t.exchangeRate er
+            JOIN FETCH er.currencyName
             WHERE t.group.uuid = :groupId
             """)
     List<TransactionObligationEntity> findByGroupId(UUID groupId);

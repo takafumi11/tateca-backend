@@ -239,6 +239,10 @@ main() {
             \"join_token\": \"$JOIN_TOKEN_1\"
         }"
 
+    test_endpoint DELETE "/groups/$GROUP_UUID_1/users/$USER_UUID_3" \
+        "4.6 Remove User from Group" \
+        -H "x-uid: $TEST_USER_1"
+
     # ========================================
     # 5. TransactionController Tests
     # ========================================
@@ -296,6 +300,10 @@ main() {
                 \"recipient_id\": \"$USER_UUID_1\"
             }
         }"
+
+    test_endpoint DELETE "/groups/$GROUP_UUID_1/transactions/$TRANSACTION_UUID_1" \
+        "5.7 Delete Transaction" \
+        -H "x-uid: $TEST_USER_1"
 
     # ========================================
     # 6. ExchangeRateController Tests

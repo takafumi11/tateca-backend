@@ -46,24 +46,27 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         List<ExchangeRateEntity> tomorrowEntities =
                 updateExchangeRateEntities(exchangeRateClientResponse, tomorrow);
 
-        // Combine and save all entities
-        List<ExchangeRateEntity> allEntities = new ArrayList<>();
-        allEntities.addAll(todayEntities);
-        allEntities.addAll(tomorrowEntities);
+        // Save only new entities (existing entities are updated via Dirty Checking)
+        List<ExchangeRateEntity> newEntities = new ArrayList<>();
+        newEntities.addAll(todayEntities);
+        newEntities.addAll(tomorrowEntities);
 
-        exchangeRateAccessor.saveAll(allEntities);
+        if (!newEntities.isEmpty()) {
+            exchangeRateAccessor.saveAll(newEntities);
+        }
 
-        logger.info("Stored exchange rates: {} for today ({}), {} for tomorrow ({})",
+        int totalCount = todayEntities.size() + tomorrowEntities.size();
+        logger.info("Stored exchange rates: {} new for today ({}), {} new for tomorrow ({})",
                 todayEntities.size(), today, tomorrowEntities.size(), tomorrow);
 
-        return allEntities.size();
+        return totalCount;
     }
 
     private List<ExchangeRateEntity> updateExchangeRateEntities(
             ExchangeRateClientResponse exchangeRateClientResponse,
             LocalDate date) {
 
-        List<ExchangeRateEntity> exchangeRateEntities = new ArrayList<>();
+        List<ExchangeRateEntity> newEntities = new ArrayList<>();
         List<String> currencyCodes = new ArrayList<>(exchangeRateClientResponse.getConversionRates().keySet());
 
         // Build Maps for O(1) lookup
@@ -71,26 +74,30 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         Map<String, ExchangeRateEntity> existingRatesMap = buildExistingRatesMap(currencyCodes, date);
 
         // Process each exchange rate
-        exchangeRateClientResponse.getConversionRates().forEach((currencyCode, exchangeRate) -> {
+        for (Map.Entry<String, Double> entry : exchangeRateClientResponse.getConversionRates().entrySet()) {
+            String currencyCode = entry.getKey();
+            Double exchangeRate = entry.getValue();
+
             CurrencyNameEntity currencyNameEntity = currencyNameMap.get(currencyCode);
 
             if (currencyNameEntity == null) {
                 logger.warn("Currency not found: {}", currencyCode);
-                return;
+                continue;
             }
 
-            ExchangeRateEntity exchangeRateEntity = existingRatesMap.get(currencyCode);
+            ExchangeRateEntity existingEntity = existingRatesMap.get(currencyCode);
 
-            if (exchangeRateEntity != null) {
-                updateExistingRate(exchangeRateEntity, exchangeRate);
+            if (existingEntity != null) {
+                // Update existing entity (will be automatically saved via Dirty Checking)
+                updateExistingRate(existingEntity, exchangeRate);
             } else {
-                exchangeRateEntity = createNewRate(currencyNameEntity, date, exchangeRate);
+                // Create new entity and add to list for batch insert
+                ExchangeRateEntity newEntity = createNewRate(currencyNameEntity, date, exchangeRate);
+                newEntities.add(newEntity);
             }
+        }
 
-            exchangeRateEntities.add(exchangeRateEntity);
-        });
-
-        return exchangeRateEntities;
+        return newEntities;
     }
 
     /**
@@ -111,6 +118,10 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
     private Map<String, ExchangeRateEntity> buildExistingRatesMap(List<String> currencyCodes, LocalDate date) {
         List<ExchangeRateEntity> existingRates =
                 exchangeRateAccessor.findByCurrencyCodeInAndDate(currencyCodes, date);
+
+        // Mark fetched entities as not new to avoid SELECT during save
+        existingRates.forEach(ExchangeRateEntity::markAsNotNew);
+
         return existingRates.stream()
                 .collect(Collectors.toMap(
                         ExchangeRateEntity::getCurrencyCode,
