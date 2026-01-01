@@ -17,7 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ExchangeRateRepository Tests")
-class ExchangeRateRepositoryTest extends AbstractIntegrationTest {
+class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
     private ExchangeRateRepository repository;

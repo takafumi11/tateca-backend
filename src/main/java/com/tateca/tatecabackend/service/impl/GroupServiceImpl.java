@@ -7,7 +7,7 @@ import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
-import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
+import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
@@ -38,7 +38,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public GroupDetailsResponseDTO getGroupInfo(UUID groupId) {
+    public GroupResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
         if (userGroups.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
@@ -48,12 +48,12 @@ public class GroupServiceImpl implements GroupService {
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
         Long transactionCount = transactionAccessor.countByGroupId(groupId);
 
-        return GroupDetailsResponseDTO.from(users, groupEntity, transactionCount);
+        return GroupResponseDTO.from(users, groupEntity, transactionCount);
     }
 
     @Override
     @Transactional
-    public GroupDetailsResponseDTO updateGroupName(UUID groupId, String name) {
+    public GroupResponseDTO updateGroupName(UUID groupId, String name) {
         GroupEntity group = accessor.findById(groupId);
         group.setName(name);
         accessor.save(group);
@@ -76,7 +76,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupDetailsResponseDTO createGroup(String uid, CreateGroupRequestDTO request) {
+    public GroupResponseDTO createGroup(String uid, CreateGroupRequestDTO request) {
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
         validateMaxGroupCount(uid);
 
@@ -122,12 +122,12 @@ public class GroupServiceImpl implements GroupService {
         userGroupAccessor.saveAll(userGroupEntityList);
 
         Long transactionCount = transactionAccessor.countByGroupId(groupEntitySaved.getUuid());
-        return GroupDetailsResponseDTO.from(userEntityListSaved, groupEntitySaved, transactionCount);
+        return GroupResponseDTO.from(userEntityListSaved, groupEntitySaved, transactionCount);
     }
 
     @Override
     @Transactional
-    public GroupDetailsResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
+    public GroupResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
         // check if token is valid or not
         GroupEntity groupEntity = accessor.findById(groupId);
         if (!groupEntity.getJoinToken().equals(request.joinToken())) {
@@ -160,7 +160,7 @@ public class GroupServiceImpl implements GroupService {
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         Long transactionCount = transactionAccessor.countByGroupId(groupId);
 
-        return GroupDetailsResponseDTO.from(users, groupEntity, transactionCount);
+        return GroupResponseDTO.from(users, groupEntity, transactionCount);
     }
 
     @Override

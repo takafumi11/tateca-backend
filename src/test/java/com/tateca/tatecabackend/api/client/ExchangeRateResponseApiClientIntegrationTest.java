@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("ExchangeRateApiClient Integration Tests")
-class ExchangeRateApiClientIntegrationTest extends AbstractIntegrationTest {
+class ExchangeRateResponseApiClientIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ExchangeRateApiClient apiClient;

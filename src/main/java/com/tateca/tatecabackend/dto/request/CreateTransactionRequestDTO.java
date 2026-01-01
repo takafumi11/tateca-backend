@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "Request to create a new transaction")
-public record TransactionCreationRequestDTO(
+public record CreateTransactionRequestDTO(
         @JsonProperty("transaction_type")
         @Schema(description = "Type of transaction (LOAN, REPAYMENT)", example = "LOAN")
         TransactionType transactionType,

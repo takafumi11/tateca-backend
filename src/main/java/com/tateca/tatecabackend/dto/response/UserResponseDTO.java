@@ -17,7 +17,7 @@ public record UserResponseDTO(
 
         @JsonProperty("auth_user")
         @Schema(description = "Authentication user details")
-        AuthUserInfoDTO authUser,
+        AuthUserResponseDTO authUser,
 
         @JsonProperty("created_at")
         @Schema(description = "User creation timestamp (Tokyo time)", example = "2024-01-01T12:00:00+09:00")
@@ -31,7 +31,7 @@ public record UserResponseDTO(
         return new UserResponseDTO(
                 user.getUuid().toString(),
                 user.getName(),
-                user.getAuthUser() != null ? AuthUserInfoDTO.from(user.getAuthUser()) : null,
+                user.getAuthUser() != null ? AuthUserResponseDTO.from(user.getAuthUser()) : null,
                 TimeHelper.convertToTokyoTime(user.getCreatedAt()),
                 TimeHelper.convertToTokyoTime(user.getUpdatedAt())
         );

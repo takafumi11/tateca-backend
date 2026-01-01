@@ -7,7 +7,7 @@ import com.tateca.tatecabackend.util.TimeHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Authentication user information")
-public record AuthUserInfoDTO(
+public record AuthUserResponseDTO(
         @JsonProperty("uid")
         @Schema(description = "Firebase authentication user ID", example = "firebase-uid-123")
         String uid,
@@ -44,8 +44,8 @@ public record AuthUserInfoDTO(
         @Schema(description = "Current app review status")
         AppReviewStatus appReviewStatus
 ) {
-    public static AuthUserInfoDTO from(AuthUserEntity user) {
-        return new AuthUserInfoDTO(
+    public static AuthUserResponseDTO from(AuthUserEntity user) {
+        return new AuthUserResponseDTO(
                 user.getUid(),
                 user.getName(),
                 user.getEmail(),

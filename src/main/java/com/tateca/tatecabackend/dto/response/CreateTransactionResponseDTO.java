@@ -1,6 +1,9 @@
 package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tateca.tatecabackend.dto.response.internal.ExchangeRateResponse;
+import com.tateca.tatecabackend.dto.response.internal.LoanResponse;
+import com.tateca.tatecabackend.dto.response.internal.RepaymentResponse;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.model.TransactionType;
@@ -11,7 +14,7 @@ import java.util.List;
 import static com.tateca.tatecabackend.util.TimeHelper.convertToTokyoTime;
 
 @Schema(description = "Detailed transaction information")
-public record TransactionDetailResponseDTO(
+public record CreateTransactionResponseDTO(
         @JsonProperty("transaction_id")
         @Schema(description = "Transaction unique identifier", example = "550e8400-e29b-41d4-a716-446655440000")
         String id,
@@ -30,7 +33,7 @@ public record TransactionDetailResponseDTO(
         UserResponseDTO payer,
 
         @Schema(description = "Exchange rate at the time of transaction")
-        ExchangeRateResponseDTO exchangeRate,
+        ExchangeRateResponse exchangeRateResponse,
 
         @JsonProperty("date_str")
         @Schema(description = "Transaction date (Tokyo time)", example = "2024-01-15T18:30:00+09:00")
@@ -38,40 +41,40 @@ public record TransactionDetailResponseDTO(
 
         @JsonProperty("loan")
         @Schema(description = "Loan details (present if transaction_type is LOAN)")
-        LoanDetailResponseDTO loan,
+        LoanResponse loan,
 
         @JsonProperty("repayment")
         @Schema(description = "Repayment details (present if transaction_type is REPAYMENT)")
-        RepaymentDetailResponseDTO repayment
+        RepaymentResponse repayment
 ) {
-    public static TransactionDetailResponseDTO from(TransactionHistoryEntity transaction,
-                                                     List<TransactionObligationEntity> transactionObligationEntityList) {
+    public static CreateTransactionResponseDTO from(TransactionHistoryEntity transaction,
+                                                    List<TransactionObligationEntity> transactionObligationEntityList) {
         return createFromTransaction(
                 transaction,
-                LoanDetailResponseDTO.from(transactionObligationEntityList),
+                LoanResponse.from(transactionObligationEntityList),
                 null
         );
     }
 
-    public static TransactionDetailResponseDTO from(TransactionHistoryEntity transaction,
-                                                     TransactionObligationEntity obligation) {
+    public static CreateTransactionResponseDTO from(TransactionHistoryEntity transaction,
+                                                    TransactionObligationEntity obligation) {
         return createFromTransaction(
                 transaction,
                 null,
-                RepaymentDetailResponseDTO.from(obligation.getUser())
+                RepaymentResponse.from(obligation.getUser())
         );
     }
 
-    private static TransactionDetailResponseDTO createFromTransaction(TransactionHistoryEntity transaction,
-                                                                       LoanDetailResponseDTO loan,
-                                                                       RepaymentDetailResponseDTO repayment) {
-        return new TransactionDetailResponseDTO(
+    private static CreateTransactionResponseDTO createFromTransaction(TransactionHistoryEntity transaction,
+                                                                      LoanResponse loan,
+                                                                      RepaymentResponse repayment) {
+        return new CreateTransactionResponseDTO(
                 transaction.getUuid().toString(),
                 transaction.getTransactionType(),
                 transaction.getTitle(),
                 transaction.getAmount(),
                 UserResponseDTO.from(transaction.getPayer()),
-                ExchangeRateResponseDTO.from(transaction.getExchangeRate()),
+                ExchangeRateResponse.from(transaction.getExchangeRate()),
                 convertToTokyoTime(transaction.getTransactionDate()),
                 loan,
                 repayment

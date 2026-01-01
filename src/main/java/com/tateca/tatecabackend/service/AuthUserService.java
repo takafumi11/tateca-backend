@@ -1,15 +1,15 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
+import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
-import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
+import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 
 public interface AuthUserService {
-    AuthUserInfoDTO getAuthUserInfo(String uid);
+    AuthUserResponseDTO getAuthUserInfo(String uid);
 
-    AuthUserInfoDTO createAuthUser(String uid, AuthUserRequestDTO request);
+    AuthUserResponseDTO createAuthUser(String uid, CreateAuthUserRequestDTO request);
 
     void deleteAuthUser(String uid);
 
-    AuthUserInfoDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request);
+    AuthUserResponseDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request);
 }

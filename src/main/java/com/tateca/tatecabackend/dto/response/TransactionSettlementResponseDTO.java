@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @Schema(description = "Settlement information for a group")
-public record TransactionsSettlementResponseDTO(
+public record TransactionSettlementResponseDTO(
    @JsonProperty("transactions_settlement")
    @Schema(description = "List of settlements needed to balance accounts")
    List<TransactionSettlement> transactionsSettlement

@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("ExchangeRateUpdateService Integration Tests")
-class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
+class ExchangeRateResponseUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ExchangeRateUpdateService service;
@@ -55,7 +55,7 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @DisplayName("Given new exchange rate data needs to be stored")
-    class WhenNewExchangeRateDataNeedsToBeStored {
+    class WhenNewExchangeRateResponseDataNeedsToBeStored {
 
         @Test
         @DisplayName("Then should create new records in database")
@@ -154,7 +154,7 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @DisplayName("Given exchange rates already exist in database")
-    class WhenExchangeRatesAlreadyExist {
+    class WhenExchangeRatesAlreadyExistResponse {
 
         @Test
         @DisplayName("Then should update existing records when rates change")
@@ -310,7 +310,7 @@ class ExchangeRateUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @DisplayName("Given API returns empty exchange rates")
-    class WhenApiReturnsEmptyExchangeRates {
+    class WhenApiReturnsEmptyExchangeRatesResponse {
 
         @Test
         @DisplayName("Then should complete successfully without saving any data")

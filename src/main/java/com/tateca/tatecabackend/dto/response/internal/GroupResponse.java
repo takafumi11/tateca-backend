@@ -1,4 +1,4 @@
-package com.tateca.tatecabackend.dto.response;
+package com.tateca.tatecabackend.dto.response.internal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tateca.tatecabackend.entity.GroupEntity;
@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import static com.tateca.tatecabackend.util.TimeHelper.convertToTokyoTime;
 
 @Schema(description = "Group information")
-public record GroupInfoDTO(
+public record GroupResponse(
         @JsonProperty("uuid")
         @Schema(description = "Group's unique identifier", example = "550e8400-e29b-41d4-a716-446655440000")
         String uuid,
@@ -32,8 +32,8 @@ public record GroupInfoDTO(
         @Schema(description = "Group last update timestamp (Tokyo time)", example = "2024-01-15T14:30:00+09:00")
         String updatedAt
 ) {
-    public static GroupInfoDTO from(GroupEntity group) {
-        return new GroupInfoDTO(
+    public static GroupResponse from(GroupEntity group) {
+        return new GroupResponse(
                 group.getUuid().toString(),
                 group.getName(),
                 group.getJoinToken().toString(),
