@@ -4,7 +4,6 @@ import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
@@ -18,8 +17,10 @@ import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.ParticipantModel;
 import com.tateca.tatecabackend.model.TransactionType;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.TransactionService;
 import com.tateca.tatecabackend.util.LogFactory;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ import static com.tateca.tatecabackend.util.TimeHelper.dateStringToInstant;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LogFactory.getLogger(TransactionServiceImpl.class);
-    private final UserAccessor userAccessor;
+    private final UserRepository userRepository;
     private final GroupAccessor groupAccessor;
     private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor accessor;
@@ -229,7 +230,8 @@ public class TransactionServiceImpl implements TransactionService {
             }
         }
 
-        UserEntity payer = userAccessor.findById(request.payerId());
+        UserEntity payer = userRepository.findById(request.payerId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));
         GroupEntity group = groupAccessor.findById(groupId);
         TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
 
@@ -237,7 +239,8 @@ public class TransactionServiceImpl implements TransactionService {
         if (request.transactionType() == TransactionType.LOAN) {
             List<TransactionObligationEntity> transactionObligationEntityList = request.loan().obligations().stream()
                     .map(obligation -> {
-                        UserEntity obligationUser = userAccessor.findById(obligation.userUuid());
+                        UserEntity obligationUser = userRepository.findById(obligation.userUuid())
+                                .orElseThrow(() -> new EntityNotFoundException("User not found: " + obligation.userUuid()));
 
                         return TransactionObligationEntity.builder()
                                 .uuid(UUID.randomUUID())
@@ -252,7 +255,8 @@ public class TransactionServiceImpl implements TransactionService {
 
             return CreateTransactionResponseDTO.from(savedTransaction, savedObligations);
         } else {
-            UserEntity recipient = userAccessor.findById(request.repayment().recipientId());
+            UserEntity recipient = userRepository.findById(request.repayment().recipientId())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.repayment().recipientId()));
 
             TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
 

@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
@@ -10,6 +9,7 @@ import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.AppReviewStatus;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.AuthUserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +42,7 @@ class AuthUserServiceUnitTest {
     private AuthUserRepository repository;
 
     @Mock
-    private UserAccessor userAccessor;
+    private UserRepository userRepository;
 
     @InjectMocks
     private AuthUserServiceImpl authUserService;
@@ -191,16 +191,19 @@ class AuthUserServiceUnitTest {
             List<UserEntity> userEntities = Arrays.asList(user1, user2);
 
             when(repository.findById(TEST_UID)).thenReturn(Optional.of(testAuthUser));
-            when(userAccessor.findByAuthUserUid(TEST_UID)).thenReturn(userEntities);
-            when(userAccessor.saveAll(anyList())).thenReturn(userEntities);
+            when(userRepository.findByAuthUserUid(TEST_UID)).thenReturn(userEntities);
+            when(userRepository.saveAll(anyList())).thenReturn(userEntities);
 
             // When: Deleting auth user
             authUserService.deleteAuthUser(TEST_UID);
 
             // Then: Should nullify authUser references and save
-            verify(userAccessor).saveAll(argThat(users ->
-                    users.stream().allMatch(u -> u.getAuthUser() == null)
-            ));
+            verify(userRepository).saveAll(argThat(users -> {
+                if (users instanceof List) {
+                    return ((List<UserEntity>) users).stream().allMatch(u -> u.getAuthUser() == null);
+                }
+                return false;
+            }));
             verify(repository).deleteById(TEST_UID);
         }
     }

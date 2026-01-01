@@ -4,8 +4,8 @@ import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 class TransactionServiceImplTest {
 
     @Mock
-    private UserAccessor userAccessor;
+    private UserRepository userRepository;
 
     @Mock
     private GroupAccessor groupAccessor;
