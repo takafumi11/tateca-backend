@@ -35,9 +35,7 @@ public class DevController {
             @PathVariable("uid") String uid) {
         try {
             String customToken = firebaseService.generateCustomToken(uid);
-            TokenResponseDTO response = TokenResponseDTO.builder()
-                    .customToken(customToken)
-                    .build();
+            TokenResponseDTO response = new TokenResponseDTO(customToken);
             return ResponseEntity.ok(response);
         } catch (FirebaseAuthException e) {
             throw new RuntimeException("Failed to generate Firebase custom token", e);
