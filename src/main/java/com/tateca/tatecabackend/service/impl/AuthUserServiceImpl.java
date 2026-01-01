@@ -30,35 +30,12 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     @Transactional
     public AuthUserResponseDTO getAuthUserInfo(String uid) {
-        long totalStartTime = System.currentTimeMillis();
-
-        // Measure findByUid query time
-        long findStartTime = System.currentTimeMillis();
         AuthUserEntity authUser = accessor.findByUid(uid);
-        long findEndTime = System.currentTimeMillis();
-
-        long findTime = findEndTime - findStartTime;
-
-        logger.info("getAuthUserInfo findByUid query time for uid {}: {} ms", uid, (findEndTime - findStartTime));
-
 
         authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
 
-        // Measure save query time
-        long saveStartTime = System.currentTimeMillis();
         AuthUserEntity updatedAuthUser = accessor.save(authUser);
-        long saveEndTime = System.currentTimeMillis();
-        long saveTime = saveEndTime - saveStartTime;
-
-        long totalEndTime = System.currentTimeMillis();
-        long totalTime = totalEndTime - totalStartTime;
-
-        LogFactory.logQueryTime(logger, "getAuthUserInfo",
-            "findByUid", findTime,
-            "save", saveTime,
-            "total", totalTime);
-
         return AuthUserResponseDTO.from(updatedAuthUser);
     }
 
@@ -98,13 +75,8 @@ public class AuthUserServiceImpl implements AuthUserService {
     public AuthUserResponseDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
         AuthUserEntity authUser = accessor.findByUid(uid);
 
-        if (request.showDialog()) {
-            authUser.setLastAppReviewDialogShownAt(Instant.now());
-        }
-
-        if (request.appReviewStatus() != null) {
-            authUser.setAppReviewStatus(request.appReviewStatus());
-        }
+        authUser.setLastAppReviewDialogShownAt(Instant.now());
+        authUser.setAppReviewStatus(request.appReviewStatus());
 
         AuthUserEntity updatedAuthUser = accessor.save(authUser);
         return AuthUserResponseDTO.from(updatedAuthUser);

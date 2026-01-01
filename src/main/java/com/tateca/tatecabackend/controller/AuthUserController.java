@@ -39,7 +39,7 @@ public class AuthUserController {
     @PostMapping
     public ResponseEntity<AuthUserResponseDTO> createAuthUser(
             @UId String uid,
-            @RequestBody CreateAuthUserRequestDTO request) {
+            @Valid @RequestBody CreateAuthUserRequestDTO request) {
         AuthUserResponseDTO response = service.createAuthUser(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
