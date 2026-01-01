@@ -63,6 +63,10 @@ jdks/
 kotlin-profile/
 workers/
 
+### Logs ###
+logs/
+*.log
+
 ### API Specs ###
 api-specs/node_modules/
 api-specs/dist/
