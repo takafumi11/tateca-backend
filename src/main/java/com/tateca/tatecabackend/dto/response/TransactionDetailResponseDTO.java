@@ -10,7 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
+import static com.tateca.tatecabackend.util.TimeHelper.convertToTokyoTime;
 
 @Data
 @Builder

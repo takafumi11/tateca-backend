@@ -5,7 +5,7 @@ import com.tateca.tatecabackend.entity.GroupEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
-import static com.tateca.tatecabackend.service.util.TimeHelper.convertToTokyoTime;
+import static com.tateca.tatecabackend.util.TimeHelper.convertToTokyoTime;
 
 @Builder
 @Schema(description = "Group information")

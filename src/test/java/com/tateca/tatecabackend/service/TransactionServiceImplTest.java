@@ -17,6 +17,7 @@ import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.TransactionType;
+import com.tateca.tatecabackend.service.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

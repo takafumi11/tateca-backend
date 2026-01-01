@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

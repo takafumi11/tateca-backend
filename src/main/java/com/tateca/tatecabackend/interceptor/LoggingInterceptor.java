@@ -19,8 +19,8 @@ import java.util.UUID;
 
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_ID_ATTRIBUTE;
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
-import static com.tateca.tatecabackend.service.util.TimeHelper.TOKYO_ZONE_ID;
-import static com.tateca.tatecabackend.service.util.TimeHelper.DATE_TIME_FORMATTER;
+import static com.tateca.tatecabackend.util.TimeHelper.TOKYO_ZONE_ID;
+import static com.tateca.tatecabackend.util.TimeHelper.DATE_TIME_FORMATTER;
 
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
