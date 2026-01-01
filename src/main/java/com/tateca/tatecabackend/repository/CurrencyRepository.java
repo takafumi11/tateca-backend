@@ -11,6 +11,4 @@ import java.util.List;
 @Repository
 public interface CurrencyRepository extends JpaRepository<CurrencyEntity, String> {
 
-    @Query("SELECT c FROM CurrencyEntity c")
-    List<CurrencyEntity> findFirstCurrencyCode(Pageable pageable);
 }

@@ -4,7 +4,6 @@ import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.repository.CurrencyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
