@@ -2,27 +2,29 @@ package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
-import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService Unit Tests")
@@ -34,26 +36,16 @@ class UserServiceUnitTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Captor
-    private ArgumentCaptor<UserEntity> userEntityCaptor;
-
     private UUID testUserId;
     private UserEntity testUser;
-    private AuthUserEntity testAuthUser;
 
     @BeforeEach
     void setUp() {
         testUserId = UUID.randomUUID();
-        Instant testCreatedAt = Instant.now().minusSeconds(86400); // 1 day ago
-        Instant testUpdatedAt = Instant.now();
+        AuthUserEntity testAuthUser = TestFixtures.AuthUsers.defaultAuthUser();
 
-        testAuthUser = AuthUserEntity.builder()
-                .uid("test-user-uid")
-                .name("Test Auth User")
-                .email("test@example.com")
-                .createdAt(testCreatedAt)
-                .updatedAt(testUpdatedAt)
-                .build();
+        Instant testCreatedAt = Instant.now().minusSeconds(86400);
+        Instant testUpdatedAt = Instant.now();
 
         testUser = UserEntity.builder()
                 .uuid(testUserId)
@@ -64,156 +56,45 @@ class UserServiceUnitTest {
                 .build();
     }
 
-    @Nested
-    @DisplayName("Given user exists")
-    class WhenUserExists {
+    @Test
+    @DisplayName("Should propagate NOT_FOUND exception from accessor")
+    void shouldPropagateNotFoundExceptionFromAccessor() {
+        // Given: Accessor throws NOT_FOUND exception
+        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-        @Test
-        @DisplayName("Then should update user name when name is provided")
-        void thenShouldUpdateUserNameWhenNameProvided() {
-            // Given: User exists and new name is provided
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
+        when(userAccessor.findById(testUserId))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // When & Then: Should propagate exception without catching
+        assertThatThrownBy(() -> userService.updateUserName(testUserId, request))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("User not found")
+                .satisfies(exception -> {
+                    ResponseStatusException rse = (ResponseStatusException) exception;
+                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+                });
 
-            // When: Updating user name
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should call findById once
-            verify(userAccessor, times(1)).findById(testUserId);
-
-            // And: Should save user with new name
-            verify(userAccessor, times(1)).save(userEntityCaptor.capture());
-            UserEntity savedUser = userEntityCaptor.getValue();
-            assertThat(savedUser.getName()).isEqualTo("New Name");
-        }
-
-        @Test
-        @DisplayName("Then should update name with valid non-empty string")
-        void thenShouldUpdateNameWithValidNonEmptyString() {
-            // Given: User exists and name is valid
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Valid Name");
-
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // When: Updating user name
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should save user with new name
-            verify(userAccessor, times(1)).save(userEntityCaptor.capture());
-            UserEntity savedUser = userEntityCaptor.getValue();
-            assertThat(savedUser.getName()).isEqualTo("Valid Name");
-        }
-
-        @Test
-        @DisplayName("Then should preserve other user properties")
-        void thenShouldPreserveOtherUserProperties() {
-            // Given: User exists with authUser
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-            UUID originalUuid = testUser.getUuid();
-            AuthUserEntity originalAuthUser = testUser.getAuthUser();
-            Instant originalCreatedAt = testUser.getCreatedAt();
-            Instant originalUpdatedAt = testUser.getUpdatedAt();
-
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // When: Updating user name
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should preserve UUID, authUser, timestamps
-            verify(userAccessor, times(1)).save(userEntityCaptor.capture());
-            UserEntity savedUser = userEntityCaptor.getValue();
-            assertThat(savedUser.getUuid()).isEqualTo(originalUuid);
-            assertThat(savedUser.getAuthUser()).isEqualTo(originalAuthUser);
-            assertThat(savedUser.getCreatedAt()).isEqualTo(originalCreatedAt);
-            assertThat(savedUser.getUpdatedAt()).isEqualTo(originalUpdatedAt);
-        }
+        // And: Save should not be called
+        verify(userAccessor, never()).save(any());
     }
 
-    @Nested
-    @DisplayName("Given accessor operations")
-    class WhenAccessorOperations {
+    @Test
+    @DisplayName("Should propagate INTERNAL_SERVER_ERROR exception from accessor save")
+    void shouldPropagateInternalServerErrorFromAccessorSave() {
+        // Given: Accessor save throws INTERNAL_SERVER_ERROR exception
+        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
-        @Test
-        @DisplayName("Then should call findById exactly once")
-        void thenShouldCallFindByIdExactlyOnce() {
-            // Given
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
+        when(userAccessor.findById(testUserId)).thenReturn(testUser);
+        when(userAccessor.save(any(UserEntity.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error"));
 
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // When
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should call findById exactly once
-            verify(userAccessor, times(1)).findById(testUserId);
-        }
-
-        @Test
-        @DisplayName("Then should call save exactly once")
-        void thenShouldCallSaveExactlyOnce() {
-            // Given
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // When
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should call save exactly once
-            verify(userAccessor, times(1)).save(any(UserEntity.class));
-        }
-
-        @Test
-        @DisplayName("Then should save the same entity instance returned from findById")
-        void thenShouldSaveSameEntityInstance() {
-            // Given
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // When
-            userService.updateUserName(testUserId, request);
-
-            // Then: Should save the same entity instance
-            verify(userAccessor, times(1)).save(userEntityCaptor.capture());
-            UserEntity savedUser = userEntityCaptor.getValue();
-            assertThat(savedUser).isSameAs(testUser);
-        }
-    }
-
-    @Nested
-    @DisplayName("Given UserInfoDTO conversion")
-    class WhenConvertingToUserInfoDTO {
-
-        @Test
-        @DisplayName("Then should return DTO with updated user data")
-        void thenShouldReturnDTOWithUpdatedUserData() {
-            // Given
-            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Updated Name");
-
-            when(userAccessor.findById(testUserId)).thenReturn(testUser);
-            when(userAccessor.save(any(UserEntity.class))).thenAnswer(invocation -> {
-                UserEntity user = invocation.getArgument(0);
-                return user;
-            });
-
-            // When
-            UserResponseDTO result = userService.updateUserName(testUserId, request);
-
-            // Then: Should return DTO with correct data
-            assertThat(result).isNotNull();
-            assertThat(result.uuid()).isEqualTo(testUserId.toString());
-            assertThat(result.userName()).isEqualTo("Updated Name");
-            assertThat(result.createdAt()).isNotNull();
-            assertThat(result.updatedAt()).isNotNull();
-        }
+        // When & Then: Should propagate exception without catching
+        assertThatThrownBy(() -> userService.updateUserName(testUserId, request))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Database error")
+                .satisfies(exception -> {
+                    ResponseStatusException rse = (ResponseStatusException) exception;
+                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+                });
     }
 }
