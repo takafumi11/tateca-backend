@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -126,22 +127,19 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // When: Service updates exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save updated records for both today and tomorrow
+        // Then: Should save only new records (USD, EUR for today + tomorrow = 4)
+        // JPY already exists and is updated via Dirty Checking, not included in saveAll
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(6);
-        assertThat(result).isEqualTo(6);
+        assertThat(savedEntities).hasSize(4);  // USD×2 + EUR×2 (JPY excluded as it's existing)
+        assertThat(result).isEqualTo(4);
 
-        // Verify: JPY rate for today is updated to new value
-        LocalDate tomorrow = today.plusDays(1);
-        ExchangeRateEntity updatedJpyToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("JPY"))
-                .filter(e -> e.getDate().equals(today))
-                .findFirst()
-                .orElseThrow();
-        assertThat(updatedJpyToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        assertThat(updatedJpyToday.getDate()).isEqualTo(today);
+        // Verify: Saved entities do not include existing JPY
+        assertThat(savedEntities)
+                .extracting(ExchangeRateEntity::getCurrencyCode)
+                .containsOnly("USD", "EUR")
+                .doesNotContain("JPY");
     }
 
     @Test
@@ -199,11 +197,8 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // When: Service processes empty rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save nothing
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
-        List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
-
-        assertThat(savedEntities).isEmpty();
+        // Then: Should not call saveAll when there are no entities
+        verify(exchangeRateAccessor, never()).saveAll(anyList());
         assertThat(result).isZero();
     }
 
@@ -233,39 +228,27 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // When: Service processes exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save all entities for both dates (3 currencies × 2 dates = 6 records)
+        // Then: Should save only new entities (EUR for today + tomorrow = 2)
+        // JPY and USD already exist, updated via Dirty Checking, not included in saveAll
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(6);
-        assertThat(result).isEqualTo(6);
+        assertThat(savedEntities).hasSize(2);  // EUR×2 (JPY and USD excluded as existing)
+        assertThat(result).isEqualTo(2);
 
-        // Verify: JPY rate for today remains unchanged
-        ExchangeRateEntity savedJpyToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("JPY"))
-                .filter(e -> e.getDate().equals(today))
-                .findFirst()
-                .orElseThrow();
-        assertThat(savedJpyToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        assertThat(savedJpyToday.getDate()).isEqualTo(today);
+        // Verify: Saved entities contain only new EUR records
+        assertThat(savedEntities)
+                .extracting(ExchangeRateEntity::getCurrencyCode)
+                .containsOnly("EUR")
+                .doesNotContain("JPY", "USD");
 
-        // Verify: USD rate for today remains unchanged
-        ExchangeRateEntity savedUsdToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("USD"))
-                .filter(e -> e.getDate().equals(today))
-                .findFirst()
-                .orElseThrow();
-        assertThat(savedUsdToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
-        assertThat(savedUsdToday.getDate()).isEqualTo(today);
-
-        // Verify: EUR for today is a new record
+        // Verify: EUR for today is in the saved list
         ExchangeRateEntity savedEurToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("EUR"))
                 .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();
         assertThat(savedEurToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0061));
-        assertThat(savedEurToday.getDate()).isEqualTo(today);
+        assertThat(savedEurToday.getCurrencyCode()).isEqualTo("EUR");
     }
 
     @Test
@@ -316,34 +299,22 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // When: Service processes exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
-        // Then: Should save 6 records (3 for today + 3 for tomorrow)
+        // Then: Should save only new entities (EUR for today + tomorrow = 2)
+        // JPY and USD already exist, updated via Dirty Checking, not included in saveAll
         verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
-        assertThat(savedEntities).hasSize(6);
-        assertThat(result).isEqualTo(6);
+        assertThat(savedEntities).hasSize(2);  // EUR×2 (JPY and USD excluded as existing)
+        assertThat(result).isEqualTo(2);
 
-        // Verify: JPY rate for today is updated
-        ExchangeRateEntity savedJpyToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("JPY"))
-                .filter(e -> e.getDate().equals(today))
-                .findFirst()
-                .orElseThrow();
-        assertThat(savedJpyToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(1.0));
-        assertThat(savedJpyToday.getDate()).isEqualTo(today);
+        // Verify: Only new EUR records are in the saved list
+        assertThat(savedEntities)
+                .extracting(ExchangeRateEntity::getCurrencyCode)
+                .containsOnly("EUR")
+                .doesNotContain("JPY", "USD");
 
-        // Verify: USD rate for today is unchanged (but still in the list)
-        ExchangeRateEntity savedUsdToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("USD"))
-                .filter(e -> e.getDate().equals(today))
-                .findFirst()
-                .orElseThrow();
-        assertThat(savedUsdToday.getExchangeRate()).isEqualByComparingTo(BigDecimal.valueOf(0.0067));
-        assertThat(savedUsdToday.getDate()).isEqualTo(today);
-
-        // Verify: EUR for today is a new record
+        // Verify: EUR for today is a new record in the saved list
         ExchangeRateEntity savedEurToday = savedEntities.stream()
-                .filter(e -> e.getCurrencyCode().equals("EUR"))
                 .filter(e -> e.getDate().equals(today))
                 .findFirst()
                 .orElseThrow();

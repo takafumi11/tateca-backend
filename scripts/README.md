@@ -1,11 +1,12 @@
 # Test Scripts
 
-This directory contains scripts for testing the Tateca Backend API in local development.
+This directory contains scripts for testing and monitoring the Tateca Backend API in local development.
 
 ## Files
 
 - `test-api.sh` - Comprehensive API test suite covering all endpoints
 - `init-test-data.sql` - Initial test data for development database
+- `analyze-sql-log.sh` - Real-time SQL query analyzer for performance monitoring
 
 ## Prerequisites
 
@@ -208,9 +209,96 @@ sudo apt-get install jq  # Ubuntu/Debian
 USE_JQ=false
 ```
 
+## SQL Query Monitoring
+
+### analyze-sql-log.sh
+
+Real-time SQL query analyzer for monitoring database performance and detecting N+1 query problems.
+
+**Usage - Real-time monitoring:**
+```bash
+# Terminal 1: Start application
+./gradlew bootRun --args='--spring.profiles.active=dev' 2>&1 | tee logs/app.log
+
+# Terminal 2: Monitor SQL queries
+tail -f logs/app.log | ./scripts/analyze-sql-log.sh
+
+# Terminal 3: Run API tests
+./scripts/test-api.sh
+```
+
+**What you'll see:**
+```
+╔════════════════════════════════════════════════════════╗
+║        SQL Log Analyzer - Real-time Monitoring       ║
+╚════════════════════════════════════════════════════════╝
+
+▶ API Call: GET /groups/650e8400-e29b-41d4-a716-446655440001
+  ✓ SELECT with JOIN FETCH
+  → SELECT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SQL Query Summary
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total Queries: 15
+
+Query Breakdown:
+  SELECT:      10
+  INSERT:      3
+  UPDATE:      2
+  DELETE:      0
+
+Optimization:
+  JOIN FETCH:  8 (prevents N+1 queries)
+
+✓ Good performance: Using JOIN FETCH to prevent N+1 queries
+```
+
+**Key Metrics:**
+- **Total Queries**: Number of SQL queries executed
+- **Query Types**: Breakdown by SELECT/INSERT/UPDATE/DELETE
+- **JOIN FETCH Count**: Number of optimized queries (should be high)
+- **Performance Assessment**: Automatic evaluation
+
+**What to look for:**
+- ✓ **Good**: High JOIN FETCH count, low total queries
+- ⚠ **Warning**: Multiple similar SELECT queries = N+1 problem
+- ⚠ **Warning**: Total queries > 100 = performance issue
+
+### Logging Configuration
+
+The dev profile has been optimized for readable SQL output:
+
+**Current settings (application-dev.properties):**
+```properties
+# Show SQL queries (formatted)
+logging.level.org.hibernate.SQL=DEBUG
+
+# Hide bind parameters (reduces noise)
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=WARN
+
+# Show Hibernate statistics
+logging.level.org.hibernate.stat=INFO
+```
+
+**To see MORE detail (verbose mode):**
+Edit `application-dev.properties`:
+```properties
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+logging.level.org.springframework.web=DEBUG
+```
+
+**To see LESS detail (quiet mode):**
+```properties
+logging.level.org.hibernate.SQL=WARN
+logging.level.org.hibernate.stat=WARN
+```
+
 ## Notes
 
 - Dev profile disables authentication, allowing curl testing without Firebase tokens
 - The `@UId` resolver falls back to `x-uid` header in dev profile
 - Exchange rate API calls require `EXCHANGE_RATE_API_KEY` environment variable
 - Some tests create new resources (groups, transactions) - these persist in the database
+- SQL query monitoring helps detect N+1 query problems early
+- JOIN FETCH optimization has been applied to prevent N+1 queries
