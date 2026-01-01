@@ -1,20 +1,28 @@
 package com.tateca.tatecabackend.fixtures;
 
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
+import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.model.SymbolPosition;
+
+import java.time.Instant;
 
 /**
  * Test fixtures using Object Mother pattern.
  *
- * <p>Provides standardized test data for entities and DTOs with sensible defaults
- * and easy customization through fluent builders.</p>
+ * <p>Provides standardized test data for entities with sensible defaults.</p>
  *
  * <p>Usage examples:</p>
  * <pre>
- * // Object Mother: Standard predefined objects
+ * // Currencies
  * CurrencyNameEntity jpy = TestFixtures.Currencies.jpy();
  * CurrencyNameEntity usd = TestFixtures.Currencies.usd();
+ *
+ * // AuthUsers
+ * AuthUserEntity authUser = TestFixtures.AuthUsers.defaultAuthUser();
+ *
+ * // Exchange Rate API Responses
+ * ExchangeRateClientResponse response = TestFixtures.ExchangeRateApiResponses.success();
  * </pre>
  */
 public class TestFixtures {
@@ -78,4 +86,21 @@ public class TestFixtures {
         }
     }
 
+    // ========== Object Mother: AuthUsers ==========
+
+    public static class AuthUsers {
+        /**
+         * Creates a default AuthUserEntity with unique UID.
+         * Uses timestamp to ensure uniqueness across test runs.
+         */
+        public static AuthUserEntity defaultAuthUser() {
+            return AuthUserEntity.builder()
+                    .uid("test-uid-" + System.currentTimeMillis())
+                    .name("Test Auth User")
+                    .email("test@example.com")
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        }
+    }
 }

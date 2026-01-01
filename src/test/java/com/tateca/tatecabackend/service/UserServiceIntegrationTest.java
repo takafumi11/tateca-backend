@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,15 +39,11 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Create test auth user
-        testAuthUser = AuthUserEntity.builder()
-                .uid("test-user-uid-" + System.currentTimeMillis())
-                .name("Test Auth User")
-                .email("test@example.com")
-                .build();
+        // Create test auth user using TestFixtures
+        testAuthUser = TestFixtures.AuthUsers.defaultAuthUser();
         authUserRepository.save(testAuthUser);
 
-        // Create test user
+        // Create test user using TestFixtures
         testUserId = UUID.randomUUID();
         UserEntity testUser = UserEntity.builder()
                 .uuid(testUserId)
@@ -172,5 +169,40 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
             long countAfter = userRepository.count();
             assertThat(countAfter).isEqualTo(countBefore);
         }
+    }
+
+    @Test
+    @DisplayName("Should persist multiple sequential updates correctly")
+    void shouldPersistMultipleSequentialUpdatesCorrectly() {
+        // Given: First update
+        UpdateUserNameRequestDTO request1 = new UpdateUserNameRequestDTO("First Update");
+        userService.updateUserName(testUserId, request1);
+        flushAndClear();
+
+        // When: Second update
+        UpdateUserNameRequestDTO request2 = new UpdateUserNameRequestDTO("Second Update");
+        userService.updateUserName(testUserId, request2);
+        flushAndClear();
+
+        // Then: Latest update should be persisted
+        UserEntity finalUser = userRepository.findById(testUserId)
+                .orElseThrow(() -> new AssertionError("User should exist"));
+        assertThat(finalUser.getName()).isEqualTo("Second Update");
+    }
+
+    @Test
+    @DisplayName("Should persist special characters including emoji correctly")
+    void shouldPersistSpecialCharactersCorrectly() {
+        // Given: Request with special characters and emoji
+        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Test 😊 田中 €$");
+
+        // When: Updating user name
+        userService.updateUserName(testUserId, request);
+
+        // Then: Should persist and retrieve correctly
+        flushAndClear();
+        UserEntity updatedUser = userRepository.findById(testUserId)
+                .orElseThrow(() -> new AssertionError("User should exist"));
+        assertThat(updatedUser.getName()).isEqualTo("Test 😊 田中 €$");
     }
 }
