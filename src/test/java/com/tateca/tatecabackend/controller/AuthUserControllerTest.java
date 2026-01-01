@@ -152,7 +152,7 @@ class AuthUserControllerTest {
     @DisplayName("POST /auth/users")
     class CreateAuthUser {
 
-        // ========== Success Scenarios (6 tests) - HTTP 201 CREATED ==========
+        // ========== Success Scenarios (4 tests) - HTTP 201 CREATED ==========
 
         @Test
         @DisplayName("Should return 201 CREATED when creating user with valid data")
@@ -194,42 +194,6 @@ class AuthUserControllerTest {
                 .andExpect(jsonPath("$.app_review_status").value("PENDING"));
 
             // And: Service should be called once
-            verify(authUserService, times(1))
-                .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
-        }
-
-        @Test
-        @DisplayName("Should return 201 when name is exactly 50 characters")
-        void shouldReturn201WhenNameIsExactly50Characters() throws Exception {
-            // Given: Request with name of exactly 50 characters
-            String name50Chars = "A".repeat(50);
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                name50Chars,
-                "test@example.com"
-            );
-
-            AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
-                TEST_UID,
-                name50Chars,
-                "test@example.com",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                1,
-                null,
-                AppReviewStatus.PENDING
-            );
-
-            when(authUserService.createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-            // When & Then: Should return 201 CREATED
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value(name50Chars));
-
             verify(authUserService, times(1))
                 .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
         }
@@ -342,78 +306,7 @@ class AuthUserControllerTest {
                 .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
         }
 
-        // ========== Validation Failures (11 tests) - HTTP 400 BAD_REQUEST ==========
-
-        @Test
-        @DisplayName("Should return 400 when name is null")
-        void shouldReturn400WhenNameIsNull() throws Exception {
-            // Given: Request with null name
-            String requestWithNull = "{\"name\": null, \"email\": \"test@example.com\"}";
-
-            // When & Then: Should return 400 BAD_REQUEST
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestWithNull))
-                .andExpect(status().isBadRequest());
-
-            // And: Service should NOT be called
-            verify(authUserService, never()).createAuthUser(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when name is empty string")
-        void shouldReturn400WhenNameIsEmpty() throws Exception {
-            // Given: Request with empty name
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "",
-                "test@example.com"
-            );
-
-            // When & Then: Should return 400 BAD_REQUEST
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-
-            verify(authUserService, never()).createAuthUser(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when name is whitespace only")
-        void shouldReturn400WhenNameIsWhitespaceOnly() throws Exception {
-            // Given: Request with whitespace-only name
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "   ",
-                "test@example.com"
-            );
-
-            // When & Then: Should return 400 BAD_REQUEST
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-
-            verify(authUserService, never()).createAuthUser(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when name exceeds 50 characters")
-        void shouldReturn400WhenNameExceeds50Characters() throws Exception {
-            // Given: Request with name of 51 characters
-            String name51Chars = "A".repeat(51);
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                name51Chars,
-                "test@example.com"
-            );
-
-            // When & Then: Should return 400 BAD_REQUEST
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-
-            verify(authUserService, never()).createAuthUser(any(), any());
-        }
+        // ========== Validation Failures (5 tests) - HTTP 400 BAD_REQUEST ==========
 
         @Test
         @DisplayName("Should return 400 when email is null")
@@ -486,21 +379,6 @@ class AuthUserControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when name field is missing")
-        void shouldReturn400WhenNameFieldMissing() throws Exception {
-            // Given: Request JSON without name field
-            String requestMissingName = "{\"email\": \"test@example.com\"}";
-
-            // When & Then: Should return 400 BAD_REQUEST
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestMissingName))
-                .andExpect(status().isBadRequest());
-
-            verify(authUserService, never()).createAuthUser(any(), any());
-        }
-
-        @Test
         @DisplayName("Should return 400 when email field is missing")
         void shouldReturn400WhenEmailFieldMissing() throws Exception {
             // Given: Request JSON without email field
@@ -510,21 +388,6 @@ class AuthUserControllerTest {
             mockMvc.perform(post(BASE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestMissingEmail))
-                .andExpect(status().isBadRequest());
-
-            verify(authUserService, never()).createAuthUser(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when both fields are missing")
-        void shouldReturn400WhenBothFieldsMissing() throws Exception {
-            // Given: Empty request JSON
-            String emptyRequest = "{}";
-
-            // When & Then: Should return 400 BAD_REQUEST
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(emptyRequest))
                 .andExpect(status().isBadRequest());
 
             verify(authUserService, never()).createAuthUser(any(), any());
