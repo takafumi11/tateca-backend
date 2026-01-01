@@ -54,9 +54,9 @@ dependencies {
 	testAnnotationProcessor("org.projectlombok:lombok")
 
 	// Contract testing dependencies
-	testImplementation("io.rest-assured:rest-assured:5.4.0")
-	testImplementation("io.rest-assured:spring-mock-mvc:5.4.0")
-	testImplementation("io.rest-assured:json-schema-validator:5.4.0")
+	testImplementation("io.rest-assured:rest-assured:6.0.0")
+	testImplementation("io.rest-assured:spring-mock-mvc:6.0.0")
+	testImplementation("io.rest-assured:json-schema-validator:6.0.0")
 }
 
 tasks.withType<Test> {
