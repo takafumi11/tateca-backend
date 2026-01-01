@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tateca.tatecabackend.model.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "Request to create a new transaction")
@@ -34,10 +35,34 @@ public record TransactionCreationRequestDTO(
 
         @JsonProperty("loan")
         @Schema(description = "Loan details (required if transaction_type is LOAN)")
-        LoanCreationRequest loanRequest,
+        Loan loan,
 
         @JsonProperty("repayment")
         @Schema(description = "Repayment details (required if transaction_type is REPAYMENT)")
-        RepaymentCreationRequest repaymentRequest
+        Repayment repayment
 ) {
+    @Schema(description = "Loan details for transaction creation")
+    public record Loan(
+            @JsonProperty("obligations")
+            @Schema(description = "List of loan obligations specifying who owes what amount")
+            List<Obligation> obligations
+    ) {
+        @Schema(description = "Loan obligation specifying user and amount")
+        public record Obligation(
+                @JsonProperty("amount")
+                @Schema(description = "Amount owed in cents", example = "2500")
+                int amount,
+
+                @JsonProperty("user_uuid")
+                @Schema(description = "UUID of the user who owes this amount", example = "550e8400-e29b-41d4-a716-446655440000")
+                UUID userUuid
+        ) {}
+    }
+
+    @Schema(description = "Repayment details for transaction creation")
+    public record Repayment(
+            @JsonProperty("recipient_id")
+            @Schema(description = "UUID of the user receiving the repayment", example = "550e8400-e29b-41d4-a716-446655440000")
+            UUID recipientId
+    ) {}
 }

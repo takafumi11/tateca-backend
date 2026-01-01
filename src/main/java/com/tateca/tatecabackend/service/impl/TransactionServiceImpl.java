@@ -235,7 +235,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Save into transaction_obligations
         if (request.transactionType() == TransactionType.LOAN) {
-            List<TransactionObligationEntity> transactionObligationEntityList = request.loanRequest().obligations().stream()
+            List<TransactionObligationEntity> transactionObligationEntityList = request.loan().obligations().stream()
                     .map(obligation -> {
                         UserEntity obligationUser = userAccessor.findById(obligation.userUuid());
 
@@ -252,7 +252,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             return TransactionDetailResponseDTO.from(savedTransaction, savedObligations);
         } else {
-            UserEntity recipient = userAccessor.findById(request.repaymentRequest().recipientId());
+            UserEntity recipient = userAccessor.findById(request.repayment().recipientId());
 
             TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
 
