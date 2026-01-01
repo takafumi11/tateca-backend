@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
@@ -13,6 +12,8 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
+import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.service.GroupService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class GroupServiceImpl implements GroupService {
     private final EntityManager entityManager;
     private final GroupAccessor accessor;
     private final UserAccessor userAccessor;
-    private final AuthUserAccessor authUserAccessor;
+    private final AuthUserRepository authUserRepository;
     private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor transactionAccessor;
 
@@ -89,7 +90,8 @@ public class GroupServiceImpl implements GroupService {
         GroupEntity groupEntitySaved = accessor.save(groupEntity);
 
         // Create new records into users table
-        AuthUserEntity authUser = authUserAccessor.findByUid(uid);
+        AuthUserEntity authUser = authUserRepository.findById(uid)
+                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
 
         List<UserEntity> userEntityList = new ArrayList<>();
 
@@ -151,7 +153,8 @@ public class GroupServiceImpl implements GroupService {
 
         // Update users.auth_user_uid to link authUser and user
         UserEntity userEntity = userAccessor.findById(request.userUuid());
-        AuthUserEntity authUserEntity = authUserAccessor.findByUid(uid);
+        AuthUserEntity authUserEntity = authUserRepository.findById(uid)
+                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
         userEntity.setAuthUser(authUserEntity);
         userAccessor.save(userEntity);
 
