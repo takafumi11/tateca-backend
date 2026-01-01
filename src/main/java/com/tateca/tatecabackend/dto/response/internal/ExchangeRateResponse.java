@@ -1,12 +1,13 @@
-package com.tateca.tatecabackend.dto.response;
+package com.tateca.tatecabackend.dto.response.internal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.model.SymbolPosition;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Currency information")
-public record CurrencyNameDTO(
+@Schema(description = "Exchange rate information for a currency")
+public record ExchangeRateResponse(
         @JsonProperty("currency_code")
         @Schema(description = "ISO 4217 currency code", example = "USD")
         String currencyCode,
@@ -33,17 +34,24 @@ public record CurrencyNameDTO(
 
         @JsonProperty("symbol_position")
         @Schema(description = "Position of currency symbol")
-        SymbolPosition symbolPosition
+        SymbolPosition symbolPosition,
+
+        @JsonProperty("exchange_rate")
+        @Schema(description = "Exchange rate to JPY", example = "150.25")
+        String exchangeRate
 ) {
-    public static CurrencyNameDTO from(CurrencyNameEntity currencyName) {
-        return new CurrencyNameDTO(
-                currencyName.getCurrencyCode(),
-                currencyName.getJpCurrencyName(),
-                currencyName.getEngCurrencyName(),
-                currencyName.getJpCountryName(),
-                currencyName.getEngCountryName(),
-                currencyName.getCurrencySymbol(),
-                currencyName.getSymbolPosition()
+    public static ExchangeRateResponse from(ExchangeRateEntity exchangeRateEntity) {
+        CurrencyNameEntity currencyNameEntity = exchangeRateEntity.getCurrencyName();
+
+        return new ExchangeRateResponse(
+                currencyNameEntity.getCurrencyCode(),
+                currencyNameEntity.getJpCurrencyName(),
+                currencyNameEntity.getEngCurrencyName(),
+                currencyNameEntity.getJpCountryName(),
+                currencyNameEntity.getEngCountryName(),
+                currencyNameEntity.getCurrencySymbol(),
+                currencyNameEntity.getSymbolPosition(),
+                exchangeRateEntity.getExchangeRate().toString()
         );
     }
 }

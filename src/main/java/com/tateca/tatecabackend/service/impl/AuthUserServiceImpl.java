@@ -2,12 +2,12 @@ package com.tateca.tatecabackend.service.impl;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
-import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
+import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
-import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
-import com.tateca.tatecabackend.entity.AppReviewStatus;
+import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.model.AppReviewStatus;
 import com.tateca.tatecabackend.service.AuthUserService;
 import com.tateca.tatecabackend.util.LogFactory;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     @Override
     @Transactional
-    public AuthUserInfoDTO getAuthUserInfo(String uid) {
+    public AuthUserResponseDTO getAuthUserInfo(String uid) {
         long totalStartTime = System.currentTimeMillis();
 
         // Measure findByUid query time
@@ -59,12 +59,12 @@ public class AuthUserServiceImpl implements AuthUserService {
             "save", saveTime,
             "total", totalTime);
 
-        return AuthUserInfoDTO.from(updatedAuthUser);
+        return AuthUserResponseDTO.from(updatedAuthUser);
     }
 
     @Override
     @Transactional
-    public AuthUserInfoDTO createAuthUser(String uid, AuthUserRequestDTO request) {
+    public AuthUserResponseDTO createAuthUser(String uid, CreateAuthUserRequestDTO request) {
         accessor.validateEmail(request.email());
 
         AuthUserEntity authUser = AuthUserEntity.builder()
@@ -78,7 +78,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
         AuthUserEntity createdAuthUser = accessor.save(authUser);
 
-        return AuthUserInfoDTO.from(createdAuthUser);
+        return AuthUserResponseDTO.from(createdAuthUser);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     @Override
     @Transactional
-    public AuthUserInfoDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
+    public AuthUserResponseDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
         AuthUserEntity authUser = accessor.findByUid(uid);
 
         if (request.showDialog()) {
@@ -107,6 +107,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         }
 
         AuthUserEntity updatedAuthUser = accessor.save(authUser);
-        return AuthUserInfoDTO.from(updatedAuthUser);
+        return AuthUserResponseDTO.from(updatedAuthUser);
     }
 }

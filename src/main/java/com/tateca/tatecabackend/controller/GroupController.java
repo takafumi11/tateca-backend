@@ -4,7 +4,7 @@ import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
-import com.tateca.tatecabackend.dto.response.GroupDetailsResponseDTO;
+import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,30 +34,30 @@ public class GroupController {
 
     @PostMapping
     @Operation(summary = "Create a new group")
-    public ResponseEntity<GroupDetailsResponseDTO> createGroup(
+    public ResponseEntity<GroupResponseDTO> createGroup(
             @UId String uid,
             @RequestBody CreateGroupRequestDTO request
     ) {
-        GroupDetailsResponseDTO response = service.createGroup(uid, request);
+        GroupResponseDTO response = service.createGroup(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{groupId}")
     @Operation(summary = "Update group name")
-    public ResponseEntity<GroupDetailsResponseDTO> updateGroupName(
+    public ResponseEntity<GroupResponseDTO> updateGroupName(
             @PathVariable("groupId") UUID groupId,
             @RequestBody UpdateGroupNameRequestDTO request
     ) {
-        GroupDetailsResponseDTO response = service.updateGroupName(groupId, request.name());
+        GroupResponseDTO response = service.updateGroupName(groupId, request.name());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{groupId}")
     @Operation(summary = "Get group information by ID")
-    public ResponseEntity<GroupDetailsResponseDTO> getGroupInfo(
+    public ResponseEntity<GroupResponseDTO> getGroupInfo(
             @PathVariable("groupId") UUID groupId
     ) {
-        GroupDetailsResponseDTO response = service.getGroupInfo(groupId);
+        GroupResponseDTO response = service.getGroupInfo(groupId);
         return ResponseEntity.ok(response);
     }
 
@@ -72,12 +72,12 @@ public class GroupController {
 
     @PostMapping("/{groupId}")
     @Operation(summary = "Join a group using invitation token")
-    public ResponseEntity<GroupDetailsResponseDTO> joinGroupInvited(
+    public ResponseEntity<GroupResponseDTO> joinGroupInvited(
             @RequestBody JoinGroupRequestDTO request,
             @PathVariable("groupId") UUID groupId,
             @UId String uid
     ) {
-        GroupDetailsResponseDTO response = service.joinGroupInvited(request, groupId, uid);
+        GroupResponseDTO response = service.joinGroupInvited(request, groupId, uid);
         return ResponseEntity.ok(response);
     }
 

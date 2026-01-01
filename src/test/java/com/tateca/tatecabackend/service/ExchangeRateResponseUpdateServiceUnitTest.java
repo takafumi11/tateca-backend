@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ExchangeRateUpdateService Unit Tests")
-class ExchangeRateUpdateServiceUnitTest {
+class ExchangeRateResponseUpdateServiceUnitTest {
 
     @Mock
     private ExchangeRateAccessor exchangeRateAccessor;

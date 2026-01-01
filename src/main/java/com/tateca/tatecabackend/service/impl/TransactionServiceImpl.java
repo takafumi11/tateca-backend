@@ -6,11 +6,11 @@ import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
-import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
-import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
+import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
@@ -57,15 +57,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(readOnly = true)
-    public TransactionsHistoryResponseDTO getTransactionHistory(int count, UUID groupId) {
+    public TransactionHistoryResponseDTO getTransactionHistory(int count, UUID groupId) {
         List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionsByGroupWithLimit(groupId, count);
 
-        return TransactionsHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
+        return TransactionHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TransactionsSettlementResponseDTO getSettlements(UUID groupId) {
+    public TransactionSettlementResponseDTO getSettlements(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
 
         List<String> userIds = userGroups.stream()
@@ -78,7 +78,7 @@ public class TransactionServiceImpl implements TransactionService {
         Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList);
         List<TransactionSettlement> transactions = optimizeTransactions(balances, userGroups);
 
-        return new TransactionsSettlementResponseDTO(transactions);
+        return new TransactionSettlementResponseDTO(transactions);
     }
 
     private Map<String, BigDecimal> getUserBalances(List<String> userIds, List<TransactionObligationEntity> transactionObligationEntityList) {
@@ -201,7 +201,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public TransactionDetailResponseDTO createTransaction(UUID groupId, TransactionCreationRequestDTO request) {
+    public CreateTransactionResponseDTO createTransaction(UUID groupId, CreateTransactionRequestDTO request) {
         // Save into transaction_history
         ExchangeRateEntity exchangeRate = null;
         LocalDate date = convertToLocalDateInUtc(request.dateStr());
@@ -235,7 +235,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Save into transaction_obligations
         if (request.transactionType() == TransactionType.LOAN) {
-            List<TransactionObligationEntity> transactionObligationEntityList = request.loanRequest().obligationRequestDTOs().stream()
+            List<TransactionObligationEntity> transactionObligationEntityList = request.loan().obligations().stream()
                     .map(obligation -> {
                         UserEntity obligationUser = userAccessor.findById(obligation.userUuid());
 
@@ -250,28 +250,28 @@ public class TransactionServiceImpl implements TransactionService {
 
             List<TransactionObligationEntity> savedObligations = obligationAccessor.saveAll(transactionObligationEntityList);
 
-            return TransactionDetailResponseDTO.from(savedTransaction, savedObligations);
+            return CreateTransactionResponseDTO.from(savedTransaction, savedObligations);
         } else {
-            UserEntity recipient = userAccessor.findById(request.repaymentRequest().recipientId());
+            UserEntity recipient = userAccessor.findById(request.repayment().recipientId());
 
             TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
 
-            return TransactionDetailResponseDTO.from(savedTransaction, savedObligation);
+            return CreateTransactionResponseDTO.from(savedTransaction, savedObligation);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TransactionDetailResponseDTO getTransactionDetail(UUID transactionId) {
+    public CreateTransactionResponseDTO getTransactionDetail(UUID transactionId) {
         TransactionHistoryEntity transaction = accessor.findById(transactionId);
         TransactionType transactionType = transaction.getTransactionType();
 
         List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByTransactionId(transactionId);
 
         if (transactionType == TransactionType.LOAN) {
-           return TransactionDetailResponseDTO.from(transaction, transactionObligationEntityList);
+           return CreateTransactionResponseDTO.from(transaction, transactionObligationEntityList);
         } else {
-            return TransactionDetailResponseDTO.from(transaction, transactionObligationEntityList.get(0));
+            return CreateTransactionResponseDTO.from(transaction, transactionObligationEntityList.get(0));
         }
     }
 

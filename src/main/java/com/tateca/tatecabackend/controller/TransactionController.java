@@ -1,9 +1,9 @@
 package com.tateca.tatecabackend.controller;
 
-import com.tateca.tatecabackend.dto.request.TransactionCreationRequestDTO;
-import com.tateca.tatecabackend.dto.response.TransactionDetailResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsHistoryResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,40 +34,40 @@ public class TransactionController {
 
     @GetMapping(PATH_HISTORY)
     @Operation(summary = "Get transaction history for a group")
-    public ResponseEntity<TransactionsHistoryResponseDTO> getTransactionHistory(
+    public ResponseEntity<TransactionHistoryResponseDTO> getTransactionHistory(
             @RequestParam(defaultValue = "5") int count,
             @PathVariable UUID groupId
     ) {
-        TransactionsHistoryResponseDTO response = service.getTransactionHistory(count, groupId);
+        TransactionHistoryResponseDTO response = service.getTransactionHistory(count, groupId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/settlement")
     @Operation(summary = "Get settlement information for a group in JPY")
-    public ResponseEntity<TransactionsSettlementResponseDTO> getTransactionSettlement(
+    public ResponseEntity<TransactionSettlementResponseDTO> getTransactionSettlement(
             @PathVariable UUID groupId
     ) {
-        TransactionsSettlementResponseDTO response = service.getSettlements(groupId);
+        TransactionSettlementResponseDTO response = service.getSettlements(groupId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
     @Operation(summary = "Create a new transaction")
-    public ResponseEntity<TransactionDetailResponseDTO> createTransaction(
+    public ResponseEntity<CreateTransactionResponseDTO> createTransaction(
             @PathVariable("groupId") UUID groupId,
-            @RequestBody TransactionCreationRequestDTO request
+            @RequestBody CreateTransactionRequestDTO request
     ) {
-        TransactionDetailResponseDTO response = service.createTransaction(groupId, request);
+        CreateTransactionResponseDTO response = service.createTransaction(groupId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{transactionId}")
     @Operation(summary = "Get transaction details by ID")
-    public ResponseEntity<TransactionDetailResponseDTO> getTransactionDetail(
+    public ResponseEntity<CreateTransactionResponseDTO> getTransactionDetail(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId
     ) {
-        TransactionDetailResponseDTO response = service.getTransactionDetail(transactionId);
+        CreateTransactionResponseDTO response = service.getTransactionDetail(transactionId);
         return ResponseEntity.ok(response);
     }
 

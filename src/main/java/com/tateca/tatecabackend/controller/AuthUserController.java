@@ -1,9 +1,9 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.annotation.UId;
-import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
+import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
-import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
+import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.service.AuthUserService;
 import com.tateca.tatecabackend.constants.ApiConstants;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,18 +29,18 @@ public class AuthUserController {
     private final AuthUserService service;
 
     @GetMapping("/{uid}")
-    public ResponseEntity<AuthUserInfoDTO> getAuthUser(
+    public ResponseEntity<AuthUserResponseDTO> getAuthUser(
             @PathVariable("uid") String uid
     ) {
-        AuthUserInfoDTO response = service.getAuthUserInfo(uid);
+        AuthUserResponseDTO response = service.getAuthUserInfo(uid);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<AuthUserInfoDTO> createAuthUser(
+    public ResponseEntity<AuthUserResponseDTO> createAuthUser(
             @UId String uid,
-            @RequestBody AuthUserRequestDTO request) {
-        AuthUserInfoDTO response = service.createAuthUser(uid, request);
+            @RequestBody CreateAuthUserRequestDTO request) {
+        AuthUserResponseDTO response = service.createAuthUser(uid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -53,11 +53,11 @@ public class AuthUserController {
     }
 
     @PatchMapping("/review-preferences")
-    public ResponseEntity<AuthUserInfoDTO> updateReviewPreferences(
+    public ResponseEntity<AuthUserResponseDTO> updateReviewPreferences(
             @UId String uid,
             @Valid @RequestBody UpdateAppReviewRequestDTO request
     ) {
-        AuthUserInfoDTO response = service.updateAppReview(uid, request);
+        AuthUserResponseDTO response = service.updateAppReview(uid, request);
         return ResponseEntity.ok(response);
     }
 }

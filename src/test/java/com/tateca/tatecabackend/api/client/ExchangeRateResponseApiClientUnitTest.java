@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ExchangeRateApiClient Unit Tests")
-class ExchangeRateApiClientUnitTest {
+class ExchangeRateResponseApiClientUnitTest {
 
     @Mock
     private ExchangeRateHttpClient httpClient;
@@ -35,7 +35,7 @@ class ExchangeRateApiClientUnitTest {
 
     @Nested
     @DisplayName("fetchLatestExchangeRate")
-    class FetchLatestExchangeRateTests {
+    class FetchLatestExchangeRateResponseTests {
 
         @Test
         @DisplayName("Should call ExchangeRateHttpClient with correct API key")

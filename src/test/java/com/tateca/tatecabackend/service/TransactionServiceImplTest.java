@@ -6,8 +6,8 @@ import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO;
-import com.tateca.tatecabackend.dto.response.TransactionsSettlementResponseDTO.TransactionSettlement;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.CurrencyNameEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
@@ -88,7 +88,7 @@ class TransactionServiceImplTest {
                         .thenReturn(new ArrayList<>());
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should return empty list
                 assertThat(result).isNotNull();
@@ -120,7 +120,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should have one settlement from Bob to Alice
                 assertThat(result.transactionsSettlement()).hasSize(1);
@@ -165,7 +165,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should have settlements (optimized, not necessarily 3)
                 assertThat(result.transactionsSettlement()).isNotEmpty();
@@ -203,7 +203,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: No settlements needed
                 assertThat(result.transactionsSettlement()).isEmpty();
@@ -241,7 +241,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should calculate settlements with conversions
                 // Alice owes Bob (100 JPY) but Bob owes Alice (150 JPY) → Net: Alice receives 50 JPY
@@ -291,7 +291,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should have settlements
                 assertThat(result.transactionsSettlement()).isNotEmpty();
@@ -332,7 +332,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should handle small amounts without errors
                 assertThat(result.transactionsSettlement()).hasSize(1);
@@ -366,7 +366,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Should calculate correctly without overflow
                 assertThat(result.transactionsSettlement()).hasSize(1);
@@ -378,7 +378,7 @@ class TransactionServiceImplTest {
 
         @Nested
         @DisplayName("Given rounding-prone exchange rate")
-        class GivenRoundingProneExchangeRate {
+        class GivenRoundingProneExchangeRateResponse {
 
             @Test
             @DisplayName("Then should adjust rounding errors to prevent total mismatch")
@@ -409,7 +409,7 @@ class TransactionServiceImplTest {
                         .thenReturn(obligations);
 
                 // When: Get settlements
-                TransactionsSettlementResponseDTO result = transactionService.getSettlements(groupId);
+                TransactionSettlementResponseDTO result = transactionService.getSettlements(groupId);
 
                 // Then: Rounding adjustment should ensure conservation of money
                 long aliceNet = calculateNetBalance(result, alice.getUuid().toString());
@@ -502,7 +502,7 @@ class TransactionServiceImplTest {
                 .build();
     }
 
-    private long calculateNetBalance(TransactionsSettlementResponseDTO result, String userId) {
+    private long calculateNetBalance(TransactionSettlementResponseDTO result, String userId) {
         long received = result.transactionsSettlement().stream()
                 .filter(s -> s.to().uuid().equals(userId))
                 .mapToLong(TransactionSettlement::amount)

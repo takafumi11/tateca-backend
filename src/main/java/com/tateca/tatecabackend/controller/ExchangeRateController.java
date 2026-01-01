@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.constants.ApiConstants;
-import com.tateca.tatecabackend.dto.response.ExchangeRateListResponseDTO;
+import com.tateca.tatecabackend.dto.response.ExchangeRateResponseDTO;
 import com.tateca.tatecabackend.service.ExchangeRateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,7 +24,7 @@ public class ExchangeRateController {
 
     @GetMapping("/{date}")
     @Operation(summary = "Get exchange rates for a specific date")
-    public ResponseEntity<ExchangeRateListResponseDTO> getExchangeRate(
+    public ResponseEntity<ExchangeRateResponseDTO> getExchangeRate(
             @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         return ResponseEntity.ok(service.getExchangeRate(date));
