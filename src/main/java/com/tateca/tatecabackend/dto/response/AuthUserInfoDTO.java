@@ -1,8 +1,8 @@
 package com.tateca.tatecabackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tateca.tatecabackend.entity.AppReviewStatus;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
+import com.tateca.tatecabackend.model.AppReviewStatus;
 import com.tateca.tatecabackend.util.TimeHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 

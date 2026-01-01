@@ -1,4 +1,4 @@
-package com.tateca.tatecabackend.entity;
+package com.tateca.tatecabackend.model;
 
 public enum AppReviewStatus {
     PENDING,

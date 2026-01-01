@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.entity;
 
+import com.tateca.tatecabackend.model.AppReviewStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;

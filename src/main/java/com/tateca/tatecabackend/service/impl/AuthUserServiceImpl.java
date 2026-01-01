@@ -2,12 +2,12 @@ package com.tateca.tatecabackend.service.impl;
 
 import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
-import com.tateca.tatecabackend.dto.request.AuthUserRequestDTO;
+import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserInfoDTO;
-import com.tateca.tatecabackend.entity.AppReviewStatus;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.model.AppReviewStatus;
 import com.tateca.tatecabackend.service.AuthUserService;
 import com.tateca.tatecabackend.util.LogFactory;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +64,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     @Override
     @Transactional
-    public AuthUserInfoDTO createAuthUser(String uid, AuthUserRequestDTO request) {
+    public AuthUserInfoDTO createAuthUser(String uid, CreateAuthUserRequestDTO request) {
         accessor.validateEmail(request.email());
 
         AuthUserEntity authUser = AuthUserEntity.builder()
