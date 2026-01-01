@@ -204,10 +204,10 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionDetailResponseDTO createTransaction(UUID groupId, TransactionCreationRequestDTO request) {
         // Save into transaction_history
         ExchangeRateEntity exchangeRate = null;
-        LocalDate date = convertToLocalDateInUtc(request.getDateStr());
+        LocalDate date = convertToLocalDateInUtc(request.dateStr());
 
         try {
-            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.getCurrencyCode(), date);
+            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.currencyCode(), date);
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 /*
@@ -216,7 +216,7 @@ public class TransactionServiceImpl implements TransactionService {
                 more accurate fallback than LocalDate.now(), especially for historical dates
                 or when the current date's rate hasn't been updated yet.
                 */
-                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(request.getCurrencyCode());
+                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(request.currencyCode());
                 ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
                         .currencyCode(latestRate.getCurrencyCode())
                         .date(date)
@@ -229,13 +229,13 @@ public class TransactionServiceImpl implements TransactionService {
             }
         }
 
-        UserEntity payer = userAccessor.findById(request.getPayerId());
+        UserEntity payer = userAccessor.findById(request.payerId());
         GroupEntity group = groupAccessor.findById(groupId);
-        TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.getTransactionType(), request.getTitle(), request.getAmount(), dateStringToInstant(request.getDateStr()), payer, group, exchangeRate));
+        TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
 
         // Save into transaction_obligations
-        if (request.getTransactionType() == TransactionType.LOAN) {
-            List<TransactionObligationEntity> transactionObligationEntityList = request.getLoanRequest().obligationRequestDTOs().stream()
+        if (request.transactionType() == TransactionType.LOAN) {
+            List<TransactionObligationEntity> transactionObligationEntityList = request.loanRequest().obligationRequestDTOs().stream()
                     .map(obligation -> {
                         UserEntity obligationUser = userAccessor.findById(obligation.userUuid());
 
@@ -252,7 +252,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             return TransactionDetailResponseDTO.from(savedTransaction, savedObligations);
         } else {
-            UserEntity recipient = userAccessor.findById(request.getRepaymentRequest().recipientId());
+            UserEntity recipient = userAccessor.findById(request.repaymentRequest().recipientId());
 
             TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
 
