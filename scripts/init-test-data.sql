@@ -21,7 +21,7 @@ DELETE FROM user_groups WHERE 1=1;
 DELETE FROM `groups` WHERE 1=1;
 DELETE FROM users WHERE 1=1;
 DELETE FROM exchange_rates WHERE 1=1;
-DELETE FROM currency_names WHERE 1=1;
+DELETE FROM currencies WHERE 1=1;
 DELETE FROM auth_users WHERE 1=1;
 
 -- ============================================================================
@@ -58,10 +58,10 @@ INSERT INTO user_groups (user_uuid, group_uuid) VALUES
 (UUID_TO_BIN('550e8400-e29b-41d4-a716-446655440004'), UUID_TO_BIN('650e8400-e29b-41d4-a716-446655440002'));
 
 -- ============================================================================
--- Currency Names (162 currencies)
+-- Currencies (162 currencies)
 -- Note: Exchange rates will be populated via /internal/exchange-rates API
 -- ============================================================================
-INSERT INTO currency_names (currency_code, jp_currency_name, eng_currency_name, jp_country_name, eng_country_name, is_active, currency_symbol, symbol_position) VALUES
+INSERT INTO currencies (currency_code, jp_currency_name, eng_currency_name, jp_country_name, eng_country_name, is_active, currency_symbol, symbol_position) VALUES
 ('AED', 'UAEディルハム', 'UAE Dirham', 'アラブ首長国連邦', 'United Arab Emirates', 1, 'د.إ', 'PREFIX'),
 ('AFN', 'アフガニ', 'Afghan Afghani', 'アフガニスタン', 'Afghanistan', 1, '؋', 'SUFFIX'),
 ('ALL', 'アルバニア・レク', 'Albanian Lek', 'アルバニア', 'Albania', 1, 'L', 'SUFFIX'),

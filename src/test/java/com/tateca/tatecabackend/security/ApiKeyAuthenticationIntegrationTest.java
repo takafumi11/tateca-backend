@@ -2,9 +2,9 @@ package com.tateca.tatecabackend.security;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
-import com.tateca.tatecabackend.repository.CurrencyNameRepository;
+import com.tateca.tatecabackend.repository.CurrencyRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,7 +28,7 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private CurrencyNameRepository currencyNameRepository;
+    private CurrencyRepository currencyRepository;
 
     @Value("${lambda.api.key}")
     private String validApiKey;
@@ -42,12 +42,12 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
         WireMock.reset();
 
         // Setup currency data in database
-        List<CurrencyNameEntity> currencies = List.of(
+        List<CurrencyEntity> currencies = List.of(
                 TestFixtures.Currencies.jpy(),
                 TestFixtures.Currencies.usd(),
                 TestFixtures.Currencies.eur()
         );
-        currencyNameRepository.saveAll(currencies);
+        currencyRepository.saveAll(currencies);
         flushAndClear();
     }
 

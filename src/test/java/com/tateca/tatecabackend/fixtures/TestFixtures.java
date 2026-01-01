@@ -2,7 +2,7 @@ package com.tateca.tatecabackend.fixtures;
 
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.model.SymbolPosition;
 
 import java.time.Instant;
@@ -15,8 +15,8 @@ import java.time.Instant;
  * <p>Usage examples:</p>
  * <pre>
  * // Currencies
- * CurrencyNameEntity jpy = TestFixtures.Currencies.jpy();
- * CurrencyNameEntity usd = TestFixtures.Currencies.usd();
+ * CurrencyEntity jpy = TestFixtures.Currencies.jpy();
+ * CurrencyEntity usd = TestFixtures.Currencies.usd();
  *
  * // AuthUsers
  * AuthUserEntity authUser = TestFixtures.AuthUsers.defaultAuthUser();
@@ -29,8 +29,8 @@ public class TestFixtures {
     // ========== Object Mother: Currencies ==========
 
     public static class Currencies {
-        public static CurrencyNameEntity jpy() {
-            return CurrencyNameEntity.builder()
+        public static CurrencyEntity jpy() {
+            return CurrencyEntity.builder()
                     .currencyCode("JPY")
                     .jpCurrencyName("日本円")
                     .engCurrencyName("Japanese Yen")
@@ -42,8 +42,8 @@ public class TestFixtures {
                     .build();
         }
 
-        public static CurrencyNameEntity usd() {
-            return CurrencyNameEntity.builder()
+        public static CurrencyEntity usd() {
+            return CurrencyEntity.builder()
                     .currencyCode("USD")
                     .jpCurrencyName("米ドル")
                     .engCurrencyName("US Dollar")
@@ -55,8 +55,8 @@ public class TestFixtures {
                     .build();
         }
 
-        public static CurrencyNameEntity eur() {
-            return CurrencyNameEntity.builder()
+        public static CurrencyEntity eur() {
+            return CurrencyEntity.builder()
                     .currencyCode("EUR")
                     .jpCurrencyName("ユーロ")
                     .engCurrencyName("Euro")

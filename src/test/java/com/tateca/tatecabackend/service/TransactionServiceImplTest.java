@@ -9,7 +9,7 @@ import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
@@ -453,7 +453,7 @@ class TransactionServiceImplTest {
     }
 
     private ExchangeRateEntity createExchangeRate(String currencyCode, BigDecimal rate) {
-        CurrencyNameEntity currency = CurrencyNameEntity.builder()
+        CurrencyEntity currency = CurrencyEntity.builder()
                 .currencyCode(currencyCode)
                 .jpCurrencyName(currencyCode)
                 .engCurrencyName(currencyCode)
@@ -463,7 +463,7 @@ class TransactionServiceImplTest {
                 .currencyCode(currencyCode)
                 .date(LocalDate.now())
                 .exchangeRate(rate)
-                .currencyName(currency)
+                .currency(currency)
                 .build();
     }
 

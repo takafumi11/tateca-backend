@@ -15,7 +15,7 @@ properties:
     description: User's display name
     example: "Jane Smith"
   currency:
-    $ref: './CurrencyName.yaml'
+    $ref: './Currency.yaml'
     description: User's preferred currency information
   auth_user:
     $ref: './AuthUserResponse.yaml'

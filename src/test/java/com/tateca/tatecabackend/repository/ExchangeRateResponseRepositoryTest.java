@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.repository;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,11 +23,11 @@ class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
     private ExchangeRateRepository repository;
 
     @Autowired
-    private CurrencyNameRepository currencyNameRepository;
+    private CurrencyRepository currencyRepository;
 
-    private CurrencyNameEntity usd;
-    private CurrencyNameEntity eur;
-    private CurrencyNameEntity jpy;
+    private CurrencyEntity usd;
+    private CurrencyEntity eur;
+    private CurrencyEntity jpy;
 
     @BeforeEach
     void setUp() {
@@ -36,9 +36,9 @@ class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
         eur = TestFixtures.Currencies.eur();
         jpy = TestFixtures.Currencies.jpy();
 
-        currencyNameRepository.save(usd);
-        currencyNameRepository.save(eur);
-        currencyNameRepository.save(jpy);
+        currencyRepository.save(usd);
+        currencyRepository.save(eur);
+        currencyRepository.save(jpy);
         flushAndClear();
     }
 
@@ -214,12 +214,12 @@ class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
 
     // ========== Helper Methods ==========
 
-    private ExchangeRateEntity createExchangeRate(String currencyCode, LocalDate date, BigDecimal rate, CurrencyNameEntity currencyName) {
+    private ExchangeRateEntity createExchangeRate(String currencyCode, LocalDate date, BigDecimal rate, CurrencyEntity currencyName) {
         return ExchangeRateEntity.builder()
                 .currencyCode(currencyCode)
                 .date(date)
                 .exchangeRate(rate)
-                .currencyName(currencyName)
+                .currency(currencyName)
                 .build();
     }
 }

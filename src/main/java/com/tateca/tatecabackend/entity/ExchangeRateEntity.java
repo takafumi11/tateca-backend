@@ -39,7 +39,7 @@ public class ExchangeRateEntity implements Persistable<ExchangeRateId> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, insertable = false, updatable = false)
-    private CurrencyNameEntity currencyName;
+    private CurrencyEntity currency;
 
     @Column(name = "exchange_rate", nullable = false)
     private BigDecimal exchangeRate;

@@ -222,7 +222,7 @@ public class TransactionServiceImpl implements TransactionService {
                         .currencyCode(latestRate.getCurrencyCode())
                         .date(date)
                         .exchangeRate(latestRate.getExchangeRate())
-                        .currencyName(latestRate.getCurrencyName())
+                        .currency(latestRate.getCurrency())
                         .build();
                 exchangeRate = exchangeRateAccessor.save(newExchangeRateEntity);
             } else {
