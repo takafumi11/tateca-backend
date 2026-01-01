@@ -335,31 +335,82 @@ retag-release → [deploy-docs, railway-redeploy]
 
 ## Code Quality
 
-**Static Analysis Tools:**
-- **Checkstyle**: Code style enforcement (gradual adoption)
-- **SpotBugs**: Bug pattern detection
-- **JaCoCo**: Code coverage measurement (reports generated, verification disabled)
-- ~~**OWASP**: Dependency vulnerability scanning~~ (Removed - use Dependabot instead)
+### Gradle Version Catalog
 
-**Current Status:**
-- Checkstyle: Warning-only mode (existing code has ~50 warnings)
-- Goal: Fix warnings incrementally, then enforce strict mode
-- Priority: UnusedImports > Whitespace > LineLength
+Dependencies are managed using Gradle Version Catalog (`gradle/libs.versions.toml`):
+- **Benefits**: Centralized version management, type-safe accessors, easier updates
+- **Usage**: `libs.firebase.admin`, `libs.bundles.spring.boot.starters`
+- **Automatic**: Gradle 9.2+ auto-detects `gradle/libs.versions.toml`
 
-**JaCoCo Coverage Status:**
-- ⚠️ **Coverage verification temporarily disabled** in CI
-- Coverage reports still generated for reference
-- **TODO**: Improve test coverage before re-enabling verification
-  - Service layer tests insufficient (0-50% coverage)
-  - Target: 90% line coverage, 95% branch coverage
-  - Focus: AuthUserService, GroupService, ExchangeRateService, TransactionServiceImpl
+### Static Analysis Tools
 
-**Running Checks:**
+**Checkstyle** (Code Style Enforcement):
+- Configuration: `config/checkstyle/checkstyle.xml`
+- Version: 10.21.0
+- Focus: UnusedImports, Whitespace, LineLength (150 chars)
+- Status: Warning-only mode (gradual adoption)
+- Current: ~367 warnings detected
+
+**SpotBugs** (Bug Pattern Detection):
+- Configuration: `config/spotbugs/spotbugs-exclude.xml`
+- Version: 4.8.6
+- Effort: Maximum, Report Level: Medium
+- Status: Warning-only mode (gradual adoption)
+- Excludes: Lombok/Spring false positives
+
+**JaCoCo** (Code Coverage):
+- Version: 0.8.12
+- Reports: Always generated (XML, HTML, CSV)
+- Verification: Disabled by default (enable with `JACOCO_VERIFICATION_ENABLED=true`)
+- Current Thresholds: 50% line/branch coverage (baseline)
+- Target: 90% line coverage, 95% branch coverage
+
+### Running Quality Checks
+
 ```bash
-./gradlew checkstyleMain checkstyleTest  # Style check
+# Run all quality checks (tests + checkstyle + spotbugs + jacoco)
+./gradlew qualityGate
+
+# Run standard checks (includes static analysis)
+./gradlew check
+
+# Individual checks
+./gradlew checkstyleMain checkstyleTest  # Code style
 ./gradlew spotbugsMain spotbugsTest      # Bug detection
-./gradlew jacocoTestReport               # Coverage report (verification disabled)
+./gradlew jacocoTestReport               # Coverage report
+
+# Enable JaCoCo verification locally
+JACOCO_VERIFICATION_ENABLED=true ./gradlew test
 ```
+
+### Dependency Versions (Updated)
+
+- **Firebase Admin**: 9.4.2 (was 9.2.0)
+- **WireMock**: 3.9.1 (was 2.35.0) - Maven artifact changed, Java packages unchanged
+- **Testcontainers**: 1.20.4 (was 1.19.3)
+- **REST Assured**: 5.5.0 (was 5.4.0)
+- **SpringDoc**: 2.8.1 (was 2.8.0)
+
+### Gradual Improvement Strategy
+
+**Phase 1 (Current)**: Warning-only mode, collect metrics
+- All checks run but don't fail the build
+- Identify high-priority issues
+
+**Phase 2 (Future)**: Fix critical issues
+- Remove unused imports
+- Fix security warnings
+- Target: 50% warning reduction
+
+**Phase 3 (Future)**: Fix style issues
+- Clean up whitespace
+- Fix line length violations
+- Target: 80% warning reduction
+
+**Phase 4 (Future)**: Enable strict mode
+- Set `ignoreFailures = false`
+- Enable JaCoCo verification in CI
+- Enforce quality standards for new code
 
 ## Testing Guidelines
 
