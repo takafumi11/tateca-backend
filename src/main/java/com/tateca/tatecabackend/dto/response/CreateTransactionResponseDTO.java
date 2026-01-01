@@ -32,6 +32,7 @@ public record CreateTransactionResponseDTO(
         @Schema(description = "User who made the payment")
         UserResponseDTO payer,
 
+        @JsonProperty("exchange_rate")
         @Schema(description = "Exchange rate at the time of transaction")
         ExchangeRateResponse exchangeRateResponse,
 
