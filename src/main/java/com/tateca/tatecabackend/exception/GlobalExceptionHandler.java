@@ -1,11 +1,14 @@
 package com.tateca.tatecabackend.exception;
 
+import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -58,5 +61,26 @@ public class GlobalExceptionHandler {
         logger.error("MethodArgumentNotValidException at {} {}: {}", request.getMethod(), request.getRequestURI(), message, ex);
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(HttpServletRequest request, EntityNotFoundException ex) {
+        logger.error("EntityNotFoundException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(HttpServletRequest request, DuplicateResourceException ex) {
+        logger.error("DuplicateResourceException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(HttpServletRequest request, DataIntegrityViolationException ex) {
+        logger.error("DataIntegrityViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), "Database constraint violation");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 }

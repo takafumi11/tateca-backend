@@ -1,18 +1,17 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.AuthUserAccessor;
 import com.tateca.tatecabackend.accessor.UserAccessor;
 import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.AppReviewStatus;
+import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.service.AuthUserService;
-import com.tateca.tatecabackend.util.LogFactory;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,27 +21,28 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AuthUserServiceImpl implements AuthUserService {
-    private static final Logger logger = LogFactory.getLogger(AuthUserServiceImpl.class);
-
-    private final AuthUserAccessor accessor;
+    private final AuthUserRepository repository;
     private final UserAccessor userAccessor;
 
     @Override
     @Transactional
     public AuthUserResponseDTO getAuthUserInfo(String uid) {
-        AuthUserEntity authUser = accessor.findByUid(uid);
+        AuthUserEntity authUser = repository.findById(uid)
+                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
 
         authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
 
-        AuthUserEntity updatedAuthUser = accessor.save(authUser);
+        AuthUserEntity updatedAuthUser = repository.save(authUser);
         return AuthUserResponseDTO.from(updatedAuthUser);
     }
 
     @Override
     @Transactional
     public AuthUserResponseDTO createAuthUser(String uid, CreateAuthUserRequestDTO request) {
-        accessor.validateEmail(request.email());
+        if (repository.existsByEmail(request.email())) {
+            throw new DuplicateResourceException("Email already exists: " + request.email());
+        }
 
         AuthUserEntity authUser = AuthUserEntity.builder()
                 .uid(uid)
@@ -53,7 +53,7 @@ public class AuthUserServiceImpl implements AuthUserService {
                 .appReviewStatus(AppReviewStatus.PENDING)
                 .build();
 
-        AuthUserEntity createdAuthUser = accessor.save(authUser);
+        AuthUserEntity createdAuthUser = repository.save(authUser);
 
         return AuthUserResponseDTO.from(createdAuthUser);
     }
@@ -62,7 +62,8 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Transactional
     public void deleteAuthUser(String uid) {
         // Verify auth user exists
-        accessor.findByUid(uid);
+        repository.findById(uid)
+                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
 
         List<UserEntity> userEntityList = userAccessor.findByAuthUserUid(uid);
         userEntityList.forEach(user -> {
@@ -70,18 +71,19 @@ public class AuthUserServiceImpl implements AuthUserService {
         });
 
         userAccessor.saveAll(userEntityList);
-        accessor.deleteById(uid);
+        repository.deleteById(uid);
     }
 
     @Override
     @Transactional
     public AuthUserResponseDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
-        AuthUserEntity authUser = accessor.findByUid(uid);
+        AuthUserEntity authUser = repository.findById(uid)
+                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
 
         authUser.setLastAppReviewDialogShownAt(Instant.now());
         authUser.setAppReviewStatus(request.appReviewStatus());
 
-        AuthUserEntity updatedAuthUser = accessor.save(authUser);
+        AuthUserEntity updatedAuthUser = repository.save(authUser);
         return AuthUserResponseDTO.from(updatedAuthUser);
     }
 }

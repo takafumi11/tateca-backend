@@ -145,14 +145,10 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             // Given: Non-existent user UID
             String nonExistentUid = "non-existent-uid";
 
-            // When & Then: Should throw ResponseStatusException
+            // When & Then: Should throw EntityNotFoundException
             assertThatThrownBy(() -> authUserService.getAuthUserInfo(nonExistentUid))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("Auth User Not Found")
-                    .satisfies(exception -> {
-                        ResponseStatusException rse = (ResponseStatusException) exception;
-                        assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    });
+                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.EntityNotFoundException.class)
+                    .hasMessageContaining("Auth user not found");
         }
     }
 
@@ -238,21 +234,17 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
     class WhenEmailAlreadyExists {
 
         @Test
-        @DisplayName("Then should throw ResponseStatusException with CONFLICT status")
+        @DisplayName("Then should throw DuplicateResourceException")
         void thenShouldThrowConflictExceptionWhenEmailExists() {
             // Given: Existing user with email
             String existingEmail = testAuthUser.getEmail();
             String newUid = "conflict-uid-" + System.currentTimeMillis();
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("Conflict User", existingEmail);
 
-            // When & Then: Should throw ResponseStatusException
+            // When & Then: Should throw DuplicateResourceException
             assertThatThrownBy(() -> authUserService.createAuthUser(newUid, request))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("Email already exists")
-                    .satisfies(exception -> {
-                        ResponseStatusException rse = (ResponseStatusException) exception;
-                        assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                    });
+                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.DuplicateResourceException.class)
+                    .hasMessageContaining("Email already exists");
 
             // And: Should not create new user
             flushAndClear();
@@ -370,14 +362,10 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             // Given: Non-existent user UID
             String nonExistentUid = "non-existent-uid";
 
-            // When & Then: Should throw ResponseStatusException
+            // When & Then: Should throw EntityNotFoundException
             assertThatThrownBy(() -> authUserService.deleteAuthUser(nonExistentUid))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("Auth User Not Found")
-                    .satisfies(exception -> {
-                        ResponseStatusException rse = (ResponseStatusException) exception;
-                        assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    });
+                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.EntityNotFoundException.class)
+                    .hasMessageContaining("Auth user not found");
         }
     }
 
@@ -481,14 +469,10 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             String nonExistentUid = "non-existent-uid";
             UpdateAppReviewRequestDTO request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
 
-            // When & Then: Should throw ResponseStatusException
+            // When & Then: Should throw EntityNotFoundException
             assertThatThrownBy(() -> authUserService.updateAppReview(nonExistentUid, request))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("Auth User Not Found")
-                    .satisfies(exception -> {
-                        ResponseStatusException rse = (ResponseStatusException) exception;
-                        assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    });
+                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.EntityNotFoundException.class)
+                    .hasMessageContaining("Auth user not found");
         }
     }
 }
