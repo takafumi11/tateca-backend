@@ -17,8 +17,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "currencies")
-public class CurrencyEntity {
+@Table(name = "currency_names")
+public class CurrencyNameEntity {
     @Id
     @Column(name = "currency_code", length = 3)
     private String currencyCode;

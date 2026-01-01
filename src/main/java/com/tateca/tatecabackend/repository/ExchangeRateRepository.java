@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity, ExchangeRateId> {
     @Query("""
             SELECT e FROM ExchangeRateEntity e
-            JOIN FETCH e.currency
+            JOIN FETCH e.currencyName
             WHERE e.currencyCode = :currencyCode AND e.date = :date
             """)
     Optional<ExchangeRateEntity> findByCurrencyCodeAndDate(
@@ -25,7 +25,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
     /**
      * Find all exchange rates for multiple currency codes on a specific date.
      * This enables batch loading to avoid N+1 queries.
-     * Uses JOIN FETCH to eagerly load currency and prevent N+1 queries.
+     * Uses JOIN FETCH to eagerly load currencyName and prevent N+1 queries.
      *
      * @param currencyCodes List of currency codes to fetch
      * @param date Target date
@@ -33,7 +33,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
      */
     @Query("""
             SELECT e FROM ExchangeRateEntity e
-            JOIN FETCH e.currency
+            JOIN FETCH e.currencyName
             WHERE e.currencyCode IN :currencyCodes AND e.date = :date
             """)
     List<ExchangeRateEntity> findByCurrencyCodeInAndDate(
@@ -42,15 +42,15 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
 
     @Query("""
             SELECT e FROM ExchangeRateEntity e
-            JOIN FETCH e.currency
-            WHERE e.date = :date AND e.currency.isActive = TRUE
+            JOIN FETCH e.currencyName
+            WHERE e.date = :date AND e.currencyName.isActive = TRUE
             """)
     List<ExchangeRateEntity> findAllActiveByDate(LocalDate date);
 
     /**
      * Batch fetch exchange rates for a specific currency across multiple dates.
      * Avoids N+1 queries when loading rates for multiple transaction dates.
-     * Uses JOIN FETCH to eagerly load currency.
+     * Uses JOIN FETCH to eagerly load currencyName.
      *
      * @param currencyCode Currency code to fetch
      * @param dates List of dates to fetch exchange rates for
@@ -58,7 +58,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
      */
     @Query("""
             SELECT er FROM ExchangeRateEntity er
-            JOIN FETCH er.currency
+            JOIN FETCH er.currencyName
             WHERE er.currencyCode = :currencyCode
             AND er.date IN :dates
             """)
@@ -70,14 +70,14 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
     /**
      * Find the latest (most recent) exchange rate for a given currency code.
      * This is useful as a fallback when a specific date's rate doesn't exist.
-     * Uses JOIN FETCH to eagerly load currency.
+     * Uses JOIN FETCH to eagerly load currencyName.
      *
      * @param currencyCode Currency code to fetch
      * @return Optional containing the latest exchange rate, or empty if no rates exist
      */
     @Query("""
             SELECT er FROM ExchangeRateEntity er
-            JOIN FETCH er.currency
+            JOIN FETCH er.currencyName
             WHERE er.currencyCode = :currencyCode
             ORDER BY er.date DESC
             LIMIT 1

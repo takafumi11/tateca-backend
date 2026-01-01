@@ -20,7 +20,7 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
                 SELECT t FROM TransactionHistoryEntity t
                 JOIN FETCH t.payer p
                 JOIN FETCH t.exchangeRate er
-                JOIN FETCH er.currency
+                JOIN FETCH er.currencyName
                 WHERE t.group.uuid = :groupId
                 ORDER BY t.createdAt DESC
                 """, TransactionHistoryEntity.class)
