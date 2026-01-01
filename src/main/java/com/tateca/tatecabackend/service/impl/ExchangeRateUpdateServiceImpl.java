@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
+import com.tateca.tatecabackend.accessor.CurrencyAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateUpdateServiceImpl.class);
 
     private final ExchangeRateAccessor exchangeRateAccessor;
-    private final CurrencyNameAccessor currencyNameAccessor;
+    private final CurrencyAccessor currencyAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
     @Override
@@ -70,7 +70,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         List<String> currencyCodes = new ArrayList<>(exchangeRateClientResponse.conversionRates().keySet());
 
         // Build Maps for O(1) lookup
-        Map<String, CurrencyNameEntity> currencyNameMap = buildCurrencyNameMap(currencyCodes);
+        Map<String, CurrencyEntity> currencyMap = buildCurrencyMap(currencyCodes);
         Map<String, ExchangeRateEntity> existingRatesMap = buildExistingRatesMap(currencyCodes, date);
 
         // Process each exchange rate
@@ -78,9 +78,9 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
             String currencyCode = entry.getKey();
             Double exchangeRate = entry.getValue();
 
-            CurrencyNameEntity currencyNameEntity = currencyNameMap.get(currencyCode);
+            CurrencyEntity currencyEntity = currencyMap.get(currencyCode);
 
-            if (currencyNameEntity == null) {
+            if (currencyEntity == null) {
                 logger.warn("Currency not found: {}", currencyCode);
                 continue;
             }
@@ -92,7 +92,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
                 updateExistingRate(existingEntity, exchangeRate);
             } else {
                 // Create new entity and add to list for batch insert
-                ExchangeRateEntity newEntity = createNewRate(currencyNameEntity, date, exchangeRate);
+                ExchangeRateEntity newEntity = createNewRate(currencyEntity, date, exchangeRate);
                 newEntities.add(newEntity);
             }
         }
@@ -101,13 +101,13 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
     }
 
     /**
-     * Builds a map from currency code to CurrencyNameEntity for O(1) lookup
+     * Builds a map from currency code to CurrencyEntity for O(1) lookup
      */
-    private Map<String, CurrencyNameEntity> buildCurrencyNameMap(List<String> currencyCodes) {
-        List<CurrencyNameEntity> currencyNameEntities = currencyNameAccessor.findAllById(currencyCodes);
-        return currencyNameEntities.stream()
+    private Map<String, CurrencyEntity> buildCurrencyMap(List<String> currencyCodes) {
+        List<CurrencyEntity> currencyEntities = currencyAccessor.findAllById(currencyCodes);
+        return currencyEntities.stream()
                 .collect(Collectors.toMap(
-                        CurrencyNameEntity::getCurrencyCode,
+                        CurrencyEntity::getCurrencyCode,
                         Function.identity()
                 ));
     }
@@ -151,13 +151,13 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
      * Note: createdAt and updatedAt are automatically set by @PrePersist
      */
     private ExchangeRateEntity createNewRate(
-            CurrencyNameEntity currencyNameEntity,
+            CurrencyEntity currencyEntity,
             LocalDate date,
             Double rate) {
         return ExchangeRateEntity.builder()
-                .currencyCode(currencyNameEntity.getCurrencyCode())
+                .currencyCode(currencyEntity.getCurrencyCode())
                 .date(date)
-                .currencyName(currencyNameEntity)
+                .currencyName(currencyEntity)
                 .exchangeRate(BigDecimal.valueOf(rate))
                 // createdAt and updatedAt are automatically set by @PrePersist, so no manual setting is needed
                 .build();

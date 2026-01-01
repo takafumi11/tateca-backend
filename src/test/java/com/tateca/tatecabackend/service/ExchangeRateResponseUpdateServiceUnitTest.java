@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.CurrencyNameAccessor;
+import com.tateca.tatecabackend.accessor.CurrencyAccessor;
 import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.service.impl.ExchangeRateUpdateServiceImpl;
@@ -40,7 +40,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
     private ExchangeRateAccessor exchangeRateAccessor;
 
     @Mock
-    private CurrencyNameAccessor currencyNameAccessor;
+    private CurrencyAccessor currencyAccessor;
 
     @Mock
     private ExchangeRateApiClient exchangeRateApiClient;
@@ -52,7 +52,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
     private ArgumentCaptor<List<ExchangeRateEntity>> entityListCaptor;
 
     private ExchangeRateClientResponse apiResponse;
-    private List<CurrencyNameEntity> currencies;
+    private List<CurrencyEntity> currencies;
     private LocalDate today;
 
     @BeforeEach
@@ -71,7 +71,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
     void shouldCreateNewExchangeRateRecordsForCurrentDate() {
         // Given: API returns rates for the current date and currencies exist
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // Empty list = no existing records
 
@@ -120,7 +120,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
                 .build();
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy)); // Only JPY exists
 
@@ -154,13 +154,13 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         ExchangeRateClientResponse responseWithUnknown =
                 TestFixtures.ExchangeRateApiResponses.withRates(ratesWithUnknown);
 
-        List<CurrencyNameEntity> knownCurrencies = List.of(
+        List<CurrencyEntity> knownCurrencies = List.of(
                 TestFixtures.Currencies.jpy(),
                 TestFixtures.Currencies.usd()
         );
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(responseWithUnknown);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(knownCurrencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(knownCurrencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // No existing records
 
@@ -190,7 +190,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
                 TestFixtures.ExchangeRateApiResponses.withRates(emptyRates);
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(emptyResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(List.of());
+        when(currencyAccessor.findAllById(anyList())).thenReturn(List.of());
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // No existing records
 
@@ -221,7 +221,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
                 .build();
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy, existingUsd)); // JPY and USD exist with same rates
 
@@ -256,7 +256,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
     void shouldCallBatchQueryTwice() {
         // Given: API returns rates and currencies exist
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -292,7 +292,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
                 .build();
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy, existingUsd));
 
@@ -327,7 +327,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
     void shouldStoreExchangeRatesForBothTodayAndTomorrow() {
         // Given: API returns rates and no existing records
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyNameAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 

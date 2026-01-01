@@ -2,10 +2,10 @@ package com.tateca.tatecabackend.service;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.entity.CurrencyNameEntity;
+import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
-import com.tateca.tatecabackend.repository.CurrencyNameRepository;
+import com.tateca.tatecabackend.repository.CurrencyRepository;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +34,7 @@ class ExchangeRateResponseUpdateServiceIntegrationTest extends AbstractIntegrati
     private ExchangeRateRepository exchangeRateRepository;
 
     @Autowired
-    private CurrencyNameRepository currencyNameRepository;
+    private CurrencyRepository currencyRepository;
 
     private static final String TEST_API_KEY = "test-exchange-rate-api-key";
 
@@ -44,12 +44,12 @@ class ExchangeRateResponseUpdateServiceIntegrationTest extends AbstractIntegrati
         WireMock.reset();
 
         // Setup currency data in database
-        List<CurrencyNameEntity> currencies = List.of(
+        List<CurrencyEntity> currencies = List.of(
                 TestFixtures.Currencies.jpy(),
                 TestFixtures.Currencies.usd(),
                 TestFixtures.Currencies.eur()
         );
-        currencyNameRepository.saveAll(currencies);
+        currencyRepository.saveAll(currencies);
         flushAndClear();
     }
 
