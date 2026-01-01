@@ -3,26 +3,26 @@ package com.tateca.tatecabackend.api.client;
 
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import io.github.resilience4j.retry.annotation.Retry;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-
 @Component
-@Setter
-@RequiredArgsConstructor
-@ConfigurationProperties(prefix = "exchange.rate")
 public class ExchangeRateApiClient {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateApiClient.class);
 
-    private String apiKey;
+    private final String apiKey;
     private final ExchangeRateHttpClient httpClient;
+
+    public ExchangeRateApiClient(
+            @Value("${exchange.rate.api-key}") String apiKey,
+            ExchangeRateHttpClient httpClient) {
+        this.apiKey = apiKey;
+        this.httpClient = httpClient;
+    }
 
     @Retry(name = "exchangeRateApi", fallbackMethod = "fetchLatestFallback")
     public ExchangeRateClientResponse fetchLatestExchangeRate() {

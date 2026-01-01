@@ -29,8 +29,7 @@ class ExchangeRateResponseApiClientUnitTest {
 
     @BeforeEach
     void setUp() {
-        apiClient = new ExchangeRateApiClient(httpClient);
-        apiClient.setApiKey(TEST_API_KEY);
+        apiClient = new ExchangeRateApiClient(TEST_API_KEY, httpClient);
     }
 
     @Nested
@@ -63,8 +62,8 @@ class ExchangeRateResponseApiClientUnitTest {
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(result.getResult()).isEqualTo("success");
-            assertThat(result.getConversionRates()).containsEntry("JPY", 1.0);
+            assertThat(result.result()).isEqualTo("success");
+            assertThat(result.conversionRates()).containsEntry("JPY", 1.0);
         }
 
         @Test
