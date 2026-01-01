@@ -157,7 +157,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         return ExchangeRateEntity.builder()
                 .currencyCode(currencyEntity.getCurrencyCode())
                 .date(date)
-                .currencyName(currencyEntity)
+                .currency(currencyEntity)
                 .exchangeRate(BigDecimal.valueOf(rate))
                 // createdAt and updatedAt are automatically set by @PrePersist, so no manual setting is needed
                 .build();

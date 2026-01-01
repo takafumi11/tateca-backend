@@ -463,7 +463,7 @@ class TransactionServiceImplTest {
                 .currencyCode(currencyCode)
                 .date(LocalDate.now())
                 .exchangeRate(rate)
-                .currencyName(currency)
+                .currency(currency)
                 .build();
     }
 

@@ -219,7 +219,7 @@ class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
                 .currencyCode(currencyCode)
                 .date(date)
                 .exchangeRate(rate)
-                .currencyName(currencyName)
+                .currency(currencyName)
                 .build();
     }
 }

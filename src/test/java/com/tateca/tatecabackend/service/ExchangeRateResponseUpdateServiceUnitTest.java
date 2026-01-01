@@ -115,7 +115,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         ExchangeRateEntity existingJpy = ExchangeRateEntity.builder()
                 .currencyCode("JPY")
                 .date(today)
-                .currencyName(TestFixtures.Currencies.jpy())
+                .currency(TestFixtures.Currencies.jpy())
                 .exchangeRate(BigDecimal.valueOf(0.99))  // Old rate
                 .build();
 
@@ -209,14 +209,14 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         ExchangeRateEntity existingJpy = ExchangeRateEntity.builder()
                 .currencyCode("JPY")
                 .date(today)
-                .currencyName(TestFixtures.Currencies.jpy())
+                .currency(TestFixtures.Currencies.jpy())
                 .exchangeRate(BigDecimal.valueOf(1.0))  // Same rate as API
                 .build();
 
         ExchangeRateEntity existingUsd = ExchangeRateEntity.builder()
                 .currencyCode("USD")
                 .date(today)
-                .currencyName(TestFixtures.Currencies.usd())
+                .currency(TestFixtures.Currencies.usd())
                 .exchangeRate(BigDecimal.valueOf(0.0067))  // Same rate as API
                 .build();
 
@@ -280,14 +280,14 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         ExchangeRateEntity existingJpy = ExchangeRateEntity.builder()
                 .currencyCode("JPY")
                 .date(today)
-                .currencyName(TestFixtures.Currencies.jpy())
+                .currency(TestFixtures.Currencies.jpy())
                 .exchangeRate(BigDecimal.valueOf(0.95))  // Old rate, different from API (1.0)
                 .build();
 
         ExchangeRateEntity existingUsd = ExchangeRateEntity.builder()
                 .currencyCode("USD")
                 .date(today)
-                .currencyName(TestFixtures.Currencies.usd())
+                .currency(TestFixtures.Currencies.usd())
                 .exchangeRate(BigDecimal.valueOf(0.0067))  // Same rate as API
                 .build();
 

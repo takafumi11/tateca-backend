@@ -41,7 +41,7 @@ public record ExchangeRateResponse(
         String exchangeRate
 ) {
     public static ExchangeRateResponse from(ExchangeRateEntity exchangeRateEntity) {
-        CurrencyEntity currencyEntity = exchangeRateEntity.getCurrencyName();
+        CurrencyEntity currencyEntity = exchangeRateEntity.getCurrency();
 
         return new ExchangeRateResponse(
                 currencyEntity.getCurrencyCode(),
