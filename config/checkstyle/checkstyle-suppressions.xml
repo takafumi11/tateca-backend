@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Suppress checks for generated code -->
+    <suppress checks=".*" files="[\\/]generated[\\/]"/>
+    <suppress checks=".*" files="[\\/]target[\\/]"/>
+    <suppress checks=".*" files="[\\/]build[\\/]"/>
+
+    <!-- Suppress checks for DTO records (they have their own style) -->
+    <suppress checks="LineLength" files=".*DTO\.java$"/>
+
+    <!-- Suppress checks for test resources -->
+    <suppress checks=".*" files="src[\\/]test[\\/]resources[\\/]"/>
+
+    <!-- Suppress whitespace checks for Lombok-heavy classes -->
+    <!-- Remove this suppression gradually as code is cleaned up -->
+    <suppress checks="WhitespaceAround" files=".*Entity\.java$"/>
+</suppressions>

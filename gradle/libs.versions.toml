@@ -1,0 +1,109 @@
+[versions]
+# Build Tools
+java = "21"
+gradle = "9.2.0"
+
+# Spring Framework
+spring-boot = "3.5.4"
+spring-dependency-management = "1.1.4"
+
+# Core Dependencies
+firebase-admin = "9.4.2"
+resilience4j = "2.2.0"
+mysql-connector = "9.1.0"
+springdoc = "2.8.1"
+
+# Development Tools
+spring-dotenv = "4.0.0"
+lombok = "1.18.36"
+
+# Testing
+testcontainers = "1.20.4"
+wiremock = "3.9.1"
+wiremock-testcontainers = "1.0-alpha-13"
+rest-assured = "5.5.0"
+
+# Quality Tools
+jacoco = "0.8.12"
+checkstyle = "10.21.0"
+spotbugs = "4.8.6"
+spotbugs-plugin = "6.0.27"
+
+[libraries]
+# Spring Boot Starters
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aop" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
+spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
+
+# Database
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
+mysql-connector-j = { module = "com.mysql:mysql-connector-j", version.ref = "mysql-connector" }
+
+# Firebase
+firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
+
+# Resilience
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+
+# Documentation
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+# Development
+spring-dotenv = { module = "me.paulschwarz:spring-dotenv", version.ref = "spring-dotenv" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+
+# Testing - Testcontainers
+testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+
+# Testing - WireMock
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
+wiremock-testcontainers-module = { module = "org.wiremock.integrations.testcontainers:wiremock-testcontainers-module", version.ref = "wiremock-testcontainers" }
+
+# Testing - REST Assured
+rest-assured = { module = "io.rest-assured:rest-assured", version.ref = "rest-assured" }
+rest-assured-spring-mock-mvc = { module = "io.rest-assured:spring-mock-mvc", version.ref = "rest-assured" }
+rest-assured-json-schema-validator = { module = "io.rest-assured:json-schema-validator", version.ref = "rest-assured" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs-plugin" }
+
+[bundles]
+spring-boot-starters = [
+    "spring-boot-starter",
+    "spring-boot-starter-web",
+    "spring-boot-starter-validation",
+    "spring-boot-starter-security",
+    "spring-boot-starter-actuator",
+    "spring-boot-starter-data-jpa",
+    "spring-boot-starter-aop"
+]
+
+flyway = ["flyway-core", "flyway-mysql"]
+
+testcontainers = [
+    "testcontainers-mysql",
+    "testcontainers-junit-jupiter"
+]
+
+wiremock = [
+    "wiremock-standalone",
+    "wiremock-testcontainers-module"
+]
+
+rest-assured = [
+    "rest-assured",
+    "rest-assured-spring-mock-mvc",
+    "rest-assured-json-schema-validator"
+]

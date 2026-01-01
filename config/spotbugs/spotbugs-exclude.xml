@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+        xmlns="https://github.com/spotbugs/filter/3.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!--
+        Tateca Backend SpotBugs Exclusions
+
+        Exclude false positives and low-value warnings.
+        Keep security-related bugs enabled.
+    -->
+
+    <!-- Exclude generated code -->
+    <Match>
+        <Source name="~.*[\\/]generated[\\/].*"/>
+    </Match>
+
+    <Match>
+        <Source name="~.*[\\/]build[\\/].*"/>
+    </Match>
+
+    <!-- Exclude test code from some checks -->
+    <Match>
+        <Source name="~.*[\\/]test[\\/].*"/>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
+
+    <!--
+        Lombok compatibility: Lombok generates code that can trigger false positives
+    -->
+
+    <!-- @Builder generates code that SpotBugs doesn't like -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+        <Or>
+            <Class name="~.*Entity"/>
+            <Class name="~.*DTO"/>
+        </Or>
+    </Match>
+
+    <!-- @RequiredArgsConstructor with final fields -->
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+        <Or>
+            <Class name="~.*Service.*"/>
+            <Class name="~.*Controller"/>
+            <Class name="~.*Accessor"/>
+        </Or>
+    </Match>
+
+    <!--
+        Spring Framework compatibility
+    -->
+
+    <!-- Spring @Autowired fields are initialized by framework -->
+    <Match>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+        <Or>
+            <Class name="~.*Service.*"/>
+            <Class name="~.*Controller"/>
+            <Class name="~.*Config.*"/>
+        </Or>
+    </Match>
+
+    <!-- JPA entities have special initialization lifecycle -->
+    <Match>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+        <Class name="~.*Entity"/>
+    </Match>
+
+    <!--
+        Test-related exclusions
+    -->
+
+    <!-- Test fixtures can have unused fields -->
+    <Match>
+        <Source name="~.*[\\/]test[\\/].*"/>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- Test data can be hardcoded -->
+    <Match>
+        <Source name="~.*Test\.java"/>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
+
+    <!--
+        Low-value warnings (too many false positives)
+    -->
+
+    <!-- Serialization warnings (we don't use Java serialization) -->
+    <Match>
+        <Bug pattern="SE_BAD_FIELD,SE_NO_SERIALVERSIONID"/>
+    </Match>
+
+    <!-- Return value warnings (often false positives with Lombok) -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+        <Or>
+            <Method name="~builder.*"/>
+            <Method name="~set.*"/>
+        </Or>
+    </Match>
+
+</FindBugsFilter>
