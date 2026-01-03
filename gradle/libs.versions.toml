@@ -4,7 +4,7 @@ java = "21"
 gradle = "9.2.0"
 
 # Spring Framework
-spring-boot = "3.5.4"
+spring-boot = "4.0.1"
 spring-dependency-management = "1.1.4"
 
 # Core Dependencies
