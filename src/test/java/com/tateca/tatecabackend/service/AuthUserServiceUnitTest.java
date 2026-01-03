@@ -118,7 +118,7 @@ class AuthUserServiceUnitTest {
         @DisplayName("Should throw DuplicateResourceException when email already exists")
         void shouldThrowDuplicateResourceExceptionWhenEmailExists() {
             // Given: Email already exists
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("Test User", "existing@example.com");
+            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("existing@example.com");
 
             when(repository.existsByEmail(request.email())).thenReturn(true);
 
@@ -135,7 +135,7 @@ class AuthUserServiceUnitTest {
         @DisplayName("Should validate email before creating user")
         void shouldValidateEmailBeforeCreatingUser() {
             // Given: Valid request
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("Test User", "test@example.com");
+            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("test@example.com");
             when(repository.existsByEmail(request.email())).thenReturn(false);
             when(repository.save(any(AuthUserEntity.class))).thenAnswer(invocation -> {
                 AuthUserEntity entity = invocation.getArgument(0);

@@ -14,8 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -166,7 +164,7 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             // Given: Valid request for new user
             String newUid = "new-uid-" + System.currentTimeMillis();
             String newEmail = "newuser" + System.currentTimeMillis() + "@example.com";
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("New User", newEmail);
+            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(newEmail);
 
             // When: Creating user
             AuthUserResponseDTO result = authUserService.createAuthUser(newUid, request);
@@ -174,7 +172,7 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: Should return DTO with correct data
             assertThat(result).isNotNull();
             assertThat(result.uid()).isEqualTo(newUid);
-            assertThat(result.name()).isEqualTo("New User");
+            assertThat(result.name()).isEqualTo("");
             assertThat(result.email()).isEqualTo(newEmail);
             assertThat(result.totalLoginCount()).isEqualTo(1);
             assertThat(result.lastLoginTime()).isNotNull();
@@ -184,26 +182,8 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
             Optional<AuthUserEntity> createdUser = authUserRepository.findById(newUid);
             assertThat(createdUser).isPresent();
-            assertThat(createdUser.get().getName()).isEqualTo("New User");
+            assertThat(createdUser.get().getName()).isEqualTo("");
             assertThat(createdUser.get().getEmail()).isEqualTo(newEmail);
-        }
-
-        @Test
-        @DisplayName("Then should persist special characters including emoji correctly")
-        void thenShouldPersistSpecialCharactersCorrectly() {
-            // Given: Request with special characters and emoji
-            String newUid = "emoji-uid-" + System.currentTimeMillis();
-            String newEmail = "emoji" + System.currentTimeMillis() + "@example.com";
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("Test 😊 田中 €$", newEmail);
-
-            // When: Creating user
-            authUserService.createAuthUser(newUid, request);
-
-            // Then: Should persist and retrieve correctly
-            flushAndClear();
-            AuthUserEntity createdUser = authUserRepository.findById(newUid)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            assertThat(createdUser.getName()).isEqualTo("Test 😊 田中 €$");
         }
 
         @Test
@@ -212,7 +192,7 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             // Given: Valid request
             String newUid = "default-uid-" + System.currentTimeMillis();
             String newEmail = "default" + System.currentTimeMillis() + "@example.com";
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("Default User", newEmail);
+            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(newEmail);
 
             // When: Creating user
             authUserService.createAuthUser(newUid, request);
@@ -239,7 +219,7 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
             // Given: Existing user with email
             String existingEmail = testAuthUser.getEmail();
             String newUid = "conflict-uid-" + System.currentTimeMillis();
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("Conflict User", existingEmail);
+            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(existingEmail);
 
             // When & Then: Should throw DuplicateResourceException
             assertThatThrownBy(() -> authUserService.createAuthUser(newUid, request))

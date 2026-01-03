@@ -46,7 +46,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
         AuthUserEntity authUser = AuthUserEntity.builder()
                 .uid(uid)
-                .name(request.name())
+                .name("")
                 .email(request.email())
                 .lastLoginTime(Instant.now())
                 .totalLoginCount(1)
