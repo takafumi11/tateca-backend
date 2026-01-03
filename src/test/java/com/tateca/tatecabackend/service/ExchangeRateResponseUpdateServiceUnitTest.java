@@ -1,8 +1,8 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.CurrencyAccessor;
-import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
+import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 class ExchangeRateResponseUpdateServiceUnitTest {
 
     @Mock
-    private ExchangeRateAccessor exchangeRateAccessor;
+    private ExchangeRateRepository exchangeRateRepository;
 
     @Mock
     private CurrencyAccessor currencyAccessor;
@@ -72,14 +72,14 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // Given: API returns rates for the current date and currencies exist
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // Empty list = no existing records
 
         // When: Service fetches and stores exchange rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save new records for today and tomorrow
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        verify(exchangeRateRepository, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
         // Verify: 3 currencies × 2 dates = 6 records
@@ -121,7 +121,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy)); // Only JPY exists
 
         // When: Service updates exchange rates
@@ -129,7 +129,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         // Then: Should save only new records (USD, EUR for today + tomorrow = 4)
         // JPY already exists and is updated via Dirty Checking, not included in saveAll
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        verify(exchangeRateRepository, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
         assertThat(savedEntities).hasSize(4);  // USD×2 + EUR×2 (JPY excluded as it's existing)
@@ -161,14 +161,14 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(responseWithUnknown);
         when(currencyAccessor.findAllById(anyList())).thenReturn(knownCurrencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // No existing records
 
         // When: Service processes rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save only known currencies (JPY, USD) × 2 dates = 4 records
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        verify(exchangeRateRepository, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
         assertThat(savedEntities).hasSize(4);
@@ -191,14 +191,14 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(emptyResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(List.of());
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of()); // No existing records
 
         // When: Service processes empty rates
         int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should not call saveAll when there are no entities
-        verify(exchangeRateAccessor, never()).saveAll(anyList());
+        verify(exchangeRateRepository, never()).saveAll(anyList());
         assertThat(result).isZero();
     }
 
@@ -222,7 +222,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy, existingUsd)); // JPY and USD exist with same rates
 
         // When: Service processes exchange rates
@@ -230,7 +230,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         // Then: Should save only new entities (EUR for today + tomorrow = 2)
         // JPY and USD already exist, updated via Dirty Checking, not included in saveAll
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        verify(exchangeRateRepository, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
         assertThat(savedEntities).hasSize(2);  // EUR×2 (JPY and USD excluded as existing)
@@ -257,17 +257,17 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // Given: API returns rates and currencies exist
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
         // When: Service fetches and stores exchange rates
         service.fetchAndStoreLatestExchangeRate();
 
         // Then: Batch query method should be called twice (once for today, once for tomorrow)
-        verify(exchangeRateAccessor, times(2)).findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class));
+        verify(exchangeRateRepository, times(2)).findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class));
 
         // And: saveAll should be called exactly once (with combined entities)
-        verify(exchangeRateAccessor, times(1)).saveAll(anyList());
+        verify(exchangeRateRepository, times(1)).saveAll(anyList());
     }
 
     @Test
@@ -293,7 +293,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(existingJpy, existingUsd));
 
         // When: Service processes exchange rates
@@ -301,7 +301,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
 
         // Then: Should save only new entities (EUR for today + tomorrow = 2)
         // JPY and USD already exist, updated via Dirty Checking, not included in saveAll
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        verify(exchangeRateRepository, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
         assertThat(savedEntities).hasSize(2);  // EUR×2 (JPY and USD excluded as existing)
@@ -328,7 +328,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         // Given: API returns rates and no existing records
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
         when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
-        when(exchangeRateAccessor.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
+        when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
         LocalDate tomorrow = today.plusDays(1);
@@ -337,7 +337,7 @@ class ExchangeRateResponseUpdateServiceUnitTest {
         int result = service.fetchAndStoreLatestExchangeRate();
 
         // Then: Should save 6 records (3 currencies × 2 dates)
-        verify(exchangeRateAccessor, times(1)).saveAll(entityListCaptor.capture());
+        verify(exchangeRateRepository, times(1)).saveAll(entityListCaptor.capture());
         List<ExchangeRateEntity> savedEntities = entityListCaptor.getValue();
 
         assertThat(savedEntities).hasSize(6);

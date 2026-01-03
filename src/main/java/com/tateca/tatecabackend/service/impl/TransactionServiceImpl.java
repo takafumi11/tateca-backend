@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
+import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
@@ -25,10 +25,8 @@ import com.tateca.tatecabackend.service.TransactionService;
 import com.tateca.tatecabackend.util.LogFactory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -54,7 +52,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor accessor;
     private final ObligationAccessor obligationAccessor;
-    private final ExchangeRateAccessor exchangeRateAccessor;
+    private final ExchangeRateRepository exchangeRateRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -204,31 +202,30 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public CreateTransactionResponseDTO createTransaction(UUID groupId, CreateTransactionRequestDTO request) {
         // Save into transaction_history
-        ExchangeRateEntity exchangeRate = null;
         LocalDate date = convertToLocalDateInUtc(request.dateStr());
+        ExchangeRateEntity exchangeRate = exchangeRateRepository
+                .findByCurrencyCodeAndDate(request.currencyCode(), date)
+                .orElseGet(() -> {
+                    /*
+                    If the exchange rate for the specified date doesn't exist, use the latest
+                    (most recent) available exchange rate for that currency. This provides a
+                    more accurate fallback than LocalDate.now(), especially for historical dates
+                    or when the current date's rate hasn't been updated yet.
+                    */
+                    ExchangeRateEntity latestRate = exchangeRateRepository
+                            .findLatestByCurrencyCode(request.currencyCode())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "No exchange rate found for currency code: " + request.currencyCode()
+                            ));
 
-        try {
-            exchangeRate = exchangeRateAccessor.findByCurrencyCodeAndDate(request.currencyCode(), date);
-        } catch (ResponseStatusException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                /*
-                If the exchange rate for the specified date doesn't exist, use the latest
-                (most recent) available exchange rate for that currency. This provides a
-                more accurate fallback than LocalDate.now(), especially for historical dates
-                or when the current date's rate hasn't been updated yet.
-                */
-                ExchangeRateEntity latestRate = exchangeRateAccessor.findLatestByCurrencyCode(request.currencyCode());
-                ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
-                        .currencyCode(latestRate.getCurrencyCode())
-                        .date(date)
-                        .exchangeRate(latestRate.getExchangeRate())
-                        .currency(latestRate.getCurrency())
-                        .build();
-                exchangeRate = exchangeRateAccessor.save(newExchangeRateEntity);
-            } else {
-                throw e;
-            }
-        }
+                    ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
+                            .currencyCode(latestRate.getCurrencyCode())
+                            .date(date)
+                            .exchangeRate(latestRate.getExchangeRate())
+                            .currency(latestRate.getCurrency())
+                            .build();
+                    return exchangeRateRepository.save(newExchangeRateEntity);
+                });
 
         UserEntity payer = userRepository.findById(request.payerId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));

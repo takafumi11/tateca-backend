@@ -11,12 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -129,11 +128,11 @@ class ExchangeRateControllerTest {
     @Test
     @DisplayName("Should return 500 when service throws internal server error")
     void shouldReturn500WhenServiceThrowsInternalServerError() throws Exception {
-        // Given: Service throws INTERNAL_SERVER_ERROR exception
+        // Given: Service throws DataAccessException
         LocalDate testDate = LocalDate.now();
 
         when(exchangeRateService.getExchangeRate(testDate))
-                .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error"));
+                .thenThrow(new DataAccessException("Database connection error") {});
 
         // When & Then: Should return 500
         mockMvc.perform(get(BASE_ENDPOINT + "/{date}", testDate))
