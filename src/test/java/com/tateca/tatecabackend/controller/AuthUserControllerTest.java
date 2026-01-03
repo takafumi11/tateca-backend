@@ -152,20 +152,19 @@ class AuthUserControllerTest {
     @DisplayName("POST /auth/users")
     class CreateAuthUser {
 
-        // ========== Success Scenarios (4 tests) - HTTP 201 CREATED ==========
+        // ========== Success Scenarios (2 tests) - HTTP 201 CREATED ==========
 
         @Test
         @DisplayName("Should return 201 CREATED when creating user with valid data")
         void shouldReturn201WhenCreateWithValidData() throws Exception {
             // Given: Valid request
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "John Doe",
                 "john@example.com"
             );
 
             AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
                 TEST_UID,
-                "John Doe",
+                "",
                 "john@example.com",
                 "2024-01-01T09:00:00+09:00",
                 "2024-01-01T09:00:00+09:00",
@@ -185,7 +184,7 @@ class AuthUserControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.uid").value(TEST_UID))
-                .andExpect(jsonPath("$.name").value("John Doe"))
+                .andExpect(jsonPath("$.name").value(""))
                 .andExpect(jsonPath("$.email").value("john@example.com"))
                 .andExpect(jsonPath("$.created_at").exists())
                 .andExpect(jsonPath("$.updated_at").exists())
@@ -199,90 +198,17 @@ class AuthUserControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 201 when name contains unicode characters")
-        void shouldReturn201WhenNameContainsUnicodeCharacters() throws Exception {
-            // Given: Request with Japanese characters
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "田中太郎",
-                "tanaka@example.com"
-            );
-
-            AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
-                TEST_UID,
-                "田中太郎",
-                "tanaka@example.com",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                1,
-                null,
-                AppReviewStatus.PENDING
-            );
-
-            when(authUserService.createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-            // When & Then: Should return 201 CREATED with unicode preserved
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .characterEncoding("UTF-8")
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("田中太郎"));
-
-            verify(authUserService, times(1))
-                .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
-        }
-
-        @Test
-        @DisplayName("Should return 201 when name contains emoji characters")
-        void shouldReturn201WhenNameContainsEmoji() throws Exception {
-            // Given: Request with emoji
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "John 😊 Doe",
-                "john@example.com"
-            );
-
-            AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
-                TEST_UID,
-                "John 😊 Doe",
-                "john@example.com",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                1,
-                null,
-                AppReviewStatus.PENDING
-            );
-
-            when(authUserService.createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-            // When & Then: Should return 201 CREATED with emoji preserved
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .characterEncoding("UTF-8")
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("John 😊 Doe"));
-
-            verify(authUserService, times(1))
-                .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
-        }
-
-        @Test
         @DisplayName("Should return 201 when email is exactly 255 characters")
         void shouldReturn201WhenEmailIsExactly255Characters() throws Exception {
             // Given: Request with email of exactly 255 characters
             String email255Chars = "a".repeat(243) + "@example.com"; // 243 + 12 = 255
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "Test User",
                 email255Chars
             );
 
             AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
                 TEST_UID,
-                "Test User",
+                "",
                 email255Chars,
                 "2024-01-01T09:00:00+09:00",
                 "2024-01-01T09:00:00+09:00",
@@ -312,7 +238,7 @@ class AuthUserControllerTest {
         @DisplayName("Should return 400 when email is null")
         void shouldReturn400WhenEmailIsNull() throws Exception {
             // Given: Request with null email
-            String requestWithNull = "{\"name\": \"Test User\", \"email\": null}";
+            String requestWithNull = "{\"email\": null}";
 
             // When & Then: Should return 400 BAD_REQUEST
             mockMvc.perform(post(BASE_ENDPOINT)
@@ -328,7 +254,6 @@ class AuthUserControllerTest {
         void shouldReturn400WhenEmailIsEmpty() throws Exception {
             // Given: Request with empty email
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "Test User",
                 ""
             );
 
@@ -346,7 +271,6 @@ class AuthUserControllerTest {
         void shouldReturn400WhenEmailIsWhitespaceOnly() throws Exception {
             // Given: Request with whitespace-only email
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "Test User",
                 "   "
             );
 
@@ -365,7 +289,6 @@ class AuthUserControllerTest {
             // Given: Request with email of 256 characters
             String longEmail = "a".repeat(244) + "@example.com"; // 256 chars total
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "Test User",
                 longEmail
             );
 
@@ -382,7 +305,7 @@ class AuthUserControllerTest {
         @DisplayName("Should return 400 when email field is missing")
         void shouldReturn400WhenEmailFieldMissing() throws Exception {
             // Given: Request JSON without email field
-            String requestMissingEmail = "{\"name\": \"Test User\"}";
+            String requestMissingEmail = "{}";
 
             // When & Then: Should return 400 BAD_REQUEST
             mockMvc.perform(post(BASE_ENDPOINT)
@@ -427,7 +350,6 @@ class AuthUserControllerTest {
         void shouldReturn415WhenContentTypeIsMissing() throws Exception {
             // Given: Valid JSON but no Content-Type header
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "Test User",
                 "test@example.com"
             );
 
@@ -446,7 +368,6 @@ class AuthUserControllerTest {
         void shouldReturn409WhenEmailAlreadyExists() throws Exception {
             // Given: Service throws CONFLICT exception
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "John Doe",
                 "existing@example.com"
             );
 
@@ -471,7 +392,6 @@ class AuthUserControllerTest {
         void shouldReturn500WhenInternalServerError() throws Exception {
             // Given: Service throws INTERNAL_SERVER_ERROR exception
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "John Doe",
                 "john@example.com"
             );
 
@@ -491,55 +411,19 @@ class AuthUserControllerTest {
                 .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
         }
 
-        // ========== Edge Cases (3 tests) ==========
-
-        @Test
-        @DisplayName("Should return 201 when name has leading/trailing whitespace")
-        void shouldReturn201WhenNameHasLeadingTrailingWhitespace() throws Exception {
-            // Given: Request with name having whitespace
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "  John Doe  ",
-                "john@example.com"
-            );
-
-            AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
-                TEST_UID,
-                "  John Doe  ",
-                "john@example.com",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                1,
-                null,
-                AppReviewStatus.PENDING
-            );
-
-            when(authUserService.createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-            // When & Then: Should return 201 CREATED (trimming is service responsibility)
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("  John Doe  "));
-
-            verify(authUserService, times(1))
-                .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
-        }
+        // ========== Edge Cases (1 test) ==========
 
         @Test
         @DisplayName("Should return 201 when email has leading/trailing whitespace")
         void shouldReturn201WhenEmailHasLeadingTrailingWhitespace() throws Exception {
             // Given: Request with email having whitespace
             CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "Test User",
                 "  user@example.com  "
             );
 
             AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
                 TEST_UID,
-                "Test User",
+                "",
                 "  user@example.com  ",
                 "2024-01-01T09:00:00+09:00",
                 "2024-01-01T09:00:00+09:00",
@@ -558,41 +442,6 @@ class AuthUserControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("  user@example.com  "));
-
-            verify(authUserService, times(1))
-                .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));
-        }
-
-        @Test
-        @DisplayName("Should return 201 when name contains special characters")
-        void shouldReturn201WhenNameContainsSpecialCharacters() throws Exception {
-            // Given: Request with special characters in name
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(
-                "John O'Brien-Smith (Jr.)",
-                "john@example.com"
-            );
-
-            AuthUserResponseDTO expectedResponse = new AuthUserResponseDTO(
-                TEST_UID,
-                "John O'Brien-Smith (Jr.)",
-                "john@example.com",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-01T09:00:00+09:00",
-                1,
-                null,
-                AppReviewStatus.PENDING
-            );
-
-            when(authUserService.createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-            // When & Then: Should return 201 CREATED
-            mockMvc.perform(post(BASE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("John O'Brien-Smith (Jr.)"));
 
             verify(authUserService, times(1))
                 .createAuthUser(eq(TEST_UID), any(CreateAuthUserRequestDTO.class));

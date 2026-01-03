@@ -7,10 +7,6 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "Request to create a new authenticated user")
 public record CreateAuthUserRequestDTO(
-        @JsonProperty("name")
-        @Schema(description = "User's display name (optional)", example = "John Doe", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        String name,
-
         @JsonProperty("email")
         @Schema(description = "User's email address", example = "john@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "Email is required and cannot be blank")
