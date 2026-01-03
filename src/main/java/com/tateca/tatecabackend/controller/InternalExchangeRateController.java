@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.controller;
 
-import com.tateca.tatecabackend.service.ExchangeRateService;
+import com.tateca.tatecabackend.service.InternalExchangeRateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(name = "Internal", description = "Internal system operations (EventBridge + Lambda)")
 @SecurityRequirement(name = "ApiKeyAuth")
-public class ExchangeRateLambdaController {
-    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateLambdaController.class);
+public class InternalExchangeRateController {
+    private static final Logger logger = LoggerFactory.getLogger(InternalExchangeRateController.class);
 
-    private final ExchangeRateService exchangeRateService;
+    private final InternalExchangeRateService exchangeRateService;
 
     @PostMapping
     @Operation(

@@ -25,10 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("ExchangeRate Internal API Integration Tests - Write Operations")
-class ExchangeRateInternalIntegrationTest extends AbstractIntegrationTest {
+class InternalExchangeRateIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private ExchangeRateService service;
+    private InternalExchangeRateService service;
 
     @Autowired
     private ExchangeRateRepository exchangeRateRepository;

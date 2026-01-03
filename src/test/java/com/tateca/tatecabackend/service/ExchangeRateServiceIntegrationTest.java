@@ -18,7 +18,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("ExchangeRateService Integration Tests")
+@DisplayName("ExchangeRateQueryService Integration Tests")
 class ExchangeRateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired

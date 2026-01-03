@@ -2,7 +2,7 @@ package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
-import com.tateca.tatecabackend.service.ExchangeRateService;
+import com.tateca.tatecabackend.service.InternalExchangeRateService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,17 +21,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ExchangeRateLambdaController.class)
+@WebMvcTest(InternalExchangeRateController.class)
 @Import({GlobalExceptionHandler.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("ExchangeRate Internal API Controller Tests")
-class ExchangeRateInternalControllerTest {
+class InternalExchangeRateControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ExchangeRateService exchangeRateService;
+    private InternalExchangeRateService exchangeRateService;
 
     private static final String ENDPOINT = "/internal/exchange-rates";
 
