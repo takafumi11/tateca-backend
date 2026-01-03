@@ -1,11 +1,9 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
-import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -17,6 +15,8 @@ import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.TransactionType;
+import com.tateca.tatecabackend.repository.ExchangeRateRepository;
+import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -64,7 +63,7 @@ class TransactionServiceImplTest {
     private ObligationAccessor obligationAccessor;
 
     @Mock
-    private ExchangeRateAccessor exchangeRateAccessor;
+    private ExchangeRateRepository exchangeRateRepository;
 
     @InjectMocks
     private TransactionServiceImpl transactionService;

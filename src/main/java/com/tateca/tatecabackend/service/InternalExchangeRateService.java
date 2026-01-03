@@ -1,12 +1,11 @@
 package com.tateca.tatecabackend.service;
 
-import java.time.LocalDate;
-
 /**
- * Service for updating exchange rates from external API.
+ * Service for exchange rate internal operations (write operations).
+ * Handles internal API endpoints for updating exchange rates from external sources.
+ * Used by Lambda functions triggered by EventBridge.
  */
-public interface ExchangeRateUpdateService {
-
+public interface InternalExchangeRateService {
     /**
      * Fetches latest exchange rates from external API and stores them in database.
      * The rates are stored with both today's date and tomorrow's date

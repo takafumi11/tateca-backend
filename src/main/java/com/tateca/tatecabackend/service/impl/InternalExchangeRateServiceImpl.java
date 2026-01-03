@@ -1,12 +1,12 @@
 package com.tateca.tatecabackend.service.impl;
 
 import com.tateca.tatecabackend.accessor.CurrencyAccessor;
-import com.tateca.tatecabackend.accessor.ExchangeRateAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
-import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
+import com.tateca.tatecabackend.repository.ExchangeRateRepository;
+import com.tateca.tatecabackend.service.InternalExchangeRateService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService {
-    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateUpdateServiceImpl.class);
+public class InternalExchangeRateServiceImpl implements InternalExchangeRateService {
+    private static final Logger logger = LoggerFactory.getLogger(InternalExchangeRateServiceImpl.class);
 
-    private final ExchangeRateAccessor exchangeRateAccessor;
+    private final ExchangeRateRepository exchangeRateRepository;
     private final CurrencyAccessor currencyAccessor;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
@@ -52,7 +52,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
         newEntities.addAll(tomorrowEntities);
 
         if (!newEntities.isEmpty()) {
-            exchangeRateAccessor.saveAll(newEntities);
+            exchangeRateRepository.saveAll(newEntities);
         }
 
         int totalCount = todayEntities.size() + tomorrowEntities.size();
@@ -117,7 +117,7 @@ public class ExchangeRateUpdateServiceImpl implements ExchangeRateUpdateService 
      */
     private Map<String, ExchangeRateEntity> buildExistingRatesMap(List<String> currencyCodes, LocalDate date) {
         List<ExchangeRateEntity> existingRates =
-                exchangeRateAccessor.findByCurrencyCodeInAndDate(currencyCodes, date);
+                exchangeRateRepository.findByCurrencyCodeInAndDate(currencyCodes, date);
 
         // Mark fetched entities as not new to avoid SELECT during save
         existingRates.forEach(ExchangeRateEntity::markAsNotNew);

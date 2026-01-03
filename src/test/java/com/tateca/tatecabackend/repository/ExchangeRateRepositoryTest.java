@@ -17,7 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ExchangeRateRepository Tests")
-class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
+class ExchangeRateRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
     private ExchangeRateRepository repository;
@@ -27,14 +27,13 @@ class ExchangeRateResponseRepositoryTest extends AbstractIntegrationTest {
 
     private CurrencyEntity usd;
     private CurrencyEntity eur;
-    private CurrencyEntity jpy;
 
     @BeforeEach
     void setUp() {
         // Setup currency names
         usd = TestFixtures.Currencies.usd();
         eur = TestFixtures.Currencies.eur();
-        jpy = TestFixtures.Currencies.jpy();
+        CurrencyEntity jpy = TestFixtures.Currencies.jpy();
 
         currencyRepository.save(usd);
         currencyRepository.save(eur);
