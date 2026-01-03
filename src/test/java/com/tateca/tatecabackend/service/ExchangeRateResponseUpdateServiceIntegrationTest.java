@@ -24,11 +24,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("ExchangeRateUpdateService Integration Tests")
+@DisplayName("ExchangeRateService Integration Tests - Update Operations")
 class ExchangeRateResponseUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private ExchangeRateUpdateService service;
+    private ExchangeRateService service;
 
     @Autowired
     private ExchangeRateRepository exchangeRateRepository;

@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.controller;
 
-import com.tateca.tatecabackend.service.ExchangeRateUpdateService;
+import com.tateca.tatecabackend.service.ExchangeRateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExchangeRateLambdaController {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateLambdaController.class);
 
-    private final ExchangeRateUpdateService exchangeRateUpdateService;
+    private final ExchangeRateService exchangeRateService;
 
     @PostMapping
     @Operation(
@@ -84,7 +84,7 @@ public class ExchangeRateLambdaController {
     public ResponseEntity<Void> updateExchangeRates() {
         logger.info("Exchange rate update triggered via HTTP endpoint");
 
-        int ratesUpdated = exchangeRateUpdateService.fetchAndStoreLatestExchangeRate();
+        int ratesUpdated = exchangeRateService.fetchAndStoreLatestExchangeRate();
 
         logger.info("Exchange rate update completed successfully. Stored {} total rates (today + tomorrow)", ratesUpdated);
 
