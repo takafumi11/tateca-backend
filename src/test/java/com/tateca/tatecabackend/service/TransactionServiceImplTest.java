@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -16,6 +15,7 @@ import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ class TransactionServiceImplTest {
     private GroupRepository groupRepository;
 
     @Mock
-    private UserGroupAccessor userGroupAccessor;
+    private UserGroupRepository userGroupRepository;
 
     @Mock
     private TransactionAccessor transactionAccessor;
@@ -81,7 +81,7 @@ class TransactionServiceImplTest {
             void thenShouldReturnEmptySettlementList() {
                 // Given: Empty obligations list
                 UUID groupId = UUID.randomUUID();
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(new ArrayList<>());
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(new ArrayList<>());
@@ -113,7 +113,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity obligation = createObligation(transaction, bob, 10000);
 
                 List<TransactionObligationEntity> obligations = List.of(obligation);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -158,7 +158,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity tx2Ob2 = createObligation(tx2, carol, 4500);
 
                 List<TransactionObligationEntity> obligations = List.of(tx1Ob1, tx1Ob2, tx2Ob1, tx2Ob2);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -196,7 +196,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity obligation = createObligation(transaction, alice, 10000);
 
                 List<TransactionObligationEntity> obligations = List.of(obligation);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -234,7 +234,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity tx2Ob = createObligation(tx2, alice, 24000);
 
                 List<TransactionObligationEntity> obligations = List.of(tx1Ob, tx2Ob);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -284,7 +284,7 @@ class TransactionServiceImplTest {
                 obligations.add(createObligation(tx2, alice, 6000));
                 obligations.add(createObligation(tx2, carol, 6000));
 
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -325,7 +325,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity obligation = createObligation(transaction, bob, 100);
 
                 List<TransactionObligationEntity> obligations = List.of(obligation);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -359,7 +359,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity obligation = createObligation(transaction, bob, 1_000_000);
 
                 List<TransactionObligationEntity> obligations = List.of(obligation);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);
@@ -402,7 +402,7 @@ class TransactionServiceImplTest {
                 TransactionObligationEntity ob3 = createObligation(transaction, david, 3334);
 
                 List<TransactionObligationEntity> obligations = List.of(ob1, ob2, ob3);
-                when(userGroupAccessor.findByGroupUuidWithUserDetails(groupId))
+                when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
                 when(obligationAccessor.findByGroupId(groupId))
                         .thenReturn(obligations);

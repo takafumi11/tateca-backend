@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
@@ -44,9 +43,6 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private AuthUserRepository authUserRepository;
-
-    @Autowired
-    private UserGroupAccessor userGroupAccessor;
 
     @Autowired
     private UserGroupRepository userGroupRepository;
@@ -563,7 +559,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(savedGroup).isPresent();
 
             // And: All 4 users should be created (1 host + 3 participants)
-            List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
             assertThat(userGroups).hasSize(4);
 
             // And: Transaction count should be 0
@@ -645,7 +641,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: Host should be linked to authUser
             flushAndClear();
             UUID groupId = UUID.fromString(result.groupInfo().uuid());
-            List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
 
             List<UserEntity> users = userGroups.stream()
                     .map(UserGroupEntity::getUser)
@@ -686,7 +682,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: 2 users should be created (1 host + 1 participant)
             flushAndClear();
             UUID groupId = UUID.fromString(result.groupInfo().uuid());
-            List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
             assertThat(userGroups).hasSize(2);
 
             // And: Host should have authUser
@@ -866,7 +862,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(groupRepository.findById(groupId)).isPresent();
 
             // All users should exist
-            List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
             assertThat(userGroups).hasSize(3);
 
             // All user entities should be persisted
@@ -1252,7 +1248,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(userAfterLeaving.get().getAuthUser()).isNull();
 
             // And: UserGroup relationship should still exist
-            List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId);
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
             assertThat(userGroups).isNotEmpty();
         }
 
@@ -1309,7 +1305,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw not found exception
             assertThatThrownBy(() -> groupService.leaveGroup(testGroupId, userUuid))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("User is not in this group");
         }
     }

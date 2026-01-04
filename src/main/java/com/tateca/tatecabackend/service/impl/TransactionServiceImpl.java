@@ -2,9 +2,9 @@ package com.tateca.tatecabackend.service.impl;
 
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
@@ -49,7 +49,7 @@ public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LogFactory.getLogger(TransactionServiceImpl.class);
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
-    private final UserGroupAccessor userGroupAccessor;
+    private final UserGroupRepository userGroupRepository;
     private final TransactionAccessor accessor;
     private final ObligationAccessor obligationAccessor;
     private final ExchangeRateRepository exchangeRateRepository;
@@ -65,7 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public TransactionSettlementResponseDTO getSettlements(UUID groupId) {
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
 
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)

@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
@@ -14,6 +13,7 @@ import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.GroupServiceImpl;
 import jakarta.persistence.EntityManager;
@@ -63,7 +63,7 @@ class GroupServiceUnitTest {
     private AuthUserRepository authUserRepository;
 
     @Mock
-    private UserGroupAccessor userGroupAccessor;
+    private UserGroupRepository userGroupRepository;
 
     @Mock
     private TransactionAccessor transactionAccessor;
@@ -100,7 +100,7 @@ class GroupServiceUnitTest {
         List<UserGroupEntity> userGroups = List.of(testUserGroup);
         Long transactionCount = 5L;
 
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(userGroups);
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(transactionCount);
@@ -118,7 +118,7 @@ class GroupServiceUnitTest {
     @DisplayName("Should throw not found exception when group has no users")
     void shouldThrowNotFoundExceptionWhenGroupHasNoUsers() {
         // Given: Group with no users
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
 
         // When & Then: Should throw ResponseStatusException
@@ -145,7 +145,7 @@ class GroupServiceUnitTest {
 
         List<UserGroupEntity> userGroups = List.of(ug1, ug2, ug3);
 
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(userGroups);
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(0L);
@@ -163,7 +163,7 @@ class GroupServiceUnitTest {
         // Given: Group with specific transaction count
         Long expectedCount = 42L;
 
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(testUserGroup));
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(expectedCount);
@@ -179,7 +179,7 @@ class GroupServiceUnitTest {
     @DisplayName("Should handle zero transaction count")
     void shouldHandleZeroTransactionCount() {
         // Given: Group with no transactions
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(testUserGroup));
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(0L);
@@ -279,7 +279,7 @@ class GroupServiceUnitTest {
         UserGroupEntity ug2 = TestFixtures.UserGroups.create(user, group2);
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(List.of(ug1, ug2));
 
         // When: Getting group list
@@ -296,7 +296,7 @@ class GroupServiceUnitTest {
         String uid = "test-uid";
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(new ArrayList<>());
 
         // When: Getting group list
@@ -322,7 +322,7 @@ class GroupServiceUnitTest {
                 .collect(Collectors.toList());
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(userGroups);
 
         // When: Getting group list
@@ -347,7 +347,7 @@ class GroupServiceUnitTest {
         user2.setUuid(uuid2);
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user1, user2));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(new ArrayList<>());
 
         // When: Getting group list
@@ -355,7 +355,7 @@ class GroupServiceUnitTest {
 
         // Then: Should call with correct UUIDs
         ArgumentCaptor<List<UUID>> captor = ArgumentCaptor.forClass(List.class);
-        verify(userGroupAccessor).findByUserUuidListWithGroup(captor.capture());
+        verify(userGroupRepository).findByUserUuidListWithGroup(captor.capture());
         assertThat(captor.getValue()).containsExactlyInAnyOrder(uuid1, uuid2);
     }
 
@@ -370,7 +370,7 @@ class GroupServiceUnitTest {
         UserGroupEntity ug = TestFixtures.UserGroups.create(user, group);
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(List.of(ug));
 
         // When: Getting group list
@@ -415,7 +415,7 @@ class GroupServiceUnitTest {
             });
             return users;
         });
-        when(userGroupAccessor.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
         when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
 
         // When: Creating group
@@ -425,7 +425,7 @@ class GroupServiceUnitTest {
         assertThat(result).isNotNull();
         verify(groupRepository).save(any(GroupEntity.class));
         verify(userRepository).saveAll(any());
-        verify(userGroupAccessor).saveAll(any());
+        verify(userGroupRepository).saveAll(any());
     }
 
     @Test
@@ -484,7 +484,7 @@ class GroupServiceUnitTest {
             });
             return users;
         });
-        when(userGroupAccessor.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
         when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
 
         // When: Creating group
@@ -537,7 +537,7 @@ class GroupServiceUnitTest {
             });
             return users;
         });
-        when(userGroupAccessor.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
         when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
 
         // When: Creating group
@@ -569,7 +569,7 @@ class GroupServiceUnitTest {
         user.setUuid(userUuid);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -624,7 +624,7 @@ class GroupServiceUnitTest {
         UserGroupEntity existingUG = TestFixtures.UserGroups.create(existingUser, testGroup);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(existingUG));
 
         // When & Then: Should throw conflict exception
@@ -651,7 +651,7 @@ class GroupServiceUnitTest {
                 .collect(Collectors.toList());
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(existingUsers);
 
@@ -683,7 +683,7 @@ class GroupServiceUnitTest {
                 .collect(Collectors.toList());
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(specialUid)).thenReturn(existingUsers);
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -708,7 +708,7 @@ class GroupServiceUnitTest {
         JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.empty());
@@ -730,7 +730,7 @@ class GroupServiceUnitTest {
         UserEntity user = TestFixtures.Users.userWithoutAuthUser("User");
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -775,7 +775,7 @@ class GroupServiceUnitTest {
         UserGroupEntity existingUG = TestFixtures.UserGroups.create(existingUser, testGroup);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(existingUG));
 
         // When & Then: Should detect duplicate
@@ -801,7 +801,7 @@ class GroupServiceUnitTest {
         user.setUuid(userUuid);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -837,7 +837,7 @@ class GroupServiceUnitTest {
         UserGroupEntity ug2 = TestFixtures.UserGroups.create(existingUser2, testGroup);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(ug1, ug2));
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -872,8 +872,8 @@ class GroupServiceUnitTest {
         user.setUuid(userUuid);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -909,7 +909,7 @@ class GroupServiceUnitTest {
         UUID userUuid = UUID.randomUUID();
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not in group"));
 
         // When & Then: Should throw exception
@@ -926,8 +926,8 @@ class GroupServiceUnitTest {
         UUID userUuid = UUID.randomUUID();
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.empty());
 
         // When & Then: Should throw exception
@@ -946,8 +946,8 @@ class GroupServiceUnitTest {
         user.setUuid(userUuid);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -967,8 +967,8 @@ class GroupServiceUnitTest {
         UserEntity user = TestFixtures.Users.userWithAuthUser(authUser);
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -976,7 +976,7 @@ class GroupServiceUnitTest {
         groupService.leaveGroup(testGroupId, userUuid);
 
             // Then: Should verify user in group first
-            verify(userGroupAccessor).findByUserUuidAndGroupUuid(userUuid, testGroupId);
+            verify(userGroupRepository).findByUserUuidAndGroupUuid(userUuid, testGroupId);
         }
     }
 }
