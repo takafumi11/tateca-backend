@@ -7,6 +7,7 @@ import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +52,7 @@ public class TransactionController {
     @Operation(summary = "Create a new transaction")
     public ResponseEntity<CreateTransactionResponseDTO> createTransaction(
             @PathVariable("groupId") UUID groupId,
-            @RequestBody CreateTransactionRequestDTO request
+            @Valid @RequestBody CreateTransactionRequestDTO request
     ) {
         CreateTransactionResponseDTO response = service.createTransaction(groupId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
