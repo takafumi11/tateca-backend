@@ -2,22 +2,24 @@ FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /workspace
 
-# Layer 1: Copy Gradle wrapper and config files (changes rarely)
+# Layer 1: Copy Gradle wrapper and build files (changes rarely)
 COPY gradle gradle
 COPY gradlew .
 COPY gradle.properties .
 COPY settings.gradle.kts .
 COPY build.gradle.kts .
-COPY config config
 
 # Layer 2: Download dependencies (cached unless build.gradle.kts changes)
+# Preserve Gradle cache in layer for faster subsequent builds
 RUN ./gradlew dependencies --no-daemon || true
 
-# Layer 3: Copy source code (changes frequently)
+# Layer 3: Copy config and source code
+COPY config config
 COPY src src
 
 # Layer 4: Build application (tests run in CI, skip here)
-RUN ./gradlew build -x test --no-daemon
+# Skip static analysis for faster CI builds
+RUN ./gradlew build -x test -x checkstyleMain -x checkstyleTest -x spotbugsMain -x spotbugsTest --no-daemon
 
 FROM eclipse-temurin:21-jre
 
