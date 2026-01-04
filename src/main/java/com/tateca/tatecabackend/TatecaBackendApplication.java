@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 
 @SpringBootApplication(exclude = {
@@ -30,22 +29,21 @@ public class TatecaBackendApplication {
 		log.info("Active Profiles: {}", activeProfiles.length > 0 ? String.join(", ", activeProfiles) : "None");
 		
 		// Log which property files are being used
-		if (activeProfiles.length > 0) {
-			for (String profile : activeProfiles) {
-				log.info("Using property file: application-{}.properties", profile);
-			}
-		}
-		log.info("Using property file: application.properties");
-		
+        for (String profile : activeProfiles) {
+            log.info("Using property file: application-{}.properties", profile);
+        }
+        log.info("Using property file: application.properties");
+
 		// Log current timezone and JVM settings
 		log.info("Timezone: {}", System.getProperty("user.timezone", "System Default"));
-		log.info("JVM Memory: Xms={}, Xmx={}", 
-			getSystemProperty("Xms"), getSystemProperty("Xmx"));
-		
+
+		// Log JVM memory settings using Runtime API
+		Runtime runtime = Runtime.getRuntime();
+		long maxMemoryMB = runtime.maxMemory() / 1024 / 1024;
+		long totalMemoryMB = runtime.totalMemory() / 1024 / 1024;
+		long freeMemoryMB = runtime.freeMemory() / 1024 / 1024;
+		log.info("JVM Memory: Max={}MB, Total={}MB, Free={}MB", maxMemoryMB, totalMemoryMB, freeMemoryMB);
+
 		log.info("=== APPLICATION READY ===");
-	}
-	
-	private String getSystemProperty(String key) {
-		return System.getProperty(key, "Not specified");
 	}
 }
