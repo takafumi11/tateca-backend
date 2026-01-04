@@ -66,8 +66,15 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 
-    // Disable parallel execution to avoid connection pool issues with Testcontainers
-    systemProperty("junit.jupiter.execution.parallel.enabled", "false")
+    // Enable parallel execution for faster test runs
+    // - Test classes run in parallel (concurrent)
+    // - Test methods within a class run sequentially (same_thread)
+    // This strategy avoids mock state conflicts in WebMvcTest while still improving performance
+    // Integration tests using Testcontainers are additionally marked with @Execution(ExecutionMode.SAME_THREAD)
+    systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+    systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
+    systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
 
     // Only generate coverage reports in CI environment
     if (System.getenv("CI") == "true") {

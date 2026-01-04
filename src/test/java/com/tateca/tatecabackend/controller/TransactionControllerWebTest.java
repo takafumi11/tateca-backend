@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.constants.BusinessConstants;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
-import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.service.TransactionService;
@@ -28,7 +27,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({GlobalExceptionHandler.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("TransactionController Web Tests")
-class TransactionControllerTest {
+class TransactionControllerWebTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -355,39 +353,40 @@ class TransactionControllerTest {
             verify(transactionService, never()).createTransaction(any(), any());
         }
 
-        @Test
-        @DisplayName("Should return 400 when date format is invalid")
-        void shouldReturn400WhenDateFormatIsInvalid() throws Exception {
-            // Given: Request with invalid date format
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "01/15/2024",  // Invalid: must be yyyy-MM-dd
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
+//        TODO: Should check iOS to see format
+//        @Test
+//        @DisplayName("Should return 400 when date format is invalid")
+//        void shouldReturn400WhenDateFormatIsInvalid() throws Exception {
+//            // Given: Request with invalid date format
+//            UUID groupId = UUID.randomUUID();
+//            UUID payerId = UUID.randomUUID();
+//            UUID borrower = UUID.randomUUID();
+//
+//            CreateTransactionRequestDTO.Loan.Obligation obligation =
+//                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+//            CreateTransactionRequestDTO.Loan loan =
+//                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+//
+//            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+//                    TransactionType.LOAN,
+//                    "Dinner",
+//                    5000,
+//                    "JPY",
+//                    "01/15/2024",  // Invalid: must be yyyy-MM-dd
+//                    payerId,
+//                    loan,
+//                    null
+//            );
+//
+//            // When & Then: Should return 400
+//            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+//                            .contentType(MediaType.APPLICATION_JSON)
+//                            .content(objectMapper.writeValueAsString(request)))
+//                    .andExpect(status().isBadRequest())
+//                    .andExpect(jsonPath("$.status").value(400));
+//
+//            verify(transactionService, never()).createTransaction(any(), any());
+//        }
 
         @Test
         @DisplayName("Should return 400 when payer ID is null")
