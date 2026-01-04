@@ -23,6 +23,7 @@ import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.TransactionService;
 import com.tateca.tatecabackend.util.LogFactory;
+import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
@@ -202,6 +203,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public CreateTransactionResponseDTO createTransaction(UUID groupId, CreateTransactionRequestDTO request) {
+        logger.info("Creating transaction: groupId={}, type={}, amount={}, currency={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                request.transactionType(),
+                request.amount(),
+                request.currencyCode());
+
         // Save into transaction_history
         LocalDate date = convertToLocalDateInUtc(request.dateStr());
         ExchangeRateEntity exchangeRate = exchangeRateRepository
@@ -218,6 +225,9 @@ public class TransactionServiceImpl implements TransactionService {
                             .orElseThrow(() -> new EntityNotFoundException(
                                     "No exchange rate found for currency code: " + request.currencyCode()
                             ));
+
+                    logger.debug("Using latest exchange rate as fallback: currency={}, date={}, rate={}",
+                            request.currencyCode(), date, latestRate.getExchangeRate());
 
                     ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
                             .currencyCode(latestRate.getCurrencyCode())
@@ -252,12 +262,20 @@ public class TransactionServiceImpl implements TransactionService {
 
             List<TransactionObligationEntity> savedObligations = obligationRepository.saveAll(transactionObligationEntityList);
 
+            logger.info("Transaction created successfully: transactionId={}, type=LOAN, obligationCount={}",
+                    PiiMaskingUtil.maskUuid(savedTransaction.getUuid()),
+                    savedObligations.size());
+
             return CreateTransactionResponseDTO.from(savedTransaction, savedObligations);
         } else {
             UserEntity recipient = userRepository.findById(request.repayment().recipientId())
                     .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.repayment().recipientId()));
 
             TransactionObligationEntity savedObligation = obligationRepository.save(TransactionObligationEntity.from(savedTransaction, recipient));
+
+            logger.info("Transaction created successfully: transactionId={}, type=REPAYMENT, recipientId={}",
+                    PiiMaskingUtil.maskUuid(savedTransaction.getUuid()),
+                    PiiMaskingUtil.maskUuid(recipient.getUuid()));
 
             return CreateTransactionResponseDTO.from(savedTransaction, savedObligation);
         }
@@ -282,11 +300,17 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public void deleteTransaction(UUID transactionId) {
+        logger.info("Deleting transaction: transactionId={}", PiiMaskingUtil.maskUuid(transactionId));
+
         // Delete Obligations first
         List<TransactionObligationEntity> transactionObligationEntityList = obligationRepository.findByTransactionId(transactionId);
+        int obligationCount = transactionObligationEntityList.size();
         List<UUID> uuidList = transactionObligationEntityList.stream().map(TransactionObligationEntity::getUuid).toList();
         obligationRepository.deleteAllById(uuidList);
 
         transactionRepository.deleteById(transactionId);
+
+        logger.info("Transaction deleted successfully: transactionId={}, obligationCount={}",
+                PiiMaskingUtil.maskUuid(transactionId), obligationCount);
     }
 }
