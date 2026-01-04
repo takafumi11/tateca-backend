@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
+import com.tateca.tatecabackend.repository.GroupRepository;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
@@ -48,7 +48,7 @@ import static com.tateca.tatecabackend.util.TimeHelper.dateStringToInstant;
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LogFactory.getLogger(TransactionServiceImpl.class);
     private final UserRepository userRepository;
-    private final GroupAccessor groupAccessor;
+    private final GroupRepository groupRepository;
     private final UserGroupAccessor userGroupAccessor;
     private final TransactionAccessor accessor;
     private final ObligationAccessor obligationAccessor;
@@ -230,7 +230,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         UserEntity payer = userRepository.findById(request.payerId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));
-        GroupEntity group = groupAccessor.findById(groupId);
+        GroupEntity group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
         TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
 
         // Save into transaction_obligations

@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
@@ -16,6 +15,7 @@ import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
+import com.tateca.tatecabackend.repository.GroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -51,7 +51,7 @@ class TransactionServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
-    private GroupAccessor groupAccessor;
+    private GroupRepository groupRepository;
 
     @Mock
     private UserGroupAccessor userGroupAccessor;

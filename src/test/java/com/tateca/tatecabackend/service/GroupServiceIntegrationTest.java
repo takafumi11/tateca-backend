@@ -1,7 +1,6 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
@@ -9,6 +8,7 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
@@ -35,9 +35,6 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private GroupService groupService;
-
-    @Autowired
-    private GroupAccessor groupAccessor;
 
     @Autowired
     private GroupRepository groupRepository;
@@ -362,8 +359,8 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw exception
             assertThatThrownBy(() -> groupService.updateGroupName(nonExistentGroupId, "New Name"))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("group not found");
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Group not found");
         }
     }
 
@@ -1195,8 +1192,8 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw not found exception
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, nonExistentGroupId, TEST_UID))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("group not found:");
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Group not found");
         }
     }
 
@@ -1330,8 +1327,8 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw not found exception
             assertThatThrownBy(() -> groupService.leaveGroup(nonExistentGroupId, userUuid))
-                    .isInstanceOf(ResponseStatusException.class)
-                    .hasMessageContaining("group not found:");
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Group not found");
         }
     }
 

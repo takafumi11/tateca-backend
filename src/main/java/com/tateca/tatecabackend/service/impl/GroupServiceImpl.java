@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
@@ -13,6 +12,7 @@ import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
+import com.tateca.tatecabackend.repository.GroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.GroupService;
 import jakarta.persistence.EntityManager;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GroupServiceImpl implements GroupService {
     private final EntityManager entityManager;
-    private final GroupAccessor accessor;
+    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final AuthUserRepository authUserRepository;
     private final UserGroupAccessor userGroupAccessor;
@@ -55,9 +55,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO updateGroupName(UUID groupId, String name) {
-        GroupEntity group = accessor.findById(groupId);
+        GroupEntity group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
         group.setName(name);
-        accessor.save(group);
+        groupRepository.save(group);
 
         return getGroupInfo(groupId);
     }
@@ -87,7 +88,7 @@ public class GroupServiceImpl implements GroupService {
                 .name(request.groupName())
                 .joinToken(UUID.randomUUID())
                 .build();
-        GroupEntity groupEntitySaved = accessor.save(groupEntity);
+        GroupEntity groupEntitySaved = groupRepository.save(groupEntity);
 
         // Create new records into users table
         AuthUserEntity authUser = authUserRepository.findById(uid)
@@ -131,7 +132,8 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public GroupResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
         // check if token is valid or not
-        GroupEntity groupEntity = accessor.findById(groupId);
+        GroupEntity groupEntity = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
 
         // Check if user has already joined this group.
         List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
@@ -172,7 +174,8 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void leaveGroup(UUID groupId, UUID userUuid) {
         // Verify group exists
-        accessor.findById(groupId);
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
 
         // Verify user is in the group (using composite primary key for efficiency)
         userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, groupId);
