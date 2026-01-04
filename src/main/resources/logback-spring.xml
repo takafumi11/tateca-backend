@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Spring Boot defaults -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Console Appender for Development (Human-Readable) -->
+    <appender name="CONSOLE_DEV" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{36}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Console Appender for Production (JSON Structured) -->
+    <appender name="CONSOLE_PROD" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Add standard fields -->
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+
+            <!-- Add custom fields -->
+            <customFields>{"application":"tateca-backend","environment":"production"}</customFields>
+
+            <!-- Pretty print for local testing (can be disabled for production) -->
+            <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+        </encoder>
+    </appender>
+
+    <!-- Async Console Appender for Production (Non-blocking) -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="CONSOLE_PROD"/>
+    </appender>
+
+    <!-- Better Stack HTTP Appender (Production Only) -->
+    <!-- Note: Better Stack ingests logs from stdout/stderr when deployed to Railway -->
+    <!-- Railway automatically forwards container logs to Better Stack when configured -->
+
+    <!-- Logger Configuration -->
+    <logger name="com.tateca.tatecabackend" level="INFO"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+    <!-- Development Profile: Human-readable console logs -->
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_DEV"/>
+        </root>
+        <logger name="com.tateca.tatecabackend" level="DEBUG"/>
+    </springProfile>
+
+    <!-- Production Profile: JSON structured logs -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_CONSOLE"/>
+        </root>
+        <!-- Reduce noise in production -->
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+    </springProfile>
+
+    <!-- Test Profile: Minimal logging -->
+    <springProfile name="test">
+        <root level="WARN">
+            <appender-ref ref="CONSOLE_DEV"/>
+        </root>
+    </springProfile>
+</configuration>
