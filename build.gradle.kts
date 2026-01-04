@@ -37,6 +37,9 @@ dependencies {
     // Documentation
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
+    // Observability
+    implementation(libs.bundles.observability)
+
     // Development
     developmentOnly(libs.spring.boot.devtools)
     developmentOnly(libs.spring.dotenv)
