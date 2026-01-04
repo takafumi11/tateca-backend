@@ -14,7 +14,6 @@ jobs:
   test:
     name: Run Tests & Coverage
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -45,8 +44,6 @@ jobs:
   docker-build-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
     permissions:
       contents: read
       packages: write
