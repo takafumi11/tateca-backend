@@ -1,8 +1,6 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
@@ -13,6 +11,8 @@ import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
+import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.GroupService;
 import jakarta.persistence.EntityManager;
@@ -31,16 +31,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GroupServiceImpl implements GroupService {
     private final EntityManager entityManager;
-    private final GroupAccessor accessor;
+    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final AuthUserRepository authUserRepository;
-    private final UserGroupAccessor userGroupAccessor;
+    private final UserGroupRepository userGroupRepository;
     private final TransactionAccessor transactionAccessor;
 
     @Override
     @Transactional(readOnly = true)
     public GroupResponseDTO getGroupInfo(UUID groupId) {
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
         if (userGroups.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
         }
@@ -55,9 +55,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO updateGroupName(UUID groupId, String name) {
-        GroupEntity group = accessor.findById(groupId);
+        GroupEntity group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
         group.setName(name);
-        accessor.save(group);
+        groupRepository.save(group);
 
         return getGroupInfo(groupId);
     }
@@ -68,7 +69,7 @@ public class GroupServiceImpl implements GroupService {
         List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
 
         List<UUID> uuidList = userEntityList.stream().map(UserEntity::getUuid).toList();
-        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByUserUuidListWithGroup(uuidList);
+        List<UserGroupEntity> userGroupEntityList = userGroupRepository.findByUserUuidListWithGroup(uuidList);
 
         List<GroupEntity> groupEntityList = userGroupEntityList.stream().map(UserGroupEntity::getGroup).toList();
 
@@ -87,7 +88,7 @@ public class GroupServiceImpl implements GroupService {
                 .name(request.groupName())
                 .joinToken(UUID.randomUUID())
                 .build();
-        GroupEntity groupEntitySaved = accessor.save(groupEntity);
+        GroupEntity groupEntitySaved = groupRepository.save(groupEntity);
 
         // Create new records into users table
         AuthUserEntity authUser = authUserRepository.findById(uid)
@@ -121,7 +122,7 @@ public class GroupServiceImpl implements GroupService {
                     .build();
             userGroupEntityList.add(userGroupEntity);
         });
-        userGroupAccessor.saveAll(userGroupEntityList);
+        userGroupRepository.saveAll(userGroupEntityList);
 
         Long transactionCount = transactionAccessor.countByGroupId(groupEntitySaved.getUuid());
         return GroupResponseDTO.from(userEntityListSaved, groupEntitySaved, transactionCount);
@@ -131,10 +132,11 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public GroupResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
         // check if token is valid or not
-        GroupEntity groupEntity = accessor.findById(groupId);
+        GroupEntity groupEntity = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
 
         // Check if user has already joined this group.
-        List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+        List<UserGroupEntity> userGroupEntityList = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
         boolean exists = userGroupEntityList.stream()
                 .anyMatch(userGroupEntity -> {
                     AuthUserEntity authUser = userGroupEntity.getUser().getAuthUser();
@@ -172,10 +174,12 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void leaveGroup(UUID groupId, UUID userUuid) {
         // Verify group exists
-        accessor.findById(groupId);
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
 
         // Verify user is in the group (using composite primary key for efficiency)
-        userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, groupId);
+        userGroupRepository.findByUserUuidAndGroupUuid(userUuid, groupId)
+                .orElseThrow(() -> new EntityNotFoundException("User is not in this group"));
 
         // Get user entity
         UserEntity userEntity = userRepository.findById(userUuid)

@@ -1,8 +1,6 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
@@ -14,6 +12,8 @@ import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
+import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.impl.GroupServiceImpl;
 import jakarta.persistence.EntityManager;
@@ -54,7 +54,7 @@ class GroupServiceUnitTest {
     private EntityManager entityManager;
 
     @Mock
-    private GroupAccessor accessor;
+    private GroupRepository groupRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -63,7 +63,7 @@ class GroupServiceUnitTest {
     private AuthUserRepository authUserRepository;
 
     @Mock
-    private UserGroupAccessor userGroupAccessor;
+    private UserGroupRepository userGroupRepository;
 
     @Mock
     private TransactionAccessor transactionAccessor;
@@ -100,7 +100,7 @@ class GroupServiceUnitTest {
         List<UserGroupEntity> userGroups = List.of(testUserGroup);
         Long transactionCount = 5L;
 
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(userGroups);
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(transactionCount);
@@ -118,7 +118,7 @@ class GroupServiceUnitTest {
     @DisplayName("Should throw not found exception when group has no users")
     void shouldThrowNotFoundExceptionWhenGroupHasNoUsers() {
         // Given: Group with no users
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
 
         // When & Then: Should throw ResponseStatusException
@@ -145,7 +145,7 @@ class GroupServiceUnitTest {
 
         List<UserGroupEntity> userGroups = List.of(ug1, ug2, ug3);
 
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(userGroups);
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(0L);
@@ -163,7 +163,7 @@ class GroupServiceUnitTest {
         // Given: Group with specific transaction count
         Long expectedCount = 42L;
 
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(testUserGroup));
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(expectedCount);
@@ -179,7 +179,7 @@ class GroupServiceUnitTest {
     @DisplayName("Should handle zero transaction count")
     void shouldHandleZeroTransactionCount() {
         // Given: Group with no transactions
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(testUserGroup));
         when(transactionAccessor.countByGroupId(testGroupId))
                 .thenReturn(0L);
@@ -207,8 +207,8 @@ class GroupServiceUnitTest {
         String newName = "Updated Group Name";
         GroupServiceImpl spy = spy(groupService);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(accessor.save(any(GroupEntity.class))).thenReturn(testGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(groupRepository.save(any(GroupEntity.class))).thenReturn(testGroup);
 
         GroupResponseDTO mockResponse = new GroupResponseDTO(null, List.of(), 0L);
         doReturn(mockResponse).when(spy).getGroupInfo(testGroupId);
@@ -218,7 +218,7 @@ class GroupServiceUnitTest {
 
         // Then: Should update and save
         assertThat(testGroup.getName()).isEqualTo(newName);
-        verify(accessor).save(testGroup);
+        verify(groupRepository).save(testGroup);
         assertThat(result).isEqualTo(mockResponse);
     }
 
@@ -226,14 +226,15 @@ class GroupServiceUnitTest {
     @DisplayName("Should throw not found exception when group not exists")
     void shouldThrowNotFoundExceptionWhenGroupNotExists() {
         // Given: Group does not exist
-        when(accessor.findById(testGroupId))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
+        when(groupRepository.findById(testGroupId))
+                .thenReturn(Optional.empty());
 
         // When & Then: Should throw exception
         assertThatThrownBy(() -> groupService.updateGroupName(testGroupId, "New Name"))
-                .isInstanceOf(ResponseStatusException.class);
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Group not found");
 
-        verify(accessor, never()).save(any());
+        verify(groupRepository, never()).save(any());
     }
 
     @Test
@@ -242,8 +243,8 @@ class GroupServiceUnitTest {
         // Given: Group exists
         GroupServiceImpl spy = spy(groupService);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(accessor.save(any(GroupEntity.class))).thenReturn(testGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(groupRepository.save(any(GroupEntity.class))).thenReturn(testGroup);
 
         GroupResponseDTO mockResponse = new GroupResponseDTO(null, List.of(), 0L);
         doReturn(mockResponse).when(spy).getGroupInfo(testGroupId);
@@ -278,7 +279,7 @@ class GroupServiceUnitTest {
         UserGroupEntity ug2 = TestFixtures.UserGroups.create(user, group2);
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(List.of(ug1, ug2));
 
         // When: Getting group list
@@ -295,7 +296,7 @@ class GroupServiceUnitTest {
         String uid = "test-uid";
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(new ArrayList<>());
 
         // When: Getting group list
@@ -321,7 +322,7 @@ class GroupServiceUnitTest {
                 .collect(Collectors.toList());
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(userGroups);
 
         // When: Getting group list
@@ -346,7 +347,7 @@ class GroupServiceUnitTest {
         user2.setUuid(uuid2);
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user1, user2));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(new ArrayList<>());
 
         // When: Getting group list
@@ -354,7 +355,7 @@ class GroupServiceUnitTest {
 
         // Then: Should call with correct UUIDs
         ArgumentCaptor<List<UUID>> captor = ArgumentCaptor.forClass(List.class);
-        verify(userGroupAccessor).findByUserUuidListWithGroup(captor.capture());
+        verify(userGroupRepository).findByUserUuidListWithGroup(captor.capture());
         assertThat(captor.getValue()).containsExactlyInAnyOrder(uuid1, uuid2);
     }
 
@@ -369,7 +370,7 @@ class GroupServiceUnitTest {
         UserGroupEntity ug = TestFixtures.UserGroups.create(user, group);
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(List.of(user));
-        when(userGroupAccessor.findByUserUuidListWithGroup(anyList()))
+        when(userGroupRepository.findByUserUuidListWithGroup(anyList()))
                 .thenReturn(List.of(ug));
 
         // When: Getting group list
@@ -399,7 +400,7 @@ class GroupServiceUnitTest {
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(authUserRepository.findById(uid)).thenReturn(Optional.of(authUser));
-        when(accessor.save(any(GroupEntity.class))).thenAnswer(i -> {
+        when(groupRepository.save(any(GroupEntity.class))).thenAnswer(i -> {
             GroupEntity group = i.getArgument(0);
             group.setTokenExpires(java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS));
             group.setCreatedAt(java.time.Instant.now());
@@ -414,7 +415,7 @@ class GroupServiceUnitTest {
             });
             return users;
         });
-        when(userGroupAccessor.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
         when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
 
         // When: Creating group
@@ -422,9 +423,9 @@ class GroupServiceUnitTest {
 
         // Then: Should create all entities
         assertThat(result).isNotNull();
-        verify(accessor).save(any(GroupEntity.class));
+        verify(groupRepository).save(any(GroupEntity.class));
         verify(userRepository).saveAll(any());
-        verify(userGroupAccessor).saveAll(any());
+        verify(userGroupRepository).saveAll(any());
     }
 
     @Test
@@ -450,7 +451,7 @@ class GroupServiceUnitTest {
                     assertThat(rse.getReason()).contains("can't join more than 10 groups");
                 });
 
-        verify(accessor, never()).save(any());
+        verify(groupRepository, never()).save(any());
     }
 
     @Test
@@ -468,7 +469,7 @@ class GroupServiceUnitTest {
 
         when(userRepository.findByAuthUserUid(specialUid)).thenReturn(existingUsers);
         when(authUserRepository.findById(specialUid)).thenReturn(Optional.of(authUser));
-        when(accessor.save(any(GroupEntity.class))).thenAnswer(i -> {
+        when(groupRepository.save(any(GroupEntity.class))).thenAnswer(i -> {
             GroupEntity group = i.getArgument(0);
             group.setTokenExpires(java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS));
             group.setCreatedAt(java.time.Instant.now());
@@ -483,7 +484,7 @@ class GroupServiceUnitTest {
             });
             return users;
         });
-        when(userGroupAccessor.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
         when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
 
         // When: Creating group
@@ -521,7 +522,7 @@ class GroupServiceUnitTest {
 
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(authUserRepository.findById(uid)).thenReturn(Optional.of(authUser));
-        when(accessor.save(any())).thenAnswer(i -> {
+        when(groupRepository.save(any())).thenAnswer(i -> {
             GroupEntity group = i.getArgument(0);
             group.setTokenExpires(java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS));
             group.setCreatedAt(java.time.Instant.now());
@@ -536,7 +537,7 @@ class GroupServiceUnitTest {
             });
             return users;
         });
-        when(userGroupAccessor.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
         when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
 
         // When: Creating group
@@ -567,8 +568,8 @@ class GroupServiceUnitTest {
         UserEntity user = TestFixtures.Users.userWithoutAuthUser("User");
         user.setUuid(userUuid);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -594,7 +595,7 @@ class GroupServiceUnitTest {
         UUID wrongToken = UUID.randomUUID();
         JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, wrongToken);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
 
         // When & Then: Should throw forbidden exception
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
@@ -622,8 +623,8 @@ class GroupServiceUnitTest {
         UserEntity existingUser = TestFixtures.Users.userWithAuthUser(authUser);
         UserGroupEntity existingUG = TestFixtures.UserGroups.create(existingUser, testGroup);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(existingUG));
 
         // When & Then: Should throw conflict exception
@@ -649,8 +650,8 @@ class GroupServiceUnitTest {
                 .mapToObj(i -> TestFixtures.Users.userWithoutAuthUser("User " + i))
                 .collect(Collectors.toList());
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(existingUsers);
 
@@ -681,8 +682,8 @@ class GroupServiceUnitTest {
                 .mapToObj(i -> TestFixtures.Users.userWithoutAuthUser("User " + i))
                 .collect(Collectors.toList());
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(specialUid)).thenReturn(existingUsers);
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -706,8 +707,8 @@ class GroupServiceUnitTest {
         UUID joinToken = testGroup.getJoinToken();
         JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.empty());
@@ -728,8 +729,8 @@ class GroupServiceUnitTest {
         JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
         UserEntity user = TestFixtures.Users.userWithoutAuthUser("User");
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -750,12 +751,13 @@ class GroupServiceUnitTest {
         UUID joinToken = UUID.randomUUID();
         JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
-        when(accessor.findById(testGroupId))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
+        when(groupRepository.findById(testGroupId))
+                .thenReturn(Optional.empty());
 
         // When & Then: Should throw exception
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
-                .isInstanceOf(ResponseStatusException.class);
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Group not found");
     }
 
     @Test
@@ -772,8 +774,8 @@ class GroupServiceUnitTest {
         UserEntity existingUser = TestFixtures.Users.userWithAuthUser(authUser);
         UserGroupEntity existingUG = TestFixtures.UserGroups.create(existingUser, testGroup);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(existingUG));
 
         // When & Then: Should detect duplicate
@@ -798,8 +800,8 @@ class GroupServiceUnitTest {
         UserEntity user = TestFixtures.Users.userWithoutAuthUser("User");
         user.setUuid(userUuid);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -834,8 +836,8 @@ class GroupServiceUnitTest {
         UserGroupEntity ug1 = TestFixtures.UserGroups.create(existingUser1, testGroup);
         UserGroupEntity ug2 = TestFixtures.UserGroups.create(existingUser2, testGroup);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByGroupUuidWithUserDetails(testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(ug1, ug2));
         when(userRepository.findByAuthUserUid(uid)).thenReturn(new ArrayList<>());
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
@@ -869,9 +871,9 @@ class GroupServiceUnitTest {
         UserEntity user = TestFixtures.Users.userWithAuthUser(authUser);
         user.setUuid(userUuid);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -889,12 +891,13 @@ class GroupServiceUnitTest {
         // Given: Non-existent group
         UUID userUuid = UUID.randomUUID();
 
-        when(accessor.findById(testGroupId))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
+        when(groupRepository.findById(testGroupId))
+                .thenReturn(Optional.empty());
 
         // When & Then: Should throw exception
         assertThatThrownBy(() -> groupService.leaveGroup(testGroupId, userUuid))
-                .isInstanceOf(ResponseStatusException.class);
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Group not found");
 
         verify(userRepository, never()).save(any());
     }
@@ -905,8 +908,8 @@ class GroupServiceUnitTest {
         // Given: User not in group
         UUID userUuid = UUID.randomUUID();
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not in group"));
 
         // When & Then: Should throw exception
@@ -922,9 +925,9 @@ class GroupServiceUnitTest {
         // Given: Non-existent user
         UUID userUuid = UUID.randomUUID();
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.empty());
 
         // When & Then: Should throw exception
@@ -942,9 +945,9 @@ class GroupServiceUnitTest {
         UserEntity user = TestFixtures.Users.userWithAuthUser(authUser);
         user.setUuid(userUuid);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -963,9 +966,9 @@ class GroupServiceUnitTest {
         AuthUserEntity authUser = TestFixtures.AuthUsers.defaultAuthUser();
         UserEntity user = TestFixtures.Users.userWithAuthUser(authUser);
 
-        when(accessor.findById(testGroupId)).thenReturn(testGroup);
-        when(userGroupAccessor.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenReturn(testUserGroup);
+        when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
+        when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
+                .thenReturn(Optional.of(testUserGroup));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -973,7 +976,7 @@ class GroupServiceUnitTest {
         groupService.leaveGroup(testGroupId, userUuid);
 
             // Then: Should verify user in group first
-            verify(userGroupAccessor).findByUserUuidAndGroupUuid(userUuid, testGroupId);
+            verify(userGroupRepository).findByUserUuidAndGroupUuid(userUuid, testGroupId);
         }
     }
 }

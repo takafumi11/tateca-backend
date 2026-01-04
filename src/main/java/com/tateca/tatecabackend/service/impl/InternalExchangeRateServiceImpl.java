@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.CurrencyAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
+import com.tateca.tatecabackend.repository.CurrencyRepository;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.service.InternalExchangeRateService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class InternalExchangeRateServiceImpl implements InternalExchangeRateServ
     private static final Logger logger = LoggerFactory.getLogger(InternalExchangeRateServiceImpl.class);
 
     private final ExchangeRateRepository exchangeRateRepository;
-    private final CurrencyAccessor currencyAccessor;
+    private final CurrencyRepository currencyRepository;
     private final ExchangeRateApiClient exchangeRateApiClient;
 
     @Override
@@ -104,7 +104,7 @@ public class InternalExchangeRateServiceImpl implements InternalExchangeRateServ
      * Builds a map from currency code to CurrencyEntity for O(1) lookup
      */
     private Map<String, CurrencyEntity> buildCurrencyMap(List<String> currencyCodes) {
-        List<CurrencyEntity> currencyEntities = currencyAccessor.findAllById(currencyCodes);
+        List<CurrencyEntity> currencyEntities = currencyRepository.findAllById(currencyCodes);
         return currencyEntities.stream()
                 .collect(Collectors.toMap(
                         CurrencyEntity::getCurrencyCode,

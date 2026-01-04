@@ -1,11 +1,11 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.CurrencyAccessor;
 import com.tateca.tatecabackend.api.client.ExchangeRateApiClient;
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
 import com.tateca.tatecabackend.entity.CurrencyEntity;
 import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
+import com.tateca.tatecabackend.repository.CurrencyRepository;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.service.impl.InternalExchangeRateServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ class InternalExchangeRateServiceUnitTest {
     private ExchangeRateRepository exchangeRateRepository;
 
     @Mock
-    private CurrencyAccessor currencyAccessor;
+    private CurrencyRepository currencyRepository;
 
     @Mock
     private ExchangeRateApiClient exchangeRateApiClient;
@@ -79,10 +79,10 @@ class InternalExchangeRateServiceUnitTest {
     @DisplayName("Should orchestrate method calls in correct sequence")
     void shouldOrchestrateMethodCallsInCorrectSequence() {
         // Given: API client, accessor, and repository are available
-        InOrder inOrder = inOrder(exchangeRateApiClient, currencyAccessor, exchangeRateRepository);
+        InOrder inOrder = inOrder(exchangeRateApiClient, currencyRepository, exchangeRateRepository);
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -91,7 +91,7 @@ class InternalExchangeRateServiceUnitTest {
 
         // Then: Methods should be called in correct order
         inOrder.verify(exchangeRateApiClient, times(1)).fetchLatestExchangeRate();
-        inOrder.verify(currencyAccessor, times(1)).findAllById(anyList());
+        inOrder.verify(currencyRepository, times(1)).findAllById(anyList());
         inOrder.verify(exchangeRateRepository, times(2)).findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class));
         inOrder.verify(exchangeRateRepository, times(1)).saveAll(anyList());
     }
@@ -101,7 +101,7 @@ class InternalExchangeRateServiceUnitTest {
     void shouldCallRepositoryBatchQueryTwiceForTwoDates() {
         // Given: API returns rates and currencies exist
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -132,7 +132,7 @@ class InternalExchangeRateServiceUnitTest {
         );
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(responseWithUnknown);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(knownCurrencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(knownCurrencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -154,7 +154,7 @@ class InternalExchangeRateServiceUnitTest {
     void shouldProcessAllCurrenciesWhenAllAreFoundInMasterData() {
         // Given: API returns 3 currencies and all exist in master data
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -186,7 +186,7 @@ class InternalExchangeRateServiceUnitTest {
         ExchangeRateEntity spyJpy = spy(existingJpy);
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(List.of(TestFixtures.Currencies.jpy()));
+        when(currencyRepository.findAllById(anyList())).thenReturn(List.of(TestFixtures.Currencies.jpy()));
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(spyJpy));
 
@@ -211,7 +211,7 @@ class InternalExchangeRateServiceUnitTest {
         ExchangeRateEntity spyJpy = spy(existingJpy);
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(List.of(TestFixtures.Currencies.jpy()));
+        when(currencyRepository.findAllById(anyList())).thenReturn(List.of(TestFixtures.Currencies.jpy()));
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(spyJpy));
 
@@ -242,7 +242,7 @@ class InternalExchangeRateServiceUnitTest {
                 TestFixtures.ExchangeRateApiResponses.withRates(precisionRates);
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(precisionResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(List.of(TestFixtures.Currencies.usd()));
+        when(currencyRepository.findAllById(anyList())).thenReturn(List.of(TestFixtures.Currencies.usd()));
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of(spyUsd));
 
@@ -262,7 +262,7 @@ class InternalExchangeRateServiceUnitTest {
         ArgumentCaptor<LocalDate> dateCaptor = ArgumentCaptor.forClass(LocalDate.class);
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -283,7 +283,7 @@ class InternalExchangeRateServiceUnitTest {
     void shouldCombineTodayAndTomorrowEntitiesBeforeSaving() {
         // Given: API returns rates for 3 currencies, no existing records
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(List.of());
 
@@ -330,7 +330,7 @@ class InternalExchangeRateServiceUnitTest {
         );
 
         when(exchangeRateApiClient.fetchLatestExchangeRate()).thenReturn(apiResponse);
-        when(currencyAccessor.findAllById(anyList())).thenReturn(currencies);
+        when(currencyRepository.findAllById(anyList())).thenReturn(currencies);
         when(exchangeRateRepository.findByCurrencyCodeInAndDate(anyList(), any(LocalDate.class)))
                 .thenReturn(existingEntities);
 

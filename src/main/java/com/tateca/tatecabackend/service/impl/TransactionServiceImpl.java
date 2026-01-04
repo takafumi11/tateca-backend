@@ -1,10 +1,10 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.GroupAccessor;
-import com.tateca.tatecabackend.accessor.ObligationAccessor;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
-import com.tateca.tatecabackend.accessor.UserGroupAccessor;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
+import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.ObligationRepository;
+import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
@@ -48,10 +48,10 @@ import static com.tateca.tatecabackend.util.TimeHelper.dateStringToInstant;
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LogFactory.getLogger(TransactionServiceImpl.class);
     private final UserRepository userRepository;
-    private final GroupAccessor groupAccessor;
-    private final UserGroupAccessor userGroupAccessor;
+    private final GroupRepository groupRepository;
+    private final UserGroupRepository userGroupRepository;
     private final TransactionAccessor accessor;
-    private final ObligationAccessor obligationAccessor;
+    private final ObligationRepository obligationRepository;
     private final ExchangeRateRepository exchangeRateRepository;
 
     @Override
@@ -65,14 +65,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public TransactionSettlementResponseDTO getSettlements(UUID groupId) {
-        List<UserGroupEntity> userGroups = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
 
         List<String> userIds = userGroups.stream()
                 .map(UserGroupEntity::getUserUuid)
                 .map(UUID::toString)
                 .toList();
 
-        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByGroupId(groupId);
+        List<TransactionObligationEntity> transactionObligationEntityList = obligationRepository.findByGroupId(groupId);
 
         Map<String, BigDecimal> balances = getUserBalances(userIds, transactionObligationEntityList);
         List<TransactionSettlement> transactions = optimizeTransactions(balances, userGroups);
@@ -230,7 +230,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         UserEntity payer = userRepository.findById(request.payerId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));
-        GroupEntity group = groupAccessor.findById(groupId);
+        GroupEntity group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
         TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
 
         // Save into transaction_obligations
@@ -249,14 +250,14 @@ public class TransactionServiceImpl implements TransactionService {
                     })
                     .collect(Collectors.toList());
 
-            List<TransactionObligationEntity> savedObligations = obligationAccessor.saveAll(transactionObligationEntityList);
+            List<TransactionObligationEntity> savedObligations = obligationRepository.saveAll(transactionObligationEntityList);
 
             return CreateTransactionResponseDTO.from(savedTransaction, savedObligations);
         } else {
             UserEntity recipient = userRepository.findById(request.repayment().recipientId())
                     .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.repayment().recipientId()));
 
-            TransactionObligationEntity savedObligation = obligationAccessor.save(TransactionObligationEntity.from(savedTransaction, recipient));
+            TransactionObligationEntity savedObligation = obligationRepository.save(TransactionObligationEntity.from(savedTransaction, recipient));
 
             return CreateTransactionResponseDTO.from(savedTransaction, savedObligation);
         }
@@ -268,7 +269,7 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionHistoryEntity transaction = accessor.findById(transactionId);
         TransactionType transactionType = transaction.getTransactionType();
 
-        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByTransactionId(transactionId);
+        List<TransactionObligationEntity> transactionObligationEntityList = obligationRepository.findByTransactionId(transactionId);
 
         if (transactionType == TransactionType.LOAN) {
            return CreateTransactionResponseDTO.from(transaction, transactionObligationEntityList);
@@ -281,9 +282,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void deleteTransaction(UUID transactionId) {
         // Delete Obligations first
-        List<TransactionObligationEntity> transactionObligationEntityList = obligationAccessor.findByTransactionId(transactionId);
+        List<TransactionObligationEntity> transactionObligationEntityList = obligationRepository.findByTransactionId(transactionId);
         List<UUID> uuidList = transactionObligationEntityList.stream().map(TransactionObligationEntity::getUuid).toList();
-        obligationAccessor.deleteAllById(uuidList);
+        obligationRepository.deleteAllById(uuidList);
 
         accessor.deleteById(transactionId);
     }
