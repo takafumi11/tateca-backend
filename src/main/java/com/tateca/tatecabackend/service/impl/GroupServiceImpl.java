@@ -132,9 +132,6 @@ public class GroupServiceImpl implements GroupService {
     public GroupResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
         // check if token is valid or not
         GroupEntity groupEntity = accessor.findById(groupId);
-        if (!groupEntity.getJoinToken().equals(request.joinToken())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.joinToken());
-        }
 
         // Check if user has already joined this group.
         List<UserGroupEntity> userGroupEntityList = userGroupAccessor.findByGroupUuidWithUserDetails(groupId);
@@ -150,6 +147,10 @@ public class GroupServiceImpl implements GroupService {
 
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
         validateMaxGroupCount(uid);
+
+        if (!groupEntity.getJoinToken().equals(request.joinToken())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.joinToken());
+        }
 
         // Update users.auth_user_uid to link authUser and user
         UserEntity userEntity = userRepository.findById(request.userUuid())

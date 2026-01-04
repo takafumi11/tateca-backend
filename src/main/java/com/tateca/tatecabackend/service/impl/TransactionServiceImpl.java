@@ -175,6 +175,7 @@ public class TransactionServiceImpl implements TransactionService {
             ParticipantModel debtor = debtors.poll();
             ParticipantModel creditor = creditors.poll();
 
+            assert creditor != null;
             BigDecimal minAmount = debtor.getAmount().min(creditor.getAmount());
             // Round to nearest integer using HALF_UP (JPY doesn't have fractional units)
             long roundedAmount = minAmount.setScale(0, RoundingMode.HALF_UP).longValue();
@@ -272,7 +273,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (transactionType == TransactionType.LOAN) {
            return CreateTransactionResponseDTO.from(transaction, transactionObligationEntityList);
         } else {
-            return CreateTransactionResponseDTO.from(transaction, transactionObligationEntityList.get(0));
+            return CreateTransactionResponseDTO.from(transaction, transactionObligationEntityList.getFirst());
         }
     }
 
