@@ -15,8 +15,11 @@ import com.tateca.tatecabackend.repository.GroupRepository;
 import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.GroupService;
+import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class GroupServiceImpl implements GroupService {
+    private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
     private final EntityManager entityManager;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
@@ -55,10 +59,16 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO updateGroupName(UUID groupId, String name) {
+        logger.info("Updating group name: groupId={}", PiiMaskingUtil.maskUuid(groupId));
+
         GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+        String oldName = group.getName();
         group.setName(name);
         groupRepository.save(group);
+
+        logger.info("Group name updated successfully: groupId={}, oldName={}, newName={}",
+                PiiMaskingUtil.maskUuid(groupId), oldName, name);
 
         return getGroupInfo(groupId);
     }
@@ -79,6 +89,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO createGroup(String uid, CreateGroupRequestDTO request) {
+        int totalMembers = 1 + request.participantsName().size(); // host + participants
+        logger.info("Creating new group: userId={}, groupName={}, memberCount={}",
+                PiiMaskingUtil.maskUid(uid), request.groupName(), totalMembers);
+
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
         validateMaxGroupCount(uid);
 
@@ -124,6 +138,11 @@ public class GroupServiceImpl implements GroupService {
         });
         userGroupRepository.saveAll(userGroupEntityList);
 
+        logger.info("Group created successfully: groupId={}, userId={}, memberCount={}",
+                PiiMaskingUtil.maskUuid(groupEntitySaved.getUuid()),
+                PiiMaskingUtil.maskUid(uid),
+                totalMembers);
+
         Long transactionCount = transactionRepository.countByGroup_Uuid(groupEntitySaved.getUuid());
         return GroupResponseDTO.from(userEntityListSaved, groupEntitySaved, transactionCount);
     }
@@ -131,6 +150,11 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid) {
+        logger.info("User attempting to join group: userId={}, groupId={}, userUuid={}",
+                PiiMaskingUtil.maskUid(uid),
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUuid(request.userUuid()));
+
         // check if token is valid or not
         GroupEntity groupEntity = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
@@ -144,6 +168,8 @@ public class GroupServiceImpl implements GroupService {
                 });
 
         if (exists) {
+            logger.warn("User already joined this group: userId={}, groupId={}",
+                    PiiMaskingUtil.maskUid(uid), PiiMaskingUtil.maskUuid(groupId));
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already joined this group");
         }
 
@@ -151,6 +177,10 @@ public class GroupServiceImpl implements GroupService {
         validateMaxGroupCount(uid);
 
         if (!groupEntity.getJoinToken().equals(request.joinToken())) {
+            logger.warn("Invalid join token provided: userId={}, groupId={}, tokenProvided={}",
+                    PiiMaskingUtil.maskUid(uid),
+                    PiiMaskingUtil.maskUuid(groupId),
+                    PiiMaskingUtil.maskToken(request.joinToken().toString()));
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.joinToken());
         }
 
@@ -161,6 +191,11 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
         userEntity.setAuthUser(authUserEntity);
         userRepository.save(userEntity);
+
+        logger.info("User successfully joined group: userId={}, groupId={}, groupName={}",
+                PiiMaskingUtil.maskUid(uid),
+                PiiMaskingUtil.maskUuid(groupId),
+                groupEntity.getName());
 
         // Build response
         // Check if user has already in the group requested.
@@ -173,8 +208,11 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public void leaveGroup(UUID groupId, UUID userUuid) {
+        logger.info("User attempting to leave group: groupId={}, userUuid={}",
+                PiiMaskingUtil.maskUuid(groupId), PiiMaskingUtil.maskUuid(userUuid));
+
         // Verify group exists
-        groupRepository.findById(groupId)
+        GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
 
         // Verify user is in the group (using composite primary key for efficiency)
@@ -186,8 +224,14 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + userUuid));
 
         // Set auth_user to null (leave group)
+        String authUserId = userEntity.getAuthUser() != null ? userEntity.getAuthUser().getUid() : null;
         userEntity.setAuthUser(null);
         userRepository.save(userEntity);
+
+        logger.info("User successfully left group: userId={}, groupId={}, groupName={}",
+                authUserId != null ? PiiMaskingUtil.maskUid(authUserId) : "unknown",
+                PiiMaskingUtil.maskUuid(groupId),
+                group.getName());
     }
 
     private void validateMaxGroupCount(String uid) {
