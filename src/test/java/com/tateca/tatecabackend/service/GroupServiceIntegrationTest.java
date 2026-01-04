@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
@@ -48,7 +48,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     private UserGroupRepository userGroupRepository;
 
     @Autowired
-    private TransactionAccessor transactionAccessor;
+    private TransactionRepository transactionRepository;
 
     private static final String TEST_UID = "test-uid-" + System.currentTimeMillis();
     private AuthUserEntity testAuthUser;

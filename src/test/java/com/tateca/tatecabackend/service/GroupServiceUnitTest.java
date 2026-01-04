@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
@@ -66,7 +66,7 @@ class GroupServiceUnitTest {
     private UserGroupRepository userGroupRepository;
 
     @Mock
-    private TransactionAccessor transactionAccessor;
+    private TransactionRepository transactionRepository;
 
     @InjectMocks
     private GroupServiceImpl groupService;
@@ -102,7 +102,7 @@ class GroupServiceUnitTest {
 
         when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(userGroups);
-        when(transactionAccessor.countByGroupId(testGroupId))
+        when(transactionRepository.countByGroup_Uuid(testGroupId))
                 .thenReturn(transactionCount);
 
         // When: Getting group info
@@ -147,7 +147,7 @@ class GroupServiceUnitTest {
 
         when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(userGroups);
-        when(transactionAccessor.countByGroupId(testGroupId))
+        when(transactionRepository.countByGroup_Uuid(testGroupId))
                 .thenReturn(0L);
 
         // When: Getting group info
@@ -165,7 +165,7 @@ class GroupServiceUnitTest {
 
         when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(testUserGroup));
-        when(transactionAccessor.countByGroupId(testGroupId))
+        when(transactionRepository.countByGroup_Uuid(testGroupId))
                 .thenReturn(expectedCount);
 
         // When: Getting group info
@@ -181,7 +181,7 @@ class GroupServiceUnitTest {
         // Given: Group with no transactions
         when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(List.of(testUserGroup));
-        when(transactionAccessor.countByGroupId(testGroupId))
+        when(transactionRepository.countByGroup_Uuid(testGroupId))
                 .thenReturn(0L);
 
         // When: Getting group info
@@ -416,7 +416,7 @@ class GroupServiceUnitTest {
             return users;
         });
         when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
-        when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
+        when(transactionRepository.countByGroup_Uuid(any())).thenReturn(0L);
 
         // When: Creating group
         GroupResponseDTO result = groupService.createGroup(uid, request);
@@ -485,7 +485,7 @@ class GroupServiceUnitTest {
             return users;
         });
         when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
-        when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
+        when(transactionRepository.countByGroup_Uuid(any())).thenReturn(0L);
 
         // When: Creating group
         GroupResponseDTO result = groupService.createGroup(specialUid, request);
@@ -538,7 +538,7 @@ class GroupServiceUnitTest {
             return users;
         });
         when(userGroupRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
-        when(transactionAccessor.countByGroupId(any())).thenReturn(0L);
+        when(transactionRepository.countByGroup_Uuid(any())).thenReturn(0L);
 
         // When: Creating group
         GroupResponseDTO result = groupService.createGroup(uid, request);
@@ -575,7 +575,7 @@ class GroupServiceUnitTest {
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(authUserRepository.findById(uid)).thenReturn(Optional.of(authUser));
         when(userRepository.save(any())).thenReturn(user);
-        when(transactionAccessor.countByGroupId(testGroupId)).thenReturn(0L);
+        when(transactionRepository.countByGroup_Uuid(testGroupId)).thenReturn(0L);
 
         // When: Joining group
         GroupResponseDTO result = groupService.joinGroupInvited(request, testGroupId, uid);
@@ -689,7 +689,7 @@ class GroupServiceUnitTest {
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(authUserRepository.findById(specialUid)).thenReturn(Optional.of(authUser));
         when(userRepository.save(any())).thenReturn(user);
-        when(transactionAccessor.countByGroupId(testGroupId)).thenReturn(0L);
+        when(transactionRepository.countByGroup_Uuid(testGroupId)).thenReturn(0L);
 
         // When: Joining group
         GroupResponseDTO result = groupService.joinGroupInvited(request, testGroupId, specialUid);
@@ -807,7 +807,7 @@ class GroupServiceUnitTest {
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(authUserRepository.findById(uid)).thenReturn(Optional.of(authUser));
         when(userRepository.save(any())).thenReturn(user);
-        when(transactionAccessor.countByGroupId(testGroupId)).thenReturn(0L);
+        when(transactionRepository.countByGroup_Uuid(testGroupId)).thenReturn(0L);
 
         // When: Joining group
         groupService.joinGroupInvited(request, testGroupId, uid);
@@ -843,7 +843,7 @@ class GroupServiceUnitTest {
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(authUserRepository.findById(uid)).thenReturn(Optional.of(authUser));
         when(userRepository.save(any())).thenReturn(user);
-        when(transactionAccessor.countByGroupId(testGroupId)).thenReturn(5L);
+        when(transactionRepository.countByGroup_Uuid(testGroupId)).thenReturn(5L);
 
         // When: Joining group
         GroupResponseDTO result = groupService.joinGroupInvited(request, testGroupId, uid);

@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
@@ -35,7 +35,7 @@ public class GroupServiceImpl implements GroupService {
     private final UserRepository userRepository;
     private final AuthUserRepository authUserRepository;
     private final UserGroupRepository userGroupRepository;
-    private final TransactionAccessor transactionAccessor;
+    private final TransactionRepository transactionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,7 +47,7 @@ public class GroupServiceImpl implements GroupService {
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
         GroupEntity groupEntity = userGroups.stream().map(UserGroupEntity::getGroup).toList().get(0);
-        Long transactionCount = transactionAccessor.countByGroupId(groupId);
+        Long transactionCount = transactionRepository.countByGroup_Uuid(groupId);
 
         return GroupResponseDTO.from(users, groupEntity, transactionCount);
     }
@@ -124,7 +124,7 @@ public class GroupServiceImpl implements GroupService {
         });
         userGroupRepository.saveAll(userGroupEntityList);
 
-        Long transactionCount = transactionAccessor.countByGroupId(groupEntitySaved.getUuid());
+        Long transactionCount = transactionRepository.countByGroup_Uuid(groupEntitySaved.getUuid());
         return GroupResponseDTO.from(userEntityListSaved, groupEntitySaved, transactionCount);
     }
 
@@ -165,7 +165,7 @@ public class GroupServiceImpl implements GroupService {
         // Build response
         // Check if user has already in the group requested.
         List<UserEntity> users = userGroupEntityList.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
-        Long transactionCount = transactionAccessor.countByGroupId(groupId);
+        Long transactionCount = transactionRepository.countByGroup_Uuid(groupId);
 
         return GroupResponseDTO.from(users, groupEntity, transactionCount);
     }
