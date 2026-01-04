@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,13 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/groups")
+@RequestMapping(value = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Groups", description = "Group management operations")
 public class GroupController {
     private final GroupService service;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new group")
     public ResponseEntity<GroupResponseDTO> createGroup(
             @UId String uid,
@@ -41,7 +42,7 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{groupId}")
+    @PatchMapping(value = "/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Update group name")
     public ResponseEntity<GroupResponseDTO> updateGroupName(
             @PathVariable("groupId") UUID groupId,
@@ -69,7 +70,7 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{groupId}")
+    @PostMapping(value = "/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Join a group using invitation token")
     public ResponseEntity<GroupResponseDTO> joinGroupInvited(
             @Valid @RequestBody JoinGroupRequestDTO request,

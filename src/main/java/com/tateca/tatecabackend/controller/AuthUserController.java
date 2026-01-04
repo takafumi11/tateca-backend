@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth/users")
+@RequestMapping(value = "/auth/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Auth Users", description = "Authenticated user management operations")
@@ -41,7 +42,7 @@ public class AuthUserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthUserResponseDTO> createAuthUser(
             @UId String uid,
             @Valid @RequestBody CreateAuthUserRequestDTO request) {
@@ -60,7 +61,7 @@ public class AuthUserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @PatchMapping("/review-preferences")
+    @PatchMapping(value = "/review-preferences", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthUserResponseDTO> updateReviewPreferences(
             @UId String uid,
             @Valid @RequestBody UpdateAppReviewRequestDTO request
