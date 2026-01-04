@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.service.impl;
 
-import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
 import com.tateca.tatecabackend.repository.ObligationRepository;
@@ -50,14 +50,14 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final UserGroupRepository userGroupRepository;
-    private final TransactionAccessor accessor;
+    private final TransactionRepository transactionRepository;
     private final ObligationRepository obligationRepository;
     private final ExchangeRateRepository exchangeRateRepository;
 
     @Override
     @Transactional(readOnly = true)
     public TransactionHistoryResponseDTO getTransactionHistory(int count, UUID groupId) {
-        List<TransactionHistoryEntity> transactionHistoryEntityList = accessor.findTransactionsByGroupWithLimit(groupId, count);
+        List<TransactionHistoryEntity> transactionHistoryEntityList = transactionRepository.findTransactionsByGroupWithLimit(groupId, count);
 
         return TransactionHistoryResponseDTO.buildResponse(transactionHistoryEntityList);
     }
@@ -232,7 +232,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));
         GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
-        TransactionHistoryEntity savedTransaction = accessor.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
+        TransactionHistoryEntity savedTransaction = transactionRepository.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
 
         // Save into transaction_obligations
         if (request.transactionType() == TransactionType.LOAN) {
@@ -266,7 +266,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public CreateTransactionResponseDTO getTransactionDetail(UUID transactionId) {
-        TransactionHistoryEntity transaction = accessor.findById(transactionId);
+        TransactionHistoryEntity transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction not found: " + transactionId));
         TransactionType transactionType = transaction.getTransactionType();
 
         List<TransactionObligationEntity> transactionObligationEntityList = obligationRepository.findByTransactionId(transactionId);
@@ -286,6 +287,6 @@ public class TransactionServiceImpl implements TransactionService {
         List<UUID> uuidList = transactionObligationEntityList.stream().map(TransactionObligationEntity::getUuid).toList();
         obligationRepository.deleteAllById(uuidList);
 
-        accessor.deleteById(transactionId);
+        transactionRepository.deleteById(transactionId);
     }
 }

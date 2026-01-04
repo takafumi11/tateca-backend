@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.repository.ObligationRepository;
-import com.tateca.tatecabackend.accessor.TransactionAccessor;
+import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -57,7 +57,7 @@ class TransactionServiceImplTest {
     private UserGroupRepository userGroupRepository;
 
     @Mock
-    private TransactionAccessor transactionAccessor;
+    private TransactionRepository transactionRepository;
 
     @Mock
     private ObligationRepository obligationRepository;
