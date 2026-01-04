@@ -1,6 +1,6 @@
 package com.tateca.tatecabackend.service;
 
-import com.tateca.tatecabackend.accessor.ObligationAccessor;
+import com.tateca.tatecabackend.repository.ObligationRepository;
 import com.tateca.tatecabackend.accessor.TransactionAccessor;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
@@ -60,7 +60,7 @@ class TransactionServiceImplTest {
     private TransactionAccessor transactionAccessor;
 
     @Mock
-    private ObligationAccessor obligationAccessor;
+    private ObligationRepository obligationRepository;
 
     @Mock
     private ExchangeRateRepository exchangeRateRepository;
@@ -83,7 +83,7 @@ class TransactionServiceImplTest {
                 UUID groupId = UUID.randomUUID();
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(new ArrayList<>());
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(new ArrayList<>());
 
                 // When: Get settlements
@@ -115,7 +115,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(obligation);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -160,7 +160,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(tx1Ob1, tx1Ob2, tx2Ob1, tx2Ob2);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -198,7 +198,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(obligation);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -236,7 +236,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(tx1Ob, tx2Ob);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -286,7 +286,7 @@ class TransactionServiceImplTest {
 
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -327,7 +327,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(obligation);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -361,7 +361,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(obligation);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
@@ -404,7 +404,7 @@ class TransactionServiceImplTest {
                 List<TransactionObligationEntity> obligations = List.of(ob1, ob2, ob3);
                 when(userGroupRepository.findByGroupUuidWithUserDetails(groupId))
                         .thenReturn(createUserGroupsFromObligations(obligations));
-                when(obligationAccessor.findByGroupId(groupId))
+                when(obligationRepository.findByGroupId(groupId))
                         .thenReturn(obligations);
 
                 // When: Get settlements
