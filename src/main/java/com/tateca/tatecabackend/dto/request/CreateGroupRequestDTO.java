@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tateca.tatecabackend.constants.BusinessConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,9 +24,9 @@ public record CreateGroupRequestDTO(
         String hostName,
 
         @NotNull(message = "Participants list is required")
-        @Size(min = 1, max = 8, message = "Participants must be between 1 and 8")
+        @Size(min = 1, max = BusinessConstants.MAX_GROUP_PARTICIPANTS, message = "Participants must be between 1 and " + BusinessConstants.MAX_GROUP_PARTICIPANTS)
         @JsonProperty("participants_name")
-        @Schema(description = "List of participant names (minimum 1, maximum 8)", example = "[\"Alice\", \"Bob\", \"Charlie\"]")
+        @Schema(description = "List of participant names (minimum 1, maximum " + BusinessConstants.MAX_GROUP_PARTICIPANTS + ")", example = "[\"Alice\", \"Bob\", \"Charlie\"]")
         List<@NotBlank(message = "Participant name cannot be blank") @Size(max = 50, message = "Participant name must not exceed 50 characters") String> participantsName
 ) {
 }

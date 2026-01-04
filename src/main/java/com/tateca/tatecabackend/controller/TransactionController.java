@@ -7,8 +7,10 @@ import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,18 +23,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_GROUPS;
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_HISTORY;
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_TRANSACTIONS;
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(PATH_GROUPS + "/{groupId}" + PATH_TRANSACTIONS)
+@RequestMapping(value = "/groups/{groupId}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Transactions", description = "Transaction management operations")
 public class TransactionController {
     private final TransactionService service;
 
-    @GetMapping(PATH_HISTORY)
+    @GetMapping("/history")
     @Operation(summary = "Get transaction history for a group")
     public ResponseEntity<TransactionHistoryResponseDTO> getTransactionHistory(
             @RequestParam(defaultValue = "5") int count,
@@ -51,11 +49,11 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new transaction")
     public ResponseEntity<CreateTransactionResponseDTO> createTransaction(
             @PathVariable("groupId") UUID groupId,
-            @RequestBody CreateTransactionRequestDTO request
+            @Valid @RequestBody CreateTransactionRequestDTO request
     ) {
         CreateTransactionResponseDTO response = service.createTransaction(groupId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
