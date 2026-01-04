@@ -295,6 +295,43 @@ class GroupControllerTest {
 
             verify(groupService, never()).createGroup(anyString(), any());
         }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is missing")
+        void shouldReturn415WhenContentTypeIsMissing() throws Exception {
+            // Given: Valid JSON but no Content-Type header
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "New Group",
+                    "Host User",
+                    List.of("User 1")
+            );
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(groupService, never()).createGroup(anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is not JSON")
+        void shouldReturn415WhenContentTypeIsNotJson() throws Exception {
+            // Given: Valid JSON but wrong Content-Type
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "New Group",
+                    "Host User",
+                    List.of("User 1")
+            );
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.TEXT_PLAIN)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(groupService, never()).createGroup(anyString(), any());
+        }
     }
 
     // ========================================
@@ -402,6 +439,37 @@ class GroupControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status").value(400));
+
+            verify(groupService, never()).updateGroupName(any(), anyString());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is missing")
+        void shouldReturn415WhenContentTypeIsMissing() throws Exception {
+            // Given: Valid JSON but no Content-Type header
+            UUID groupId = UUID.randomUUID();
+            UpdateGroupNameRequestDTO request = new UpdateGroupNameRequestDTO("Updated Name");
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(patch(BASE_ENDPOINT + "/{groupId}", groupId)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(groupService, never()).updateGroupName(any(), anyString());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is not JSON")
+        void shouldReturn415WhenContentTypeIsNotJson() throws Exception {
+            // Given: Valid JSON but wrong Content-Type
+            UUID groupId = UUID.randomUUID();
+            UpdateGroupNameRequestDTO request = new UpdateGroupNameRequestDTO("Updated Name");
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(patch(BASE_ENDPOINT + "/{groupId}", groupId)
+                            .contentType(MediaType.TEXT_PLAIN)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
 
             verify(groupService, never()).updateGroupName(any(), anyString());
         }
@@ -682,6 +750,41 @@ class GroupControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+
+            verify(groupService, never()).joinGroupInvited(any(), any(), anyString());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is missing")
+        void shouldReturn415WhenContentTypeIsMissing() throws Exception {
+            // Given: Valid JSON but no Content-Type header
+            UUID groupId = UUID.randomUUID();
+            UUID userUuid = UUID.randomUUID();
+            UUID joinToken = UUID.randomUUID();
+            JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(groupService, never()).joinGroupInvited(any(), any(), anyString());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is not JSON")
+        void shouldReturn415WhenContentTypeIsNotJson() throws Exception {
+            // Given: Valid JSON but wrong Content-Type
+            UUID groupId = UUID.randomUUID();
+            UUID userUuid = UUID.randomUUID();
+            UUID joinToken = UUID.randomUUID();
+            JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
+                            .contentType(MediaType.TEXT_PLAIN)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
 
             verify(groupService, never()).joinGroupInvited(any(), any(), anyString());
         }

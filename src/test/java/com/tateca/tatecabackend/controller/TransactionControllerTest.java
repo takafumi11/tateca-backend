@@ -690,5 +690,107 @@ class TransactionControllerTest {
 
             verify(transactionService, never()).createTransaction(any(), any());
         }
+
+        // ========================================
+        // Media Type Validation Tests
+        // ========================================
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is missing")
+        void shouldReturn415WhenContentTypeIsMissing() throws Exception {
+            // Given: Valid LOAN transaction JSON but no Content-Type header
+            UUID groupId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            UUID borrower = UUID.randomUUID();
+
+            CreateTransactionRequestDTO.Loan.Obligation obligation =
+                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+            CreateTransactionRequestDTO.Loan loan =
+                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15",
+                    payerId,
+                    loan,
+                    null
+            );
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(transactionService, never()).createTransaction(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is not JSON")
+        void shouldReturn415WhenContentTypeIsNotJson() throws Exception {
+            // Given: Valid LOAN transaction JSON but wrong Content-Type
+            UUID groupId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            UUID borrower = UUID.randomUUID();
+
+            CreateTransactionRequestDTO.Loan.Obligation obligation =
+                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+            CreateTransactionRequestDTO.Loan loan =
+                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15",
+                    payerId,
+                    loan,
+                    null
+            );
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+                            .contentType(MediaType.TEXT_PLAIN)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(transactionService, never()).createTransaction(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is XML")
+        void shouldReturn415WhenContentTypeIsXml() throws Exception {
+            // Given: Valid LOAN transaction JSON but XML Content-Type
+            UUID groupId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            UUID borrower = UUID.randomUUID();
+
+            CreateTransactionRequestDTO.Loan.Obligation obligation =
+                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+            CreateTransactionRequestDTO.Loan loan =
+                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15",
+                    payerId,
+                    loan,
+                    null
+            );
+
+            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
+            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+                            .contentType(MediaType.APPLICATION_XML)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(transactionService, never()).createTransaction(any(), any());
+        }
     }
 }
