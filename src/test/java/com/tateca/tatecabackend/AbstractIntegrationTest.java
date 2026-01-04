@@ -3,6 +3,8 @@ package com.tateca.tatecabackend;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,11 +17,15 @@ import org.wiremock.integrations.testcontainers.WireMockContainer;
 /**
  * Base class for Integration tests with MySQL and WireMock containers.
  * Provides database and external API mocking infrastructure.
+ * <p>
+ * Tests extending this class run sequentially to avoid database deadlocks
+ * when multiple tests access the same Testcontainers MySQL instance concurrently.
  */
 @SpringBootTest
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
+@Execution(ExecutionMode.SAME_THREAD)
 public abstract class AbstractIntegrationTest {
 
     @ServiceConnection
