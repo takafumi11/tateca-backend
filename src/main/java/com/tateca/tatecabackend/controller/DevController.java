@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(ApiConstants.PATH_DEV)
+@RequestMapping("/dev")
 @RequiredArgsConstructor
 @Tag(name = "Development", description = "Development and testing utilities (dev profile only)")
 @Profile("dev")

@@ -4,13 +4,12 @@ import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
-import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
+import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_GROUPS;
-
 @RestController
-@RequestMapping(PATH_GROUPS)
+@RequestMapping("/groups")
 @RequiredArgsConstructor
 @Tag(name = "Groups", description = "Group management operations")
 public class GroupController {
@@ -47,7 +44,7 @@ public class GroupController {
     @PatchMapping("/{groupId}")
     @Operation(summary = "Update group name")
     public ResponseEntity<GroupResponseDTO> updateGroupName(
-            @NotNull @PathVariable("groupId") UUID groupId,
+            @PathVariable("groupId") UUID groupId,
             @Valid @RequestBody UpdateGroupNameRequestDTO request
     ) {
         GroupResponseDTO response = service.updateGroupName(groupId, request.groupName());
@@ -57,7 +54,7 @@ public class GroupController {
     @GetMapping("/{groupId}")
     @Operation(summary = "Get group information by ID")
     public ResponseEntity<GroupResponseDTO> getGroupInfo(
-            @NotNull @PathVariable("groupId") UUID groupId
+            @PathVariable("groupId") UUID groupId
     ) {
         GroupResponseDTO response = service.getGroupInfo(groupId);
         return ResponseEntity.ok(response);
@@ -76,7 +73,7 @@ public class GroupController {
     @Operation(summary = "Join a group using invitation token")
     public ResponseEntity<GroupResponseDTO> joinGroupInvited(
             @Valid @RequestBody JoinGroupRequestDTO request,
-            @NotNull @PathVariable("groupId") UUID groupId,
+            @PathVariable("groupId") UUID groupId,
             @UId String uid
     ) {
         GroupResponseDTO response = service.joinGroupInvited(request, groupId, uid);
@@ -86,8 +83,8 @@ public class GroupController {
     @DeleteMapping("/{groupId}/users/{userUuid}")
     @Operation(summary = "Leave a group")
     public ResponseEntity<Void> leaveGroup(
-            @NotNull @PathVariable("groupId") UUID groupId,
-            @NotNull @PathVariable("userUuid") UUID userUuid
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("userUuid") UUID userUuid
     ) {
         service.leaveGroup(groupId, userUuid);
         return ResponseEntity.noContent().build();

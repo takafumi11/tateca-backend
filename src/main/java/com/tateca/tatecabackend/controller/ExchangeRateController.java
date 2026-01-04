@@ -1,6 +1,5 @@
 package com.tateca.tatecabackend.controller;
 
-import com.tateca.tatecabackend.constants.ApiConstants;
 import com.tateca.tatecabackend.dto.response.ExchangeRateResponseDTO;
 import com.tateca.tatecabackend.service.ExchangeRateService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping(ApiConstants.PATH_EXCHANGE_RATE)
+@RequestMapping("/exchange-rate")
 @RequiredArgsConstructor
 @Tag(name = "Exchange Rates", description = "Currency exchange rate operations")
 public class ExchangeRateController {

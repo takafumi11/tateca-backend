@@ -21,18 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_GROUPS;
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_HISTORY;
-import static com.tateca.tatecabackend.constants.ApiConstants.PATH_TRANSACTIONS;
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(PATH_GROUPS + "/{groupId}" + PATH_TRANSACTIONS)
+@RequestMapping("/groups/{groupId}/transactions")
 @Tag(name = "Transactions", description = "Transaction management operations")
 public class TransactionController {
     private final TransactionService service;
 
-    @GetMapping(PATH_HISTORY)
+    @GetMapping("/history")
     @Operation(summary = "Get transaction history for a group")
     public ResponseEntity<TransactionHistoryResponseDTO> getTransactionHistory(
             @RequestParam(defaultValue = "5") int count,

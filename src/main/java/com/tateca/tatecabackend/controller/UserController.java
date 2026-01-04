@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(ApiConstants.PATH_USERS)
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Tag(name = "Users", description = "User management operations")
 public class UserController {
