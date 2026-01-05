@@ -35,9 +35,27 @@
         <appender-ref ref="CONSOLE_PROD"/>
     </appender>
 
-    <!-- Better Stack HTTP Appender (Production Only) -->
-    <!-- Note: Better Stack ingests logs from stdout/stderr when deployed to Railway -->
-    <!-- Railway automatically forwards container logs to Better Stack when configured -->
+    <!-- Better Stack Appender (Production Only - Direct HTTP Integration) -->
+    <appender name="BETTERSTACK" class="com.tateca.tatecabackend.logging.BetterStackAppender">
+        <sourceToken>${BETTER_STACK_SOURCE_TOKEN}</sourceToken>
+        <endpoint>https://in.logs.betterstack.com</endpoint>
+        <queueSize>1000</queueSize>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <customFields>{"application":"tateca-backend","environment":"production"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Async Better Stack Appender (Non-blocking) -->
+    <appender name="ASYNC_BETTERSTACK" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="BETTERSTACK"/>
+    </appender>
 
     <!-- Logger Configuration -->
     <logger name="com.tateca.tatecabackend" level="INFO"/>
@@ -59,10 +77,11 @@
         <logger name="com.tateca.tatecabackend" level="DEBUG"/>
     </springProfile>
 
-    <!-- Production Profile: JSON structured logs -->
+    <!-- Production Profile: JSON structured logs with Better Stack integration -->
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_BETTERSTACK"/>
         </root>
         <!-- Reduce noise in production -->
         <logger name="org.springframework.web" level="WARN"/>
