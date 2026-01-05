@@ -38,7 +38,7 @@
     <!-- Better Stack Appender (Production Only - Direct HTTP Integration) -->
     <appender name="BETTERSTACK" class="com.tateca.tatecabackend.logging.BetterStackAppender">
         <sourceToken>${BETTER_STACK_SOURCE_TOKEN}</sourceToken>
-        <endpoint>https://in.logs.betterstack.com</endpoint>
+        <endpoint>${BETTER_STACK_ENDPOINT:-https://in.logs.betterstack.com}</endpoint>
         <queueSize>1000</queueSize>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdcKeyName>requestId</includeMdcKeyName>
