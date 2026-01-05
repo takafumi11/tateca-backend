@@ -46,6 +46,11 @@
     <logger name="org.hibernate.SQL" level="DEBUG"/>
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
 
+    <!-- Default Profile: Use development settings when no profile is specified -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_DEV"/>
+    </root>
+
     <!-- Development Profile: Human-readable console logs -->
     <springProfile name="dev">
         <root level="INFO">
