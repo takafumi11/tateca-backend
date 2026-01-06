@@ -16,6 +16,7 @@ springdoc = "2.8.1"
 # Observability
 logstash-logback = "7.4"
 micrometer = "1.14.2"
+datasource-proxy = "1.10"
 
 # Development Tools
 spring-dotenv = "4.0.0"
@@ -64,6 +65,7 @@ springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openap
 # Observability
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+datasource-proxy = { module = "net.ttddyy:datasource-proxy", version.ref = "datasource-proxy" }
 
 # Development
 spring-dotenv = { module = "me.paulschwarz:spring-dotenv", version.ref = "spring-dotenv" }
@@ -102,7 +104,8 @@ flyway = ["flyway-core", "flyway-mysql"]
 
 observability = [
     "logstash-logback-encoder",
-    "micrometer-registry-prometheus"
+    "micrometer-registry-prometheus",
+    "datasource-proxy"
 ]
 
 testcontainers = [
