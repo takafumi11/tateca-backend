@@ -19,7 +19,7 @@
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
             <includeMdcKeyName>status</includeMdcKeyName>
-            <includeMdcKeyName>processingTimeMs</includeMdcKeyName>
+            <includeMdcKeyName>latencyMs</includeMdcKeyName>
 
             <!-- Add custom fields -->
             <customFields>{"application":"tateca-backend","environment":"production"}</customFields>
@@ -48,7 +48,7 @@
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
             <includeMdcKeyName>status</includeMdcKeyName>
-            <includeMdcKeyName>processingTimeMs</includeMdcKeyName>
+            <includeMdcKeyName>latencyMs</includeMdcKeyName>
             <customFields>{"application":"tateca-backend","environment":"production"}</customFields>
         </encoder>
     </appender>

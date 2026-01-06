@@ -61,7 +61,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         // Add response metrics to MDC for structured logging
         MDC.put("status", String.valueOf(status));
-        MDC.put("processingTimeMs", String.valueOf(processingTimeMs));
+        MDC.put("latencyMs", String.valueOf(processingTimeMs));
 
         // Log response
         logger.info("HTTP Response");
