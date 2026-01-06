@@ -61,15 +61,17 @@ public class TransactionController {
     ) {
         logger.info("Creating transaction: groupId={}, type={}, amount={}, currency={}",
                 PiiMaskingUtil.maskUuid(groupId),
-                request.type(),
+                request.transactionType(),
                 request.amount(),
                 request.currencyCode());
 
         CreateTransactionResponseDTO response = service.createTransaction(groupId, request);
 
-        logger.info("Transaction created successfully: transactionId={}, groupId={}",
-                PiiMaskingUtil.maskUuid(response.transactionId()),
-                PiiMaskingUtil.maskUuid(groupId));
+        if (response != null && response.id() != null) {
+            logger.info("Transaction created successfully: transactionId={}, groupId={}",
+                    PiiMaskingUtil.maskUuid(UUID.fromString(response.id())),
+                    PiiMaskingUtil.maskUuid(groupId));
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

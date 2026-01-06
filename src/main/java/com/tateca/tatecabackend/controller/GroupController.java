@@ -48,9 +48,11 @@ public class GroupController {
 
         GroupResponseDTO response = service.createGroup(uid, request);
 
-        logger.info("Group created successfully: groupId={}, uid={}",
-                PiiMaskingUtil.maskUuid(response.groupId()),
-                PiiMaskingUtil.maskUid(uid));
+        if (response != null && response.groupInfo() != null && response.groupInfo().uuid() != null) {
+            logger.info("Group created successfully: groupId={}, uid={}",
+                    PiiMaskingUtil.maskUuid(UUID.fromString(response.groupInfo().uuid())),
+                    PiiMaskingUtil.maskUid(uid));
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -96,10 +98,12 @@ public class GroupController {
 
         GroupResponseDTO response = service.joinGroupInvited(request, groupId, uid);
 
-        logger.info("User joined group successfully: groupId={}, uid={}, memberCount={}",
-                PiiMaskingUtil.maskUuid(groupId),
-                PiiMaskingUtil.maskUid(uid),
-                response.users().size());
+        if (response != null && response.users() != null) {
+            logger.info("User joined group successfully: groupId={}, uid={}, memberCount={}",
+                    PiiMaskingUtil.maskUuid(groupId),
+                    PiiMaskingUtil.maskUid(uid),
+                    response.users().size());
+        }
 
         return ResponseEntity.ok(response);
     }
