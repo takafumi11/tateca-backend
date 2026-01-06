@@ -51,19 +51,20 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         Instant responseTime = Instant.now();
         long processingTimeMs = responseTime.toEpochMilli() - requestTime.toEpochMilli();
+        int status = response.getStatus();
 
         // Log request with minimal information (no body for security)
-        logger.info("HTTP Request: method={}, path={}, userId={}, requestId={}",
+        logger.info("HTTP Request: method={}, path={}, userId={}",
                 request.getMethod(),
                 request.getRequestURI(),
-                uid != null ? PiiMaskingUtil.maskUid(uid) : "anonymous",
-                requestId);
+                uid != null ? PiiMaskingUtil.maskUid(uid) : "anonymous");
 
-        // Log response with processing time
-        logger.info("HTTP Response: status={}, processingTimeMs={}, requestId={}",
-                response.getStatus(),
-                processingTimeMs,
-                requestId);
+        // Add response metrics to MDC for structured logging
+        MDC.put("status", String.valueOf(status));
+        MDC.put("processingTimeMs", String.valueOf(processingTimeMs));
+
+        // Log response
+        logger.info("HTTP Response");
 
         // Clear MDC to prevent memory leaks in thread pools
         MDC.clear();
