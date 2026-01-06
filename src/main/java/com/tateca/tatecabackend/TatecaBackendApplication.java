@@ -9,7 +9,8 @@ import org.springframework.core.env.Environment;
 import lombok.extern.slf4j.Slf4j;
 
 @SpringBootApplication(exclude = {
-	org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration.class
+	org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration.class,
+	org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class
 })
 @Slf4j
 @RequiredArgsConstructor

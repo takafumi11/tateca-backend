@@ -53,11 +53,12 @@ public class LoggingInterceptor implements HandlerInterceptor {
         long processingTimeMs = responseTime.toEpochMilli() - requestTime.toEpochMilli();
         int status = response.getStatus();
 
-        // Log request with minimal information (no body for security)
-        logger.info("HTTP Request: method={}, path={}, userId={}",
-                request.getMethod(),
-                request.getRequestURI(),
-                uid != null ? PiiMaskingUtil.maskUid(uid) : "anonymous");
+        // Add request details to MDC for structured logging
+        MDC.put("method", request.getMethod());
+        MDC.put("path", request.getRequestURI());
+
+        // Log request
+        logger.info("HTTP Request");
 
         // Add response metrics to MDC for structured logging
         MDC.put("status", String.valueOf(status));

@@ -16,13 +16,15 @@
             <!-- Add standard fields -->
             <includeMdcKeyName>requestId</includeMdcKeyName>
             <includeMdcKeyName>userId</includeMdcKeyName>
-            <includeMdcKeyName>traceId</includeMdcKeyName>
-            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>method</includeMdcKeyName>
+            <includeMdcKeyName>path</includeMdcKeyName>
             <includeMdcKeyName>status</includeMdcKeyName>
             <includeMdcKeyName>latencyMs</includeMdcKeyName>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
 
             <!-- Add custom fields -->
-            <customFields>{"application":"tateca-backend","environment":"production"}</customFields>
+            <customFields>{"application":"tateca-backend"}</customFields>
 
             <!-- Pretty print for local testing (can be disabled for production) -->
             <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
@@ -45,11 +47,13 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdcKeyName>requestId</includeMdcKeyName>
             <includeMdcKeyName>userId</includeMdcKeyName>
-            <includeMdcKeyName>traceId</includeMdcKeyName>
-            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>method</includeMdcKeyName>
+            <includeMdcKeyName>path</includeMdcKeyName>
             <includeMdcKeyName>status</includeMdcKeyName>
             <includeMdcKeyName>latencyMs</includeMdcKeyName>
-            <customFields>{"application":"tateca-backend","environment":"production"}</customFields>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <customFields>{"application":"tateca-backend"}</customFields>
         </encoder>
     </appender>
 
