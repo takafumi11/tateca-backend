@@ -72,6 +72,9 @@
     <logger name="org.hibernate.SQL" level="DEBUG"/>
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
 
+    <!-- datasource-proxy: Log all queries at INFO level -->
+    <logger name="net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener" level="INFO"/>
+
     <!-- Default Profile: Use development settings when no profile is specified -->
     <root level="INFO">
         <appender-ref ref="CONSOLE_DEV"/>
