@@ -20,7 +20,7 @@ datasource-proxy = "1.10"
 
 # Development Tools
 spring-dotenv = "4.0.0"
-lombok = "1.18.36"
+lombok = "1.18.42"
 
 # Testing
 testcontainers = "1.20.4"
