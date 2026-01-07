@@ -182,7 +182,8 @@ class TatecaAuthenticationFilterUnitTest {
                 FirebaseToken firebaseToken = mock(FirebaseToken.class);
 
                 firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
-                when(firebaseAuth.verifyIdToken(validToken)).thenReturn(firebaseToken);
+                // Updated to match implementation: checkRevoked=true
+                when(firebaseAuth.verifyIdToken(validToken, true)).thenReturn(firebaseToken);
 
                 // Setup token claims
                 Map<String, Object> claims = new HashMap<>();
