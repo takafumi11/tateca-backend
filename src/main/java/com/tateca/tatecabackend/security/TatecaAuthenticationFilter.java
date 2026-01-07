@@ -137,7 +137,10 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String idToken = bearerToken.substring(7);
-        FirebaseToken firebaseToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+        // SECURITY: Enable token revocation check to immediately invalidate logged-out users
+        // This prevents compromised tokens from being used after logout/password change
+        // Performance impact: +10-50ms per request (Firebase database lookup)
+        FirebaseToken firebaseToken = FirebaseAuth.getInstance().verifyIdToken(idToken, true);
 
         // Validate audience
         String audience = (String) firebaseToken.getClaims().get("aud");
