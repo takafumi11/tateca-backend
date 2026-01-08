@@ -22,6 +22,8 @@
             <includeMdcKeyName>latencyMs</includeMdcKeyName>
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>requestBody</includeMdcKeyName>
+            <includeMdcKeyName>responseBody</includeMdcKeyName>
 
             <!-- Add custom fields -->
             <customFields>{"application":"tateca-backend"}</customFields>
@@ -53,6 +55,8 @@
             <includeMdcKeyName>latencyMs</includeMdcKeyName>
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>requestBody</includeMdcKeyName>
+            <includeMdcKeyName>responseBody</includeMdcKeyName>
             <customFields>{"application":"tateca-backend"}</customFields>
         </encoder>
     </appender>

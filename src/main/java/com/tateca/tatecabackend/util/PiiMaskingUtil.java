@@ -47,7 +47,7 @@ public class PiiMaskingUtil {
      * Check if masking should be applied.
      * Masking is disabled in dev environment for easier debugging.
      */
-    private static boolean shouldMask() {
+    public static boolean shouldMask() {
         return !"dev".equals(activeProfile);
     }
 
