@@ -43,9 +43,12 @@ public record CreateTransactionRequestDTO(
         String currencyCode,
 
         @NotBlank(message = "Date is required and cannot be blank")
-//        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Date must be in yyyy-MM-dd format")
+        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}([+-]\\d{2}:\\d{2}|Z)$",
+                message = "Date must be in ISO 8601 format with timezone (e.g., 2024-01-15T18:30:00+09:00 or 2024-01-15T09:30:00Z)")
         @JsonProperty("date_str")
-        @Schema(description = "Transaction date in yyyy-MM-dd format", example = "2024-01-15", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Transaction date in ISO 8601 format with timezone",
+                example = "2024-01-15T18:30:00+09:00",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         String dateStr,
 
         @NotNull(message = "Payer ID is required")
