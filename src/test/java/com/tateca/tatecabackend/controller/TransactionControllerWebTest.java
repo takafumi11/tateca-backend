@@ -91,7 +91,7 @@ class TransactionControllerWebTest {
                     "Dinner at restaurant",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -122,7 +122,7 @@ class TransactionControllerWebTest {
                     "Repayment for dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     null,
                     repayment
@@ -187,7 +187,7 @@ class TransactionControllerWebTest {
                     "A".repeat(51),  // 51 characters
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -235,7 +235,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     0,  // Invalid: must be positive
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -269,7 +269,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     -1000,  // Invalid: must be positive
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -317,7 +317,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "jpy",  // Invalid: must be uppercase
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -351,7 +351,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JP",  // Invalid: must be 3 characters
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -367,40 +367,107 @@ class TransactionControllerWebTest {
             verify(transactionService, never()).createTransaction(any(), any());
         }
 
-//        TODO: Should check iOS to see format
-//        @Test
-//        @DisplayName("Should return 400 when date format is invalid")
-//        void shouldReturn400WhenDateFormatIsInvalid() throws Exception {
-//            // Given: Request with invalid date format
-//            UUID groupId = UUID.randomUUID();
-//            UUID payerId = UUID.randomUUID();
-//            UUID borrower = UUID.randomUUID();
-//
-//            CreateTransactionRequestDTO.Loan.Obligation obligation =
-//                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-//            CreateTransactionRequestDTO.Loan loan =
-//                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-//
-//            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-//                    TransactionType.LOAN,
-//                    "Dinner",
-//                    5000,
-//                    "JPY",
-//                    "01/15/2024",  // Invalid: must be yyyy-MM-dd
-//                    payerId,
-//                    loan,
-//                    null
-//            );
-//
-//            // When & Then: Should return 400
-//            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-//                            .contentType(MediaType.APPLICATION_JSON)
-//                            .content(objectMapper.writeValueAsString(request)))
-//                    .andExpect(status().isBadRequest())
-//                    .andExpect(jsonPath("$.status").value(400));
-//
-//            verify(transactionService, never()).createTransaction(any(), any());
-//        }
+        @Test
+        @DisplayName("Should return 400 when date format is invalid (MM/DD/YYYY)")
+        void shouldReturn400WhenDateFormatIsInvalid() throws Exception {
+            // Given: Request with invalid date format
+            UUID groupId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            UUID borrower = UUID.randomUUID();
+
+            CreateTransactionRequestDTO.Loan.Obligation obligation =
+                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+            CreateTransactionRequestDTO.Loan loan =
+                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "01/15/2024",  // Invalid: must be ISO 8601 with timezone
+                    payerId,
+                    loan,
+                    null
+            );
+
+            // When & Then: Should return 400
+            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400));
+
+            verify(transactionService, never()).createTransaction(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when date has no timezone")
+        void shouldReturn400WhenDateHasNoTimezone() throws Exception {
+            // Given: Request with date missing timezone
+            UUID groupId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            UUID borrower = UUID.randomUUID();
+
+            CreateTransactionRequestDTO.Loan.Obligation obligation =
+                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+            CreateTransactionRequestDTO.Loan loan =
+                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00",  // Invalid: missing timezone
+                    payerId,
+                    loan,
+                    null
+            );
+
+            // When & Then: Should return 400
+            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400));
+
+            verify(transactionService, never()).createTransaction(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when date is date-only format")
+        void shouldReturn400WhenDateIsDateOnly() throws Exception {
+            // Given: Request with date-only format (no time)
+            UUID groupId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            UUID borrower = UUID.randomUUID();
+
+            CreateTransactionRequestDTO.Loan.Obligation obligation =
+                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
+            CreateTransactionRequestDTO.Loan loan =
+                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15",  // Invalid: must include time and timezone
+                    payerId,
+                    loan,
+                    null
+            );
+
+            // When & Then: Should return 400
+            mockMvc.perform(post(BASE_ENDPOINT, groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400));
+
+            verify(transactionService, never()).createTransaction(any(), any());
+        }
 
         @Test
         @DisplayName("Should return 400 when payer ID is null")
@@ -432,7 +499,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     null,  // Invalid: loan details required for LOAN
                     null
@@ -469,7 +536,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     repayment  // Invalid: repayment should not be provided for LOAN
@@ -497,7 +564,7 @@ class TransactionControllerWebTest {
                     "Repayment",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     null,
                     null  // Invalid: repayment details required for REPAYMENT
@@ -534,7 +601,7 @@ class TransactionControllerWebTest {
                     "Repayment",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,  // Invalid: loan should not be provided for REPAYMENT
                     repayment
@@ -569,7 +636,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -605,7 +672,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     9000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -656,7 +723,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -726,7 +793,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -758,7 +825,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
@@ -791,7 +858,7 @@ class TransactionControllerWebTest {
                     "Dinner",
                     5000,
                     "JPY",
-                    "2024-01-15",
+                    "2024-01-15T18:30:00+09:00",
                     payerId,
                     loan,
                     null
