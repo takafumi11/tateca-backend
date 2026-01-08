@@ -4,7 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.constants.BusinessConstants;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.UserResponseDTO;
+import com.tateca.tatecabackend.dto.response.internal.ExchangeRateResponse;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
+import com.tateca.tatecabackend.model.SymbolPosition;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.service.TransactionService;
 import org.junit.jupiter.api.DisplayName;
@@ -23,11 +30,18 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -790,6 +804,311 @@ class TransactionControllerWebTest {
                     .andExpect(status().isUnsupportedMediaType());
 
             verify(transactionService, never()).createTransaction(any(), any());
+        }
+    }
+
+    // ========================================
+    // getTransactionHistory Tests
+    // ========================================
+
+    @Nested
+    @DisplayName("GET /groups/{groupId}/transactions/history - Get Transaction History")
+    class GetTransactionHistoryTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with transaction history")
+        void shouldReturn200WithTransactionHistory() throws Exception {
+            // Given: Group has transactions
+            UUID groupId = UUID.randomUUID();
+            int count = 10;
+
+            TransactionHistoryResponseDTO expectedResponse =
+                    new TransactionHistoryResponseDTO(List.of());
+
+            when(transactionService.getTransactionHistory(anyInt(), eq(groupId)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should return 200
+            mockMvc.perform(get(BASE_ENDPOINT + "/history", groupId)
+                            .param("count", String.valueOf(count)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.transactions_history").isArray());
+
+            verify(transactionService, times(1)).getTransactionHistory(anyInt(), eq(groupId));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with default count when count parameter is not provided")
+        void shouldReturn200WithDefaultCount() throws Exception {
+            // Given: No count parameter provided
+            UUID groupId = UUID.randomUUID();
+
+            TransactionHistoryResponseDTO expectedResponse =
+                    new TransactionHistoryResponseDTO(List.of());
+
+            when(transactionService.getTransactionHistory(anyInt(), eq(groupId)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should return 200 with default count (5)
+            mockMvc.perform(get(BASE_ENDPOINT + "/history", groupId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.transactions_history").isArray());
+
+            verify(transactionService, times(1)).getTransactionHistory(anyInt(), eq(groupId));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when groupId is invalid UUID")
+        void shouldReturn400WhenInvalidUUID() throws Exception {
+            // Given: Invalid UUID
+            String invalidUUID = "not-a-uuid";
+
+            // When & Then: Should return 400
+            mockMvc.perform(get(BASE_ENDPOINT + "/history", invalidUUID)
+                            .param("count", "10"))
+                    .andExpect(status().isBadRequest());
+
+            verify(transactionService, never()).getTransactionHistory(anyInt(), any());
+        }
+    }
+
+    // ========================================
+    // getTransactionSettlement Tests
+    // ========================================
+
+    @Nested
+    @DisplayName("GET /groups/{groupId}/transactions/settlement - Get Transaction Settlement")
+    class GetTransactionSettlementTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with settlement information")
+        void shouldReturn200WithSettlementInfo() throws Exception {
+            // Given: Group has settlements
+            UUID groupId = UUID.randomUUID();
+
+            TransactionSettlementResponseDTO expectedResponse =
+                    new TransactionSettlementResponseDTO(List.of());
+
+            when(transactionService.getSettlements(eq(groupId)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should return 200
+            mockMvc.perform(get(BASE_ENDPOINT + "/settlement", groupId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.transactions_settlement").isArray());
+
+            verify(transactionService, times(1)).getSettlements(eq(groupId));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when group not found")
+        void shouldReturn404WhenGroupNotFound() throws Exception {
+            // Given: Group does not exist
+            UUID groupId = UUID.randomUUID();
+
+            when(transactionService.getSettlements(eq(groupId)))
+                    .thenThrow(new EntityNotFoundException("Group not found"));
+
+            // When & Then: Should return 404
+            mockMvc.perform(get(BASE_ENDPOINT + "/settlement", groupId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+
+            verify(transactionService, times(1)).getSettlements(eq(groupId));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when groupId is invalid UUID")
+        void shouldReturn400WhenInvalidUUID() throws Exception {
+            // Given: Invalid UUID
+            String invalidUUID = "not-a-uuid";
+
+            // When & Then: Should return 400
+            mockMvc.perform(get(BASE_ENDPOINT + "/settlement", invalidUUID))
+                    .andExpect(status().isBadRequest());
+
+            verify(transactionService, never()).getSettlements(any());
+        }
+    }
+
+    // ========================================
+    // getTransactionDetail Tests
+    // ========================================
+
+    @Nested
+    @DisplayName("GET /groups/{groupId}/transactions/{transactionId} - Get Transaction Detail")
+    class GetTransactionDetailTests {
+
+        @Test
+        @DisplayName("Should return 200 OK with transaction detail")
+        void shouldReturn200WithTransactionDetail() throws Exception {
+            // Given: Transaction exists
+            UUID groupId = UUID.randomUUID();
+            UUID transactionId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+
+            UserResponseDTO payer = new UserResponseDTO(
+                    payerId.toString(),
+                    "Test Payer",
+                    null,
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            ExchangeRateResponse exchangeRate = new ExchangeRateResponse(
+                    "JPY",
+                    "日本円",
+                    "Japanese Yen",
+                    "日本",
+                    "Japan",
+                    "¥",
+                    SymbolPosition.PREFIX,
+                    "1.00"
+            );
+
+            CreateTransactionResponseDTO expectedResponse =
+                    new CreateTransactionResponseDTO(
+                            transactionId.toString(),
+                            TransactionType.LOAN,
+                            "Test Transaction",
+                            5000L,
+                            payer,
+                            exchangeRate,
+                            "2024-01-15T18:00:00+09:00",
+                            null,
+                            null
+                    );
+
+            when(transactionService.getTransactionDetail(eq(transactionId)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should return 200
+            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.transaction_id").value(transactionId.toString()));
+
+            verify(transactionService, times(1)).getTransactionDetail(eq(transactionId));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when transaction not found")
+        void shouldReturn404WhenTransactionNotFound() throws Exception {
+            // Given: Transaction does not exist
+            UUID groupId = UUID.randomUUID();
+            UUID transactionId = UUID.randomUUID();
+
+            when(transactionService.getTransactionDetail(eq(transactionId)))
+                    .thenThrow(new EntityNotFoundException("Transaction not found"));
+
+            // When & Then: Should return 404
+            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+
+            verify(transactionService, times(1)).getTransactionDetail(eq(transactionId));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when groupId is invalid UUID")
+        void shouldReturn400WhenInvalidGroupIdUUID() throws Exception {
+            // Given: Invalid groupId UUID
+            String invalidGroupId = "not-a-uuid";
+            UUID transactionId = UUID.randomUUID();
+
+            // When & Then: Should return 400
+            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", invalidGroupId, transactionId))
+                    .andExpect(status().isBadRequest());
+
+            verify(transactionService, never()).getTransactionDetail(any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when transactionId is invalid UUID")
+        void shouldReturn400WhenInvalidTransactionIdUUID() throws Exception {
+            // Given: Invalid transactionId UUID
+            UUID groupId = UUID.randomUUID();
+            String invalidTransactionId = "not-a-uuid";
+
+            // When & Then: Should return 400
+            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, invalidTransactionId))
+                    .andExpect(status().isBadRequest());
+
+            verify(transactionService, never()).getTransactionDetail(any());
+        }
+    }
+
+    // ========================================
+    // deleteTransaction Tests
+    // ========================================
+
+    @Nested
+    @DisplayName("DELETE /groups/{groupId}/transactions/{transactionId} - Delete Transaction")
+    class DeleteTransactionTests {
+
+        @Test
+        @DisplayName("Should return 204 NO CONTENT when transaction is deleted")
+        void shouldReturn204WhenTransactionDeleted() throws Exception {
+            // Given: Transaction exists
+            UUID groupId = UUID.randomUUID();
+            UUID transactionId = UUID.randomUUID();
+
+            doNothing().when(transactionService).deleteTransaction(eq(transactionId));
+
+            // When & Then: Should return 204
+            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
+                    .andExpect(status().isNoContent());
+
+            verify(transactionService, times(1)).deleteTransaction(eq(transactionId));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when transaction not found")
+        void shouldReturn404WhenTransactionNotFound() throws Exception {
+            // Given: Transaction does not exist
+            UUID groupId = UUID.randomUUID();
+            UUID transactionId = UUID.randomUUID();
+
+            doThrow(new EntityNotFoundException("Transaction not found"))
+                    .when(transactionService).deleteTransaction(eq(transactionId));
+
+            // When & Then: Should return 404
+            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+
+            verify(transactionService, times(1)).deleteTransaction(eq(transactionId));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when groupId is invalid UUID")
+        void shouldReturn400WhenInvalidGroupIdUUID() throws Exception {
+            // Given: Invalid groupId UUID
+            String invalidGroupId = "not-a-uuid";
+            UUID transactionId = UUID.randomUUID();
+
+            // When & Then: Should return 400
+            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", invalidGroupId, transactionId))
+                    .andExpect(status().isBadRequest());
+
+            verify(transactionService, never()).deleteTransaction(any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when transactionId is invalid UUID")
+        void shouldReturn400WhenInvalidTransactionIdUUID() throws Exception {
+            // Given: Invalid transactionId UUID
+            UUID groupId = UUID.randomUUID();
+            String invalidTransactionId = "not-a-uuid";
+
+            // When & Then: Should return 400
+            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", groupId, invalidTransactionId))
+                    .andExpect(status().isBadRequest());
+
+            verify(transactionService, never()).deleteTransaction(any());
         }
     }
 }
