@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.springframework.web.util.WebUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -98,24 +99,32 @@ public class LoggingInterceptor implements HandlerInterceptor {
     }
 
     private String extractRequestBody(HttpServletRequest request) {
-        if (request instanceof ContentCachingRequestWrapper cachedRequest) {
-            byte[] content = cachedRequest.getContentAsByteArray();
+        // Use WebUtils to get the native wrapper from the request chain
+        ContentCachingRequestWrapper wrapper = WebUtils.getNativeRequest(request, ContentCachingRequestWrapper.class);
+
+        if (wrapper != null) {
+            byte[] content = wrapper.getContentAsByteArray();
             if (content.length > 0) {
                 String body = new String(content, StandardCharsets.UTF_8);
                 return JsonBodyMaskingUtil.maskJsonBody(body);
             }
         }
+
         return null;
     }
 
     private String extractResponseBody(HttpServletResponse response) {
-        if (response instanceof ContentCachingResponseWrapper cachedResponse) {
-            byte[] content = cachedResponse.getContentAsByteArray();
+        // Use WebUtils to get the native wrapper from the response chain
+        ContentCachingResponseWrapper wrapper = WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);
+
+        if (wrapper != null) {
+            byte[] content = wrapper.getContentAsByteArray();
             if (content.length > 0) {
                 String body = new String(content, StandardCharsets.UTF_8);
                 return JsonBodyMaskingUtil.maskJsonBody(body);
             }
         }
+
         return null;
     }
 }
