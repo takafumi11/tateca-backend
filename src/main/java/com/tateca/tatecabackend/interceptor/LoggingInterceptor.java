@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.interceptor;
 
 import com.tateca.tatecabackend.security.FirebaseAuthentication;
+import com.tateca.tatecabackend.util.JsonBodyMaskingUtil;
 import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -100,7 +101,8 @@ public class LoggingInterceptor implements HandlerInterceptor {
         if (request instanceof ContentCachingRequestWrapper cachedRequest) {
             byte[] content = cachedRequest.getContentAsByteArray();
             if (content.length > 0) {
-                return new String(content, StandardCharsets.UTF_8);
+                String body = new String(content, StandardCharsets.UTF_8);
+                return JsonBodyMaskingUtil.maskJsonBody(body);
             }
         }
         return null;
@@ -110,7 +112,8 @@ public class LoggingInterceptor implements HandlerInterceptor {
         if (response instanceof ContentCachingResponseWrapper cachedResponse) {
             byte[] content = cachedResponse.getContentAsByteArray();
             if (content.length > 0) {
-                return new String(content, StandardCharsets.UTF_8);
+                String body = new String(content, StandardCharsets.UTF_8);
+                return JsonBodyMaskingUtil.maskJsonBody(body);
             }
         }
         return null;
