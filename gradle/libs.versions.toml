@@ -29,7 +29,7 @@ wiremock-testcontainers = "1.0-alpha-13"
 rest-assured = "5.5.0"
 
 # Quality Tools
-jacoco = "0.8.12"
+jacoco = "0.8.14"
 checkstyle = "10.21.0"
 spotbugs = "4.8.6"
 spotbugs-plugin = "6.0.27"
