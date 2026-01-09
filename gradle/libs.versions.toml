@@ -1,11 +1,11 @@
 [versions]
 # Build Tools
-java = "21"
+java = "25"
 gradle = "9.2.0"
 
 # Spring Framework
-spring-boot = "3.5.4"
-spring-dependency-management = "1.1.4"
+spring-boot = "3.5.8"
+spring-dependency-management = "1.1.7"
 
 # Core Dependencies
 firebase-admin = "9.4.2"
@@ -20,7 +20,7 @@ datasource-proxy = "1.10"
 
 # Development Tools
 spring-dotenv = "4.0.0"
-lombok = "1.18.36"
+lombok = "1.18.42"
 
 # Testing
 testcontainers = "1.20.4"
