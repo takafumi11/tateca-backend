@@ -96,15 +96,12 @@ Base URL: http://localhost:8080
 Date: Sat Dec 28 12:00:00 JST 2025
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. DevController Tests (/dev)
+1. AuthUserController Tests (/auth/users)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-▶ 1.1 Generate Firebase Token
-GET /dev/firebase-token/test-user-001
+▶ 1.1 Get Auth User
+GET /auth/users/test-user-001
 ✓ Success
-{
-  "customToken": "eyJhbGc..."
-}
 ...
 ```
 
