@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     services:
@@ -95,8 +95,9 @@ jobs:
             sleep 3
           done
 
-          echo "Generating OpenAPI specification..."
-          curl -f http://localhost:8080/v3/api-docs.yaml -o openapi-pr.yaml
+          echo "Generating OpenAPI specifications..."
+          curl -f http://localhost:8080/v3/api-docs.yaml -o openapi.yaml
+          curl -f http://localhost:8080/v3/api-docs -o openapi.json
 
           kill $APP_PID || true
           wait $APP_PID 2>/dev/null || true
@@ -134,7 +135,7 @@ jobs:
           go install github.com/oasdiff/oasdiff@latest
 
       - name: Validate OpenAPI spec with Spectral
-        run: spectral lint openapi-pr.yaml || true
+        run: spectral lint openapi.yaml || true
 
       - name: Detect breaking changes
         if: github.event_name == 'pull_request'
@@ -142,8 +143,8 @@ jobs:
         run: |
           if [ "${{ steps.check_main.outputs.exists }}" = "true" ]; then
             echo "Comparing with main branch..."
-            $HOME/go/bin/oasdiff breaking openapi-main.yaml openapi-pr.yaml --format text > breaking-changes.txt || true
-            $HOME/go/bin/oasdiff changelog openapi-main.yaml openapi-pr.yaml --format markdown > changelog.md || true
+            $HOME/go/bin/oasdiff breaking openapi-main.yaml openapi.yaml --format text > breaking-changes.txt || true
+            $HOME/go/bin/oasdiff changelog openapi-main.yaml openapi.yaml --format markdown > changelog.md || true
 
             if [ -s breaking-changes.txt ]; then
               echo "has_breaking=true" >> $GITHUB_OUTPUT
@@ -158,7 +159,7 @@ jobs:
             echo "This is the first OpenAPI specification for this API." >> changelog.md
             echo "" >> changelog.md
             echo "\`\`\`yaml" >> changelog.md
-            head -100 openapi-pr.yaml >> changelog.md
+            head -100 openapi.yaml >> changelog.md
             echo "..." >> changelog.md
             echo "\`\`\`" >> changelog.md
             echo "" > breaking-changes.txt
@@ -187,14 +188,10 @@ jobs:
             ${changelog || '_No changes detected_'}
 
             ---
-            <details>
-            <summary>📥 Download Artifacts</summary>
-
-            - [OpenAPI JSON (PR)](../actions/runs/${{ github.run_id }})
-            - [OpenAPI YAML (PR)](../actions/runs/${{ github.run_id }})
-            - [Redoc Documentation](../actions/runs/${{ github.run_id }})
-            - [Postman Collection](../actions/runs/${{ github.run_id }})
-            </details>`;
+            Files updated in this PR:
+            - \`openapi.yaml\`
+            - \`openapi.json\`
+            - \`tateca-api.postman_collection.json\``;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -223,26 +220,24 @@ jobs:
               });
             }
 
-      - name: Rename PR artifact for upload
-        run: mv openapi-pr.yaml openapi.yaml
-
-      - name: Generate Redoc documentation
-        run: npx @redocly/cli build-docs openapi.yaml -o redoc.html
-
       - name: Generate Postman Collection
         run: |
           npm install -g openapi-to-postmanv2
           openapi2postmanv2 -s openapi.yaml -o tateca-api.postman_collection.json -p
 
-      - name: Upload API documentation artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-docs
-          path: |
-            openapi.yaml
-            redoc.html
-            tateca-api.postman_collection.json
-          retention-days: 30
+      - name: Commit and push OpenAPI specifications
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add openapi.yaml openapi.json tateca-api.postman_collection.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: Update OpenAPI specifications and Postman collection"
+            git push
+          fi
 
   docker-build:
     name: Build Docker Image
