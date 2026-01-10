@@ -39,6 +39,211 @@ jobs:
             build/reports/tests/
           retention-days: 30
 
+  api-validation:
+    name: Validate & Generate API Docs
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Generate OpenAPI specification (PR branch)
+        run: |
+          echo "Starting Spring Boot application..."
+          ./gradlew bootRun > bootrun.log 2>&1 &
+          APP_PID=$!
+
+          echo "Waiting for application to be ready..."
+          for i in {1..40}; do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Application ready after $((i*3)) seconds"
+              break
+            fi
+            if [ $i -eq 40 ]; then
+              echo "ERROR: Application failed to start"
+              tail -50 bootrun.log
+              kill $APP_PID || true
+              exit 1
+            fi
+            sleep 3
+          done
+
+          echo "Generating OpenAPI specification..."
+          curl -f http://localhost:8080/v3/api-docs.yaml -o openapi-pr.yaml
+
+          kill $APP_PID || true
+          wait $APP_PID 2>/dev/null || true
+        env:
+          MYSQLHOST: localhost
+          MYSQLPORT: 3306
+          MYSQLDATABASE: testdb
+          MYSQLUSER: test
+          MYSQLPASSWORD: test
+          FIREBASE_PROJECT_ID: test-project
+          FIREBASE_SERVICE_ACCOUNT_KEY: mock-service-account-key
+          LAMBDA_API_KEY: test-api-key
+          EXCHANGE_RATE_API_KEY: test-api-key
+
+      - name: Check if OpenAPI spec exists in main
+        if: github.event_name == 'pull_request'
+        id: check_main
+        run: |
+          git fetch origin main
+          if git cat-file -e origin/main:openapi.yaml 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            git show origin/main:openapi.yaml > openapi-main.yaml
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Install tools
+        run: |
+          npm install -g @stoplight/spectral-cli
+          go install github.com/oasdiff/oasdiff@latest
+
+      - name: Validate OpenAPI spec with Spectral
+        run: spectral lint openapi-pr.yaml || true
+
+      - name: Detect breaking changes
+        if: github.event_name == 'pull_request'
+        id: breaking
+        run: |
+          if [ "${{ steps.check_main.outputs.exists }}" = "true" ]; then
+            echo "Comparing with main branch..."
+            $HOME/go/bin/oasdiff breaking openapi-main.yaml openapi-pr.yaml --format text > breaking-changes.txt || true
+            $HOME/go/bin/oasdiff changelog openapi-main.yaml openapi-pr.yaml --format markdown > changelog.md || true
+
+            if [ -s breaking-changes.txt ]; then
+              echo "has_breaking=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_breaking=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No existing OpenAPI spec in main branch - showing new spec"
+            echo "has_breaking=false" >> $GITHUB_OUTPUT
+            echo "## New OpenAPI Specification" > changelog.md
+            echo "" >> changelog.md
+            echo "This is the first OpenAPI specification for this API." >> changelog.md
+            echo "" >> changelog.md
+            echo "\`\`\`yaml" >> changelog.md
+            head -100 openapi-pr.yaml >> changelog.md
+            echo "..." >> changelog.md
+            echo "\`\`\`" >> changelog.md
+            echo "" > breaking-changes.txt
+          fi
+
+      - name: Comment PR with API changes
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const breaking = fs.readFileSync('breaking-changes.txt', 'utf8');
+            const changelog = fs.readFileSync('changelog.md', 'utf8');
+
+            const hasBreaking = '${{ steps.breaking.outputs.has_breaking }}' === 'true';
+            const icon = hasBreaking ? '🚨' : '✅';
+            const status = hasBreaking ? '**BREAKING CHANGES DETECTED**' : 'No breaking changes';
+
+            const body = `## ${icon} OpenAPI Specification Changes
+
+            ### ${status}
+
+            ${breaking ? '#### Breaking Changes\n```\n' + breaking + '\n```\n' : ''}
+
+            #### Changelog
+            ${changelog || '_No changes detected_'}
+
+            ---
+            <details>
+            <summary>📥 Download Artifacts</summary>
+
+            - [OpenAPI JSON (PR)](../actions/runs/${{ github.run_id }})
+            - [OpenAPI YAML (PR)](../actions/runs/${{ github.run_id }})
+            - [Redoc Documentation](../actions/runs/${{ github.run_id }})
+            - [Postman Collection](../actions/runs/${{ github.run_id }})
+            </details>`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('OpenAPI Specification Changes')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Rename PR artifact for upload
+        run: mv openapi-pr.yaml openapi.yaml
+
+      - name: Generate Redoc documentation
+        run: npx @redocly/cli build-docs openapi.yaml -o redoc.html
+
+      - name: Generate Postman Collection
+        run: |
+          npm install -g openapi-to-postmanv2
+          openapi2postmanv2 -s openapi.yaml -o tateca-api.postman_collection.json -p
+
+      - name: Upload API documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: |
+            openapi.yaml
+            redoc.html
+            tateca-api.postman_collection.json
+          retention-days: 30
+
   docker-build:
     name: Build Docker Image
     runs-on: ubuntu-latest
