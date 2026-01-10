@@ -1,9 +1,11 @@
 package com.tateca.tatecabackend.config;
 
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
@@ -21,11 +23,19 @@ public class OpenApiConfig {
         return new OpenAPI()
             .info(new Info()
                 .title("Tateca API")
-                .description("Group expense management API")
+                .description("Group expense management API with multi-currency support. " +
+                        "Track expenses, loans, and settlements across multiple users and currencies.")
                 .version("1.0.0")
                 .contact(new Contact()
                     .name("Tateca Team")
-                    .url("https://tateca.net")))
+                    .url("https://tateca.net")
+                    .email("support@tateca.net"))
+                .license(new License()
+                    .name("Proprietary")
+                    .url("https://tateca.net/terms")))
+            .externalDocs(new ExternalDocumentation()
+                .description("Full Documentation")
+                .url("https://docs.tateca.net"))
             .servers(List.of(
                 new Server().url("http://localhost:8080").description("Local Development"),
                 new Server().url("https://staging-api.tateca.net").description("Staging"),
@@ -37,7 +47,8 @@ public class OpenApiConfig {
                     new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
-                        .bearerFormat("JWT"))
+                        .bearerFormat("JWT")
+                        .description("Firebase JWT token for user authentication"))
                 .addSecuritySchemes("ApiKeyAuth",
                     new SecurityScheme()
                         .type(SecurityScheme.Type.APIKEY)
