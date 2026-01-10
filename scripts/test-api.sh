@@ -148,24 +148,16 @@ main() {
     fi
 
     # ========================================
-    # 1. DevController Tests
+    # 1. AuthUserController Tests
     # ========================================
-    print_header "1. DevController Tests (/dev)"
-
-    test_endpoint GET "/dev/firebase-token/$TEST_USER_1" \
-        "1.1 Generate Firebase Custom Token"
-
-    # ========================================
-    # 2. AuthUserController Tests
-    # ========================================
-    print_header "2. AuthUserController Tests (/auth/users)"
+    print_header "1. AuthUserController Tests (/auth/users)"
 
     test_endpoint GET "/auth/users/$TEST_USER_1" \
-        "2.1 Get Auth User" \
+        "1.1 Get Auth User" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint POST "/auth/users" \
-        "2.2 Create Auth User (will likely fail - user already exists)" \
+        "1.2 Create Auth User (will likely fail - user already exists)" \
         -H "Content-Type: application/json" \
         -H "x-uid: test-user-004" \
         -d '{
@@ -174,7 +166,7 @@ main() {
         }'
 
     test_endpoint PATCH "/auth/users/review-preferences" \
-        "2.3 Update App Review Preferences" \
+        "1.3 Update App Review Preferences" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_1" \
         -d '{
@@ -183,16 +175,16 @@ main() {
         }'
 
     test_endpoint DELETE "/auth/users/test-user-004" \
-        "2.4 Delete Auth User (will likely fail - user does not exist)" \
+        "1.4 Delete Auth User (will likely fail - user does not exist)" \
         -H "x-uid: $TEST_USER_1"
 
     # ========================================
-    # 3. UserController Tests
+    # 2. UserController Tests
     # ========================================
-    print_header "3. UserController Tests (/users)"
+    print_header "2. UserController Tests (/users)"
 
     test_endpoint PATCH "/users/$USER_UUID_1" \
-        "3.1 Update User Name" \
+        "2.1 Update User Name" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_1" \
         -d '{
@@ -200,20 +192,20 @@ main() {
         }'
 
     # ========================================
-    # 4. GroupController Tests
+    # 3. GroupController Tests
     # ========================================
-    print_header "4. GroupController Tests (/groups)"
+    print_header "3. GroupController Tests (/groups)"
 
     test_endpoint GET "/groups/$GROUP_UUID_1" \
-        "4.1 Get Group Info" \
+        "3.1 Get Group Info" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint GET "/groups/list" \
-        "4.2 Get Group List" \
+        "3.2 Get Group List" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint POST "/groups" \
-        "4.3 Create Group" \
+        "3.3 Create Group" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_1" \
         -d '{
@@ -223,7 +215,7 @@ main() {
         }'
 
     test_endpoint PATCH "/groups/$GROUP_UUID_1" \
-        "4.4 Update Group Name" \
+        "3.4 Update Group Name" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_1" \
         -d '{
@@ -231,7 +223,7 @@ main() {
         }'
 
     test_endpoint POST "/groups/$GROUP_UUID_1" \
-        "4.5 Join Group (with invitation token)" \
+        "3.5 Join Group (with invitation token)" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_3" \
         -d "{
@@ -240,32 +232,32 @@ main() {
         }"
 
     test_endpoint DELETE "/groups/$GROUP_UUID_1/users/$USER_UUID_2" \
-        "4.6 Remove User from Group" \
+        "3.6 Remove User from Group" \
         -H "x-uid: $TEST_USER_1"
 
     # ========================================
-    # 5. TransactionController Tests
+    # 4. TransactionController Tests
     # ========================================
-    print_header "5. TransactionController Tests (/groups/{groupId}/transactions)"
+    print_header "4. TransactionController Tests (/groups/{groupId}/transactions)"
 
     test_endpoint GET "/groups/$GROUP_UUID_1/transactions/history?count=10" \
-        "5.1 Get Transaction History" \
+        "4.1 Get Transaction History" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint GET "/groups/$GROUP_UUID_1/transactions/settlement" \
-        "5.2 Get Transaction Settlement (no currency)" \
+        "4.2 Get Transaction Settlement (no currency)" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint GET "/groups/$GROUP_UUID_1/transactions/settlement?currencyCode=JPY" \
-        "5.3 Get Transaction Settlement (JPY)" \
+        "4.3 Get Transaction Settlement (JPY)" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint GET "/groups/$GROUP_UUID_1/transactions/$TRANSACTION_UUID_1" \
-        "5.4 Get Transaction Detail" \
+        "4.4 Get Transaction Detail" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint POST "/groups/$GROUP_UUID_1/transactions" \
-        "5.5 Create Transaction (LOAN)" \
+        "4.5 Create Transaction (LOAN)" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_1" \
         -d "{
@@ -286,7 +278,7 @@ main() {
         }"
 
     test_endpoint POST "/groups/$GROUP_UUID_1/transactions" \
-        "5.6 Create Transaction (REPAYMENT)" \
+        "4.6 Create Transaction (REPAYMENT)" \
         -H "Content-Type: application/json" \
         -H "x-uid: $TEST_USER_2" \
         -d "{
@@ -302,29 +294,29 @@ main() {
         }"
 
     test_endpoint DELETE "/groups/$GROUP_UUID_1/transactions/$TRANSACTION_UUID_1" \
-        "5.7 Delete Transaction" \
+        "4.7 Delete Transaction" \
         -H "x-uid: $TEST_USER_1"
 
     # ========================================
-    # 6. ExchangeRateController Tests
+    # 5. ExchangeRateController Tests
     # ========================================
-    print_header "6. ExchangeRateController Tests (/exchange-rate)"
+    print_header "5. ExchangeRateController Tests (/exchange-rate)"
 
     test_endpoint GET "/exchange-rate/$(date +%Y-%m-%d)" \
-        "6.1 Get Exchange Rates (Today)" \
+        "5.1 Get Exchange Rates (Today)" \
         -H "x-uid: $TEST_USER_1"
 
     test_endpoint GET "/exchange-rate/$(date +%Y-%m-%d)" \
-        "6.2 Get Exchange Rates (Same Date as Test Data)" \
+        "5.2 Get Exchange Rates (Same Date as Test Data)" \
         -H "x-uid: $TEST_USER_1"
 
     # ========================================
-    # 8. ExchangeRateLambdaController Tests
+    # 6. ExchangeRateLambdaController Tests
     # ========================================
-    print_header "8. ExchangeRateLambdaController Tests (/internal/exchange-rates)"
+    print_header "6. ExchangeRateLambdaController Tests (/internal/exchange-rates)"
 
     test_endpoint POST "/internal/exchange-rates" \
-        "8.1 Trigger Exchange Rate Update (already done in setup)" \
+        "6.1 Trigger Exchange Rate Update (already done in setup)" \
         -H "X-API-Key: dev-api-key-local"
 
     # ========================================
