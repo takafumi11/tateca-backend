@@ -63,6 +63,13 @@ paths:
       responses:
         "204":
           description: Exchange rates updated successfully
+        "401":
+          description: Unauthorized - Missing or invalid X-API-Key header
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Invalid API Key
         "500":
           description: Internal server error - External API unavailable or database
             error
@@ -73,13 +80,6 @@ paths:
               example:
                 status: 500
                 message: Exchange rate service unavailable
-        "401":
-          description: Unauthorized - Missing or invalid X-API-Key header
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Invalid API Key
       security:
       - ApiKeyAuth: []
   /groups:
@@ -95,13 +95,6 @@ paths:
               $ref: "#/components/schemas/CreateGroupRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -115,6 +108,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
   /groups/{groupId}:
     get:
       tags:
@@ -129,13 +129,6 @@ paths:
           type: string
           format: uuid
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "404":
           description: Group not found
           content:
@@ -143,6 +136,13 @@ paths:
               example:
                 status: 404
                 message: Group not found
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
         "200":
           description: Group information retrieved successfully
           content:
@@ -168,13 +168,6 @@ paths:
               $ref: "#/components/schemas/JoinGroupRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "200":
           description: User joined group successfully
           content:
@@ -202,6 +195,13 @@ paths:
               example:
                 status: 409
                 message: User already member of the group
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
     patch:
       tags:
       - Groups
@@ -221,13 +221,13 @@ paths:
               $ref: "#/components/schemas/UpdateGroupNameRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
+        "403":
+          description: Forbidden - User doesn't have permission to update this group
           content:
             application/json:
               example:
-                status: 401
-                message: Unauthorized
+                status: 403
+                message: Forbidden
         "404":
           description: Group not found
           content:
@@ -248,13 +248,13 @@ paths:
               example:
                 status: 400
                 message: Invalid request parameters
-        "403":
-          description: Forbidden - User doesn't have permission to update this group
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
           content:
             application/json:
               example:
-                status: 403
-                message: Forbidden
+                status: 401
+                message: Unauthorized
   /groups/{groupId}/transactions:
     post:
       tags:
@@ -275,13 +275,6 @@ paths:
               $ref: "#/components/schemas/CreateTransactionRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "404":
           description: Group not found
           content:
@@ -302,6 +295,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreateTransactionResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
   /auth/users:
     post:
       tags:
@@ -316,13 +316,6 @@ paths:
               $ref: "#/components/schemas/CreateAuthUserRequestDTO"
         required: true
       responses:
-        "409":
-          description: Conflict - User already exists
-          content:
-            application/json:
-              example:
-                status: 409
-                message: User with this UID already exists
         "201":
           description: User created successfully
           content:
@@ -343,6 +336,13 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
+        "409":
+          description: Conflict - User already exists
+          content:
+            application/json:
+              example:
+                status: 409
+                message: User with this UID already exists
   /users/{userId}:
     patch:
       tags:
@@ -363,26 +363,12 @@ paths:
               $ref: "#/components/schemas/UpdateUserNameRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "200":
           description: User name updated successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponseDTO"
-        "400":
-          description: Validation error - Invalid request parameters
-          content:
-            application/json:
-              example:
-                status: 400
-                message: Invalid request parameters
         "404":
           description: User not found
           content:
@@ -390,6 +376,20 @@ paths:
               example:
                 status: 404
                 message: User not found
+        "400":
+          description: Validation error - Invalid request parameters
+          content:
+            application/json:
+              example:
+                status: 400
+                message: Invalid request parameters
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
   /auth/users/review-preferences:
     patch:
       tags:
@@ -451,13 +451,12 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Transaction or group not found
+        "200":
+          description: Transaction details retrieved successfully
           content:
             application/json:
-              example:
-                status: 404
-                message: Transaction not found
+              schema:
+                $ref: "#/components/schemas/CreateTransactionResponseDTO"
         "401":
           description: Unauthorized - Invalid or missing Firebase JWT token
           content:
@@ -465,12 +464,13 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
-        "200":
-          description: Transaction details retrieved successfully
+        "404":
+          description: Transaction or group not found
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/CreateTransactionResponseDTO"
+              example:
+                status: 404
+                message: Transaction not found
     delete:
       tags:
       - Transactions
@@ -490,20 +490,6 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Transaction or group not found
-          content:
-            application/json:
-              example:
-                status: 404
-                message: Transaction not found
-        "403":
-          description: Forbidden - User doesn't have permission to delete this transaction
-          content:
-            application/json:
-              example:
-                status: 403
-                message: Forbidden
         "204":
           description: Transaction deleted successfully
         "401":
@@ -513,6 +499,20 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
+        "403":
+          description: Forbidden - User doesn't have permission to delete this transaction
+          content:
+            application/json:
+              example:
+                status: 403
+                message: Forbidden
+        "404":
+          description: Transaction or group not found
+          content:
+            application/json:
+              example:
+                status: 404
+                message: Transaction not found
   /groups/{groupId}/transactions/settlement:
     get:
       tags:
@@ -533,13 +533,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionSettlementResponseDTO"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "404":
           description: Group not found
           content:
@@ -547,6 +540,13 @@ paths:
               example:
                 status: 404
                 message: Group not found
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
   /groups/{groupId}/transactions/history:
     get:
       tags:
@@ -568,13 +568,6 @@ paths:
           type: string
           format: uuid
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "404":
           description: Group not found
           content:
@@ -588,6 +581,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionHistoryResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
   /groups/list:
     get:
       tags:
@@ -857,13 +857,6 @@ paths:
               example:
                 status: 404
                 message: Group or user not found
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              example:
-                status: 401
-                message: Unauthorized
         "403":
           description: Forbidden - User doesn't have permission to remove this user
           content:
@@ -871,6 +864,13 @@ paths:
               example:
                 status: 403
                 message: Forbidden
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              example:
+                status: 401
+                message: Unauthorized
 components:
   schemas:
     ErrorResponse:
