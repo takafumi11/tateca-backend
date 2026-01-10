@@ -579,16 +579,6 @@ This project uses **Code-First** approach for API documentation:
 - Redoc: Static documentation
 - OpenAPI specs: Download YAML/JSON
 
-### Legacy: Spec-First (Deprecated)
-
-**⚠️ Migration Notice:**
-The `api-specs/` directory contains legacy Spec-First specifications. This approach is **deprecated** and will be removed once migration to Code-First is complete.
-
-**If you need the old tooling:**
-- See `api-specs/README.md` for npm scripts and workflows
-- Note: These specs are no longer actively maintained
-- Do not use for new development
-
 ## Refactoring Best Practices
 
 When performing major refactoring (e.g., HTTP client migration, database layer changes):

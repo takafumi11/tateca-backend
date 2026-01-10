@@ -66,10 +66,3 @@ workers/
 ### Logs ###
 logs/
 *.log
-
-### API Specs ###
-api-specs/node_modules/
-api-specs/dist/
-api-specs/docs/
-api-specs/.redocly/
-api-specs/postman/collections/*-generated.postman_collection.json

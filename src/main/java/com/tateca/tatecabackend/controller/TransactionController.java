@@ -7,6 +7,11 @@ import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.service.TransactionService;
 import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +41,42 @@ public class TransactionController {
 
     @GetMapping("/history")
     @Operation(summary = "Get transaction history for a group")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Transaction history retrieved successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<TransactionHistoryResponseDTO> getTransactionHistory(
             @RequestParam(defaultValue = "5") int count,
             @PathVariable UUID groupId
@@ -46,6 +87,42 @@ public class TransactionController {
 
     @GetMapping("/settlement")
     @Operation(summary = "Get settlement information for a group in JPY")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Settlement information retrieved successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<TransactionSettlementResponseDTO> getTransactionSettlement(
             @PathVariable UUID groupId
     ) {
@@ -55,6 +132,57 @@ public class TransactionController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new transaction")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "201",
+            description = "Transaction created successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 400,
+                          "message": "Invalid request parameters"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<CreateTransactionResponseDTO> createTransaction(
             @PathVariable("groupId") UUID groupId,
             @Valid @RequestBody CreateTransactionRequestDTO request
@@ -78,6 +206,42 @@ public class TransactionController {
 
     @GetMapping("/{transactionId}")
     @Operation(summary = "Get transaction details by ID")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Transaction details retrieved successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Transaction or group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Transaction not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<CreateTransactionResponseDTO> getTransactionDetail(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId
@@ -88,6 +252,57 @@ public class TransactionController {
 
     @DeleteMapping("/{transactionId}")
     @Operation(summary = "Delete a transaction")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "204",
+            description = "Transaction deleted successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Transaction or group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Transaction not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User doesn't have permission to delete this transaction",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 403,
+                          "message": "Forbidden"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<Void> deleteLoan(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId

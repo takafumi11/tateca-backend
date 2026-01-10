@@ -1,9 +1,0 @@
-type: object
-required:
-  - obligations
-properties:
-  obligations:
-    type: array
-    description: List of loan obligations
-    items:
-      $ref: './LoanObligation.yaml'

@@ -9,6 +9,10 @@ import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.service.GroupService;
 import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +42,42 @@ public class GroupController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new group")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "201",
+            description = "Group created successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 400,
+                          "message": "Invalid request parameters"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<GroupResponseDTO> createGroup(
             @UId String uid,
             @Valid @RequestBody CreateGroupRequestDTO request
@@ -59,6 +99,72 @@ public class GroupController {
 
     @PatchMapping(value = "/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Update group name")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Group name updated successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 400,
+                          "message": "Invalid request parameters"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User doesn't have permission to update this group",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 403,
+                          "message": "Forbidden"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<GroupResponseDTO> updateGroupName(
             @PathVariable("groupId") UUID groupId,
             @Valid @RequestBody UpdateGroupNameRequestDTO request
@@ -69,6 +175,42 @@ public class GroupController {
 
     @GetMapping("/{groupId}")
     @Operation(summary = "Get group information by ID")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Group information retrieved successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<GroupResponseDTO> getGroupInfo(
             @PathVariable("groupId") UUID groupId
     ) {
@@ -78,6 +220,27 @@ public class GroupController {
 
     @GetMapping("/list")
     @Operation(summary = "Get list of groups for the current user")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Group list retrieved successfully"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<GroupListResponseDTO> getGroupList(
             @UId String uid
     ) {
@@ -87,6 +250,72 @@ public class GroupController {
 
     @PostMapping(value = "/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Join a group using invitation token")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "User joined group successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid invitation token or request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 400,
+                          "message": "Invalid invitation token"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Conflict - User already member of the group",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 409,
+                          "message": "User already member of the group"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<GroupResponseDTO> joinGroupInvited(
             @Valid @RequestBody JoinGroupRequestDTO request,
             @PathVariable("groupId") UUID groupId,
@@ -110,6 +339,57 @@ public class GroupController {
 
     @DeleteMapping("/{groupId}/users/{userUuid}")
     @Operation(summary = "Leave a group")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "204",
+            description = "User left group successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group or user not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group or user not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User doesn't have permission to remove this user",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 403,
+                          "message": "Forbidden"
+                        }
+                        """
+                )
+            )
+        )
+    })
     public ResponseEntity<Void> leaveGroup(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("userUuid") UUID userUuid
