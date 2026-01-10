@@ -1,7 +1,0 @@
-type: string
-enum:
-  - PENDING
-  - COMPLETED
-  - PERMANENTLY_DECLINED
-description: App review status indicating user's interaction with app review dialog
-example: "PENDING"

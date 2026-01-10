@@ -1,8 +1,0 @@
-type: object
-required:
-  - customToken
-properties:
-  customToken:
-    type: string
-    description: Firebase custom token
-    example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."

@@ -1,6 +1,0 @@
-type: object
-required:
-  - recipient
-properties:
-  recipient:
-    $ref: './UserResponse.yaml'
