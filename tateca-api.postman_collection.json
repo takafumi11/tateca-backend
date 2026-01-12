@@ -9,7 +9,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "07aca9d7-7ea9-4346-a7a4-2d7baa12d9f8",
+                            "id": "583619bf-2991-4fc1-8d74-f0d3d07b45ab",
                             "name": "Update exchange rates (fetches latest rates)",
                             "request": {
                                 "name": "Update exchange rates (fetches latest rates)",
@@ -56,7 +56,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "8804ca54-9618-4684-ba4e-a3757a202ab1",
+                                    "id": "a8aaff68-d9ff-4887-9c5f-d78976e5c7c4",
                                     "name": "Exchange rates updated successfully",
                                     "originalRequest": {
                                         "url": {
@@ -90,7 +90,7 @@
                                     "_postman_previewlanguage": "text"
                                 },
                                 {
-                                    "id": "f4ce0482-9da4-490d-a65d-ffb42d1bc499",
+                                    "id": "892614a8-bcb2-4ec4-961e-f887826c659a",
                                     "name": "Unauthorized - Missing or invalid X-API-Key header",
                                     "originalRequest": {
                                         "url": {
@@ -134,7 +134,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "af542e24-7f12-4209-8eb2-c307073cacf0",
+                                    "id": "fa208230-0df9-478a-966f-3eff76e1f852",
                                     "name": "Internal server error - External API unavailable or database error",
                                     "originalRequest": {
                                         "url": {
@@ -192,7 +192,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "a203f5a2-6d7f-492f-978f-1ec0ba87952b",
+                    "id": "af5e3690-14ed-46e0-a612-42fe2a861136",
                     "name": "Create a new group",
                     "request": {
                         "name": "Create a new group",
@@ -232,7 +232,7 @@
                     },
                     "response": [
                         {
-                            "id": "6fd6ac65-ba58-4d7e-b62d-7aea3b9badf6",
+                            "id": "a578cb7d-44fc-4432-806f-8cb946433365",
                             "name": "Group created successfully",
                             "originalRequest": {
                                 "url": {
@@ -288,7 +288,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f7a0bcc9-8e5b-4806-8213-cf722a49b462",
+                            "id": "18009c25-468f-48b8-bcd6-3b3ab175b318",
                             "name": "Validation error - Invalid request parameters",
                             "originalRequest": {
                                 "url": {
@@ -344,7 +344,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7be2a2d2-945d-4737-920a-5821e630e7b8",
+                            "id": "b1194a3e-d4ad-44e9-a278-5d511200d38f",
                             "name": "Unauthorized - Invalid or missing Firebase JWT token",
                             "originalRequest": {
                                 "url": {
@@ -410,7 +410,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "2d1035e7-99bc-4791-ac2a-9d611593cae5",
+                            "id": "e55f130b-53e1-4c62-9926-f857f0cf48d5",
                             "name": "Get group information by ID",
                             "request": {
                                 "name": "Get group information by ID",
@@ -449,7 +449,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "b8b2222c-782c-49d7-b304-033aad17a717",
+                                    "id": "a7e62055-2c47-40f7-9ef9-91522f705aca",
                                     "name": "Group information retrieved successfully",
                                     "originalRequest": {
                                         "url": {
@@ -504,7 +504,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "97cf40e5-f361-449b-a15f-d8892aea173f",
+                                    "id": "f5cdc1c1-0787-487b-9d45-9d4c22ad4203",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -559,7 +559,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "0ff92a4b-f355-4919-b903-4214a8b7b2ca",
+                                    "id": "7448a66f-147e-461c-9353-9b73eef04ce6",
                                     "name": "Group not found",
                                     "originalRequest": {
                                         "url": {
@@ -620,7 +620,7 @@
                             }
                         },
                         {
-                            "id": "a0022c45-4a71-4256-8b80-01b9b4412d6b",
+                            "id": "fe32795e-42fc-4348-8c07-1b0ed3f1c69a",
                             "name": "Join a group using invitation token",
                             "request": {
                                 "name": "Join a group using invitation token",
@@ -672,7 +672,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "4b8f5304-7760-4530-8b51-eef8ae4987af",
+                                    "id": "13c43cdf-0d97-4f9a-97f7-38ae0c3e5c94",
                                     "name": "User joined group successfully",
                                     "originalRequest": {
                                         "url": {
@@ -740,7 +740,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "4f24ee1e-1777-4b20-b302-adb68fce6863",
+                                    "id": "12c7dc97-0ee6-4e34-b1a6-7d4831d8f58b",
                                     "name": "Validation error - Invalid invitation token or request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -808,7 +808,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "6da87e34-960c-4c41-92d2-497786b0f10f",
+                                    "id": "2c4b6b5f-a587-4060-8661-83abc30ca6b0",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -876,7 +876,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "6a527f1d-174e-4661-b790-da750aa795c9",
+                                    "id": "5e19ec9c-d316-486c-b0a7-7405e0ec395f",
                                     "name": "Group not found",
                                     "originalRequest": {
                                         "url": {
@@ -944,7 +944,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "70bb721d-aab0-4568-835c-1042346ccdfb",
+                                    "id": "ed8c632d-762c-4be7-89f5-0fa11787fa28",
                                     "name": "Conflict - User already member of the group",
                                     "originalRequest": {
                                         "url": {
@@ -1018,7 +1018,7 @@
                             }
                         },
                         {
-                            "id": "633a3325-c9d9-499a-aa6e-ff70cc98ab9c",
+                            "id": "e06283a5-07b7-4dc6-986d-99d2ae08c1f6",
                             "name": "Update group name",
                             "request": {
                                 "name": "Update group name",
@@ -1070,7 +1070,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "d1bb1267-4927-4af8-9145-aff52f28e0ea",
+                                    "id": "d43436b0-7500-4e0b-b701-7e6b3419f959",
                                     "name": "Group name updated successfully",
                                     "originalRequest": {
                                         "url": {
@@ -1138,7 +1138,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "a8918cd9-c905-413a-a471-d7c9c582bb49",
+                                    "id": "760b23c8-795a-4b87-b7f4-5790944fd404",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -1206,7 +1206,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "ca21d102-bd08-4f64-87c4-77739b329472",
+                                    "id": "0d468553-9b04-402d-bc6c-79336f328d7f",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -1274,7 +1274,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "58d4e1ed-32d6-4ea8-ace1-fe0f3e70fc64",
+                                    "id": "f16662a7-a774-47d3-b238-46d1135ab5e9",
                                     "name": "Forbidden - User doesn't have permission to update this group",
                                     "originalRequest": {
                                         "url": {
@@ -1342,7 +1342,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "e689df26-c977-4ac4-9385-e2c19df2d234",
+                                    "id": "05c2b56a-fe03-4191-a3f3-5a70f0808064",
                                     "name": "Group not found",
                                     "originalRequest": {
                                         "url": {
@@ -1420,7 +1420,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "10854e64-3b2f-4caa-8d20-b804e0f4ef9c",
+                                    "id": "82d0acbb-3c74-4e7a-be1d-60a52ff4a027",
                                     "name": "Create a new transaction",
                                     "request": {
                                         "name": "Create a new transaction",
@@ -1461,7 +1461,7 @@
                                         "method": "POST",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YZI\",\n  \"date_str\": \"6021-89-95T30:73:27+23:39\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                            "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YPF\",\n  \"date_str\": \"8618-80-25T93:56:71-87:07\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -1473,7 +1473,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "3aa67c1b-f823-4c36-b586-40a9ba767ad2",
+                                            "id": "4626c626-ddd7-4ef6-824e-2eec8281e675",
                                             "name": "Transaction created successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -1520,7 +1520,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YZI\",\n  \"date_str\": \"6021-89-95T30:73:27+23:39\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YPF\",\n  \"date_str\": \"8618-80-25T93:56:71-87:07\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -1537,12 +1537,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"PERMANENTLY_DECLINED\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"SUFFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
+                                            "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"COMPLETED\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"PREFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PERMANENTLY_DECLINED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PENDING\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "e4cfe614-75f1-449d-abb4-db46a4a18310",
+                                            "id": "aa0ec316-047d-433a-9250-874283347f2c",
                                             "name": "Validation error - Invalid request parameters",
                                             "originalRequest": {
                                                 "url": {
@@ -1589,7 +1589,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YZI\",\n  \"date_str\": \"6021-89-95T30:73:27+23:39\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YPF\",\n  \"date_str\": \"8618-80-25T93:56:71-87:07\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -1611,7 +1611,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "160a960d-bd9d-4e1c-91f4-b92aed82905c",
+                                            "id": "228700c5-58a3-4a57-8df3-42b40062a12d",
                                             "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                             "originalRequest": {
                                                 "url": {
@@ -1658,7 +1658,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YZI\",\n  \"date_str\": \"6021-89-95T30:73:27+23:39\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YPF\",\n  \"date_str\": \"8618-80-25T93:56:71-87:07\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -1680,7 +1680,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "49dc99a9-1cdc-4f90-8a1d-e63593f1711d",
+                                            "id": "344f10f2-c594-4bd3-8ddf-6595ac134df8",
                                             "name": "Group not found",
                                             "originalRequest": {
                                                 "url": {
@@ -1727,7 +1727,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YZI\",\n  \"date_str\": \"6021-89-95T30:73:27+23:39\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"YPF\",\n  \"date_str\": \"8618-80-25T93:56:71-87:07\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -1759,7 +1759,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "d4fa9a73-239f-43d5-96ec-1d55f3cc31c2",
+                                            "id": "fd0100b2-5095-416e-bd7b-fddc1eba3f54",
                                             "name": "Get transaction details by ID",
                                             "request": {
                                                 "name": "Get transaction details by ID",
@@ -1810,7 +1810,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "647790c9-3831-4d3f-bb47-f2bb168a8d2a",
+                                                    "id": "d0e4ee5e-0cc8-4ce3-ad55-2770a1a230eb",
                                                     "name": "Transaction details retrieved successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -1872,12 +1872,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"PERMANENTLY_DECLINED\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"SUFFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
+                                                    "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"COMPLETED\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"PREFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PERMANENTLY_DECLINED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PENDING\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "07d8ff97-bf1d-44e5-8b48-8a943d42b643",
+                                                    "id": "4e86dddf-4ab0-44ae-9aed-cccac3a01d54",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -1944,7 +1944,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "3decff96-8331-4f8d-bce1-7d1d782172b4",
+                                                    "id": "bf225df7-6670-45a5-ab07-c6fe929d8d2f",
                                                     "name": "Transaction or group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2017,7 +2017,7 @@
                                             }
                                         },
                                         {
-                                            "id": "537c852a-2b1c-41e9-8c5f-f4c9dd239100",
+                                            "id": "7f5232cb-cecd-45f7-9e38-a5f24f0f0d76",
                                             "name": "Delete a transaction",
                                             "request": {
                                                 "name": "Delete a transaction",
@@ -2068,7 +2068,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "02d7256d-d9e3-40d4-b574-9ea7d398b41b",
+                                                    "id": "3e16b65e-5cdf-41f1-a640-ec7819653aff",
                                                     "name": "Transaction deleted successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -2125,7 +2125,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "94fd3d8d-3dc9-4310-9c7e-1455b7b77c26",
+                                                    "id": "219221ec-05e8-4864-bd9a-fca53765039c",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -2192,7 +2192,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "68574923-6680-45b8-9c80-53f22a466b7d",
+                                                    "id": "9c18b651-7aff-478b-9772-517ec89ad455",
                                                     "name": "Forbidden - User doesn't have permission to delete this transaction",
                                                     "originalRequest": {
                                                         "url": {
@@ -2259,7 +2259,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "c8a40781-560a-43c0-8b4e-e34c5c27814d",
+                                                    "id": "8cff4232-c4a8-4503-a08b-30d9d3bec0e4",
                                                     "name": "Transaction or group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2338,7 +2338,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "b0a79455-813a-427b-b547-40b787871f02",
+                                            "id": "3c617b13-31e8-4fb5-86d7-927e4633c308",
                                             "name": "Get settlement information for a group in JPY",
                                             "request": {
                                                 "name": "Get settlement information for a group in JPY",
@@ -2379,7 +2379,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "6c8598e5-eaea-4661-86e3-423089a9805c",
+                                                    "id": "929a335f-8afd-49c1-9fb1-f38233953e5d",
                                                     "name": "Settlement information retrieved successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -2431,12 +2431,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "{\n  \"transactions_settlement\": [\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    },\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    }\n  ]\n}",
+                                                    "body": "{\n  \"transactions_settlement\": [\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    },\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PENDING\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "15b03feb-412e-45d6-9973-b09eddf57a90",
+                                                    "id": "0beed469-b704-4ef5-aebe-803604d2e237",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -2493,7 +2493,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "f02d08f3-b8b5-47f6-9f64-c9a39bd3a8a1",
+                                                    "id": "ddd88db8-3b47-4233-85ef-8cbb9ae69dd7",
                                                     "name": "Group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2562,7 +2562,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "c1ab57c6-1d71-4faf-8e31-f568a3927b0a",
+                                            "id": "e951ab2f-266f-4b4c-b490-448505653297",
                                             "name": "Get transaction history for a group",
                                             "request": {
                                                 "name": "Get transaction history for a group",
@@ -2613,7 +2613,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "e2069e08-2750-46e9-8d51-47714ed36ff2",
+                                                    "id": "25885b87-4a16-43b1-bfac-1b6a32ea3d0f",
                                                     "name": "Transaction history retrieved successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -2675,12 +2675,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "{\n  \"transactions_history\": [\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"REPAYMENT\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"SUFFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    },\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"REPAYMENT\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"PREFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    }\n  ]\n}",
+                                                    "body": "{\n  \"transactions_history\": [\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"LOAN\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"PREFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    },\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"LOAN\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"SUFFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "a3adc844-87aa-4912-9050-3ebfe54a9169",
+                                                    "id": "ba4ff1e2-c72a-4cc6-9b96-bed3ff951f2e",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -2747,7 +2747,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "97fdccad-b0b0-4ff6-b939-d31294ee908d",
+                                                    "id": "59e7e7d2-50f1-4233-bc3c-dba9db6e3e85",
                                                     "name": "Group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2832,7 +2832,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "71eec129-1975-45a4-9bd2-5831699c6559",
+                                            "id": "1bb7ff4d-cbcf-4b2e-a1f3-b0777b3eb6fd",
                                             "name": "Leave a group",
                                             "request": {
                                                 "name": "Leave a group",
@@ -2883,7 +2883,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "2c46afef-1015-4c7b-9cff-5fe2484ccefa",
+                                                    "id": "23281924-ee74-4b17-9da1-87daddbe5f15",
                                                     "name": "User left group successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -2940,7 +2940,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "448843e4-56ae-43f3-94eb-5a0062896cf9",
+                                                    "id": "66830cbd-a38d-4eb0-8e29-2d1018339a7f",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -3007,7 +3007,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "28a6ef6e-d5cb-4622-a897-01e3a4e142ca",
+                                                    "id": "6e4e75ea-5291-4c4d-9fda-2d021d995297",
                                                     "name": "Forbidden - User doesn't have permission to remove this user",
                                                     "originalRequest": {
                                                         "url": {
@@ -3074,7 +3074,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "b15acae6-9e81-41b9-af58-94c722a97392",
+                                                    "id": "223c6229-04a5-40c5-80d9-fa32ac721f97",
                                                     "name": "Group or user not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -3157,7 +3157,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "371981d4-7c2d-4e79-9fb8-3c8260430f4d",
+                            "id": "11b26220-e3ca-4955-979e-7a0b63989710",
                             "name": "Get list of groups for the current user",
                             "request": {
                                 "name": "Get list of groups for the current user",
@@ -3185,7 +3185,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "25d31f1f-a889-4f37-8c4f-5d520ca4da29",
+                                    "id": "53989669-7172-4c47-ac5f-cae538a01869",
                                     "name": "Group list retrieved successfully",
                                     "originalRequest": {
                                         "url": {
@@ -3229,7 +3229,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "d437ab95-82ae-4126-90e1-889a1fa2d749",
+                                    "id": "471bed7c-1dc1-4d4d-bd9a-04e88930dbef",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -3291,7 +3291,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "240d5c77-c650-4844-863d-37f6db0bc653",
+                            "id": "4fc62e90-0549-4074-8a8f-636dc7b6afef",
                             "name": "Create new authenticated user",
                             "request": {
                                 "name": "Create new authenticated user",
@@ -3335,7 +3335,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "ab9524b9-e9c9-47bc-a8f2-ba05393f2be7",
+                                    "id": "93c46784-7754-4e29-b200-c5d8e1f58f2f",
                                     "name": "User created successfully",
                                     "originalRequest": {
                                         "url": {
@@ -3387,12 +3387,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                    "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "526a698b-89d8-415b-a3eb-5f75afeb45c0",
+                                    "id": "528969d9-b081-4d25-af8e-8511825e3f13",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -3449,7 +3449,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "a298feea-2e7c-4fde-8065-8434f5242bd0",
+                                    "id": "81a6f01e-4bc8-4111-a8a4-009cdf318c7c",
                                     "name": "Unauthorized - Invalid or missing authentication token",
                                     "originalRequest": {
                                         "url": {
@@ -3506,7 +3506,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "909be5ff-0848-402c-af6d-49439a598756",
+                                    "id": "05725e87-cf45-45bf-8524-d53f13a18eeb",
                                     "name": "Conflict - User already exists",
                                     "originalRequest": {
                                         "url": {
@@ -3573,7 +3573,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "766cd734-2eee-45ac-a24f-50f2c22ec105",
+                                    "id": "ded99e95-7ebc-4172-84a9-69789f3c845b",
                                     "name": "Update app review preferences",
                                     "request": {
                                         "name": "Update app review preferences",
@@ -3606,7 +3606,7 @@
                                         "method": "PATCH",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                            "raw": "{\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -3618,7 +3618,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "4d454ba8-353f-471c-8cad-48be18c1efec",
+                                            "id": "953b0976-3904-4cfa-844c-c98b85a41e76",
                                             "name": "Review preferences updated successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -3654,7 +3654,7 @@
                                                 "method": "PATCH",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                                    "raw": "{\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -3671,12 +3671,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "e5bac7f0-3f36-43d8-a81c-0a1d4638fd66",
+                                            "id": "a6a91a8e-6fdd-474c-9508-1c6aa90627cf",
                                             "name": "Validation error - Invalid request parameters",
                                             "originalRequest": {
                                                 "url": {
@@ -3712,7 +3712,7 @@
                                                 "method": "PATCH",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                                    "raw": "{\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -3734,7 +3734,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "0eef9779-ff56-414c-8423-cd9e00ba77a6",
+                                            "id": "d0659b62-903a-4d47-a193-289d414f5026",
                                             "name": "Unauthorized - Invalid or missing authentication token",
                                             "originalRequest": {
                                                 "url": {
@@ -3770,7 +3770,7 @@
                                                 "method": "PATCH",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                                    "raw": "{\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -3792,7 +3792,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "191b0ee1-89fa-42c3-bdbb-ff06f324350b",
+                                            "id": "50f3b77b-82de-4053-ba0a-9d36971d8d5c",
                                             "name": "User not found - The specified UID does not exist",
                                             "originalRequest": {
                                                 "url": {
@@ -3828,7 +3828,7 @@
                                                 "method": "PATCH",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                                    "raw": "{\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -3862,7 +3862,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "181e2197-127c-4362-b28a-d227b0bf6d3e",
+                                    "id": "ac6a9028-072a-4dea-940d-f1e00cf8cd63",
                                     "name": "Get authenticated user information",
                                     "request": {
                                         "name": "Get authenticated user information",
@@ -3905,7 +3905,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "9a9b6b1e-cccc-4fa3-9299-6388dffe5284",
+                                            "id": "ef69a50f-58b9-46aa-86bc-2752b1881518",
                                             "name": "User information retrieved successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -3956,12 +3956,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "34d83ddd-d953-43ef-98e1-6d4c60efe955",
+                                            "id": "178b8783-c7c4-4277-9297-f44572641d8a",
                                             "name": "Validation error - Invalid UID format",
                                             "originalRequest": {
                                                 "url": {
@@ -4017,7 +4017,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "da3e81b1-ff62-4c0a-add3-71d57c80ae6b",
+                                            "id": "7793e444-9dcd-4017-8727-9b0fb5cfc96f",
                                             "name": "User not found - The specified UID does not exist",
                                             "originalRequest": {
                                                 "url": {
@@ -4079,7 +4079,7 @@
                                     }
                                 },
                                 {
-                                    "id": "ffc8adeb-bfaa-468d-bc5e-723d1da844f8",
+                                    "id": "9eb4e67f-948c-48ff-a445-1c4d2925ad2a",
                                     "name": "Delete authenticated user",
                                     "request": {
                                         "name": "Delete authenticated user",
@@ -4122,7 +4122,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "04c9ddba-4764-4e60-90a2-f24c2d695464",
+                                            "id": "426b2886-2182-4e87-80a0-de14bd119472",
                                             "name": "User deleted successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -4168,7 +4168,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "4eb26e0f-0c08-426c-a8d4-1d3fa9d236fd",
+                                            "id": "15362b4c-d93f-405b-8e69-417eaafd5a3c",
                                             "name": "Validation error - Invalid UID format",
                                             "originalRequest": {
                                                 "url": {
@@ -4224,7 +4224,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "a6527c69-c679-4ed2-b045-f75fd27b1db1",
+                                            "id": "e8e41b1a-44ab-4d6f-bb28-5413add7c565",
                                             "name": "User not found - The specified UID does not exist",
                                             "originalRequest": {
                                                 "url": {
@@ -4300,7 +4300,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "5f2b3561-bce1-47a7-ab50-c48bfe38e832",
+                            "id": "3b443b4b-8718-43d7-9336-62d250236d5e",
                             "name": "Update user name",
                             "request": {
                                 "name": "Update user name",
@@ -4352,7 +4352,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "0f9426c4-d843-4195-a302-3c900a99da17",
+                                    "id": "56f67215-5a06-4727-ad80-46fd02342ca3",
                                     "name": "User name updated successfully",
                                     "originalRequest": {
                                         "url": {
@@ -4415,12 +4415,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"uuid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"auth_user\": {\n    \"uid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"email\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\",\n    \"last_login_time\": \"<string>\",\n    \"total_login_count\": \"<integer>\",\n    \"last_app_review_dialog_shown_at\": \"<string>\",\n    \"app_review_status\": \"PENDING\"\n  },\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\"\n}",
+                                    "body": "{\n  \"uuid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"auth_user\": {\n    \"uid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"email\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\",\n    \"last_login_time\": \"<string>\",\n    \"total_login_count\": \"<integer>\",\n    \"last_app_review_dialog_shown_at\": \"<string>\",\n    \"app_review_status\": \"PERMANENTLY_DECLINED\"\n  },\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "8ace7bc7-c38c-4379-aa1b-29c45b6e5e1e",
+                                    "id": "ded284b5-29f0-4d6c-bfa9-35f2c838158c",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -4488,7 +4488,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "d8cdea2e-d2cd-45f6-9b9e-f9dc2bf0c3ff",
+                                    "id": "132ad89a-3bbd-41b1-8091-3cc1ee808fc2",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -4556,7 +4556,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "599e01cd-0b75-474a-a800-273c0dd12505",
+                                    "id": "a04df0af-56b2-46a8-b0da-7ceaa012ee6e",
                                     "name": "User not found",
                                     "originalRequest": {
                                         "url": {
@@ -4642,7 +4642,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "cd5f247c-fc0c-4f32-a04c-2af036a5199e",
+                            "id": "eb07f04c-7a88-4fa4-8b15-fa7ee0a67dd7",
                             "name": "Get exchange rates for a specific date",
                             "request": {
                                 "name": "Get exchange rates for a specific date",
@@ -4681,7 +4681,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "177adac5-78c6-4324-9c30-3be61acd1998",
+                                    "id": "106d4f13-e2f4-449c-86a1-5fd3710aaacb",
                                     "name": "Exchange rates retrieved successfully",
                                     "originalRequest": {
                                         "url": {
@@ -4731,12 +4731,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"exchange_rate\": [\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"SUFFIX\",\n      \"exchange_rate\": \"<string>\"\n    },\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"PREFIX\",\n      \"exchange_rate\": \"<string>\"\n    }\n  ]\n}",
+                                    "body": "{\n  \"exchange_rate\": [\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"SUFFIX\",\n      \"exchange_rate\": \"<string>\"\n    },\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"SUFFIX\",\n      \"exchange_rate\": \"<string>\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "b50287ad-24bd-4660-b051-9e382a08dccb",
+                                    "id": "f982fba1-9ae5-49d6-bb1b-eedc8674424d",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -4791,7 +4791,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "3040f1cb-981c-4fd2-9b77-aab320607201",
+                                    "id": "55ff40c4-097c-4bf4-944b-f859e1590312",
                                     "name": "Exchange rates not found for the specified date",
                                     "originalRequest": {
                                         "url": {
@@ -4860,7 +4860,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "04f3702f-443f-4937-a375-3955181a0949",
+                    "id": "bbcd964b-f431-48b9-a2f4-70e758a55762",
                     "name": "Actuator root web endpoint",
                     "request": {
                         "name": "Actuator root web endpoint",
@@ -4887,7 +4887,7 @@
                     },
                     "response": [
                         {
-                            "id": "010ff9bd-bcff-4ada-afae-1cc0cc03718a",
+                            "id": "489e00a8-9c7b-49dd-8120-6e0307d86c26",
                             "name": "OK",
                             "originalRequest": {
                                 "url": {
@@ -4925,7 +4925,7 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"key_0\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  }\n}",
+                            "body": "{\n  \"key_0\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_1\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_2\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  },\n  \"key_1\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_1\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_2\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  },\n  \"key_2\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  }\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         }
@@ -4940,7 +4940,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "60b3d744-3415-4594-ab65-4d498ff982e5",
+                            "id": "c106efba-4201-4073-ba26-4b0b3e06731b",
                             "name": "Actuator web endpoint 'prometheus'",
                             "request": {
                                 "name": "Actuator web endpoint 'prometheus'",
@@ -4961,7 +4961,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "format",
-                                            "value": "CONTENT_TYPE_004"
+                                            "value": "CONTENT_TYPE_PROTOBUF"
                                         },
                                         {
                                             "disabled": false,
@@ -4987,7 +4987,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "67160916-9baf-4e6c-aa54-8a8776694a48",
+                                    "id": "7c18eed4-9daa-4397-83bc-000da92fa34d",
                                     "name": "OK",
                                     "originalRequest": {
                                         "url": {
@@ -5006,7 +5006,7 @@
                                                         "type": "text/plain"
                                                     },
                                                     "key": "format",
-                                                    "value": "CONTENT_TYPE_004"
+                                                    "value": "CONTENT_TYPE_PROTOBUF"
                                                 },
                                                 {
                                                     "disabled": false,
@@ -5062,7 +5062,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "40be2525-9aa4-4e1e-bb35-9a6b0305ef90",
+                            "id": "09a876c0-f84e-46dd-ac58-d471099f7348",
                             "name": "Actuator web endpoint 'metrics'",
                             "request": {
                                 "name": "Actuator web endpoint 'metrics'",
@@ -5090,7 +5090,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "fe97b090-008f-45c5-b994-2ead12fede6c",
+                                    "id": "c136bd26-add5-4acf-a68b-ae9833869eb5",
                                     "name": "OK",
                                     "originalRequest": {
                                         "url": {
@@ -5144,7 +5144,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "1e4dd58d-1c3c-4213-9373-da661e33765d",
+                                    "id": "f613784d-98d9-4fad-9f6b-112fbc750104",
                                     "name": "Actuator web endpoint 'metrics-requiredMetricName'",
                                     "request": {
                                         "name": "Actuator web endpoint 'metrics-requiredMetricName'",
@@ -5194,7 +5194,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "7786defe-7a8f-4d4b-a492-c0ec546c4461",
+                                            "id": "539ffed7-8206-413b-aeca-ab8c37901aa0",
                                             "name": "OK",
                                             "originalRequest": {
                                                 "url": {
@@ -5260,7 +5260,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "3b0a6bf6-2585-40a8-92bb-6e6ed0944748",
+                                            "id": "74b11381-81cd-486d-ba6a-9acdc1e5c030",
                                             "name": "Not Found",
                                             "originalRequest": {
                                                 "url": {
@@ -5330,7 +5330,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "7a68e4cb-0178-4266-8fb1-cae8cfc1471b",
+                            "id": "8e9b96d5-3db2-4e9a-ba85-ddf0e216b737",
                             "name": "Actuator web endpoint 'health'",
                             "request": {
                                 "name": "Actuator web endpoint 'health'",
@@ -5358,7 +5358,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "750b1df9-7153-4ce2-83f4-9c79f8093b1e",
+                                    "id": "60c58640-95d7-4ac1-8d63-07980e1c77c8",
                                     "name": "OK",
                                     "originalRequest": {
                                         "url": {
@@ -5430,7 +5430,7 @@
         }
     ],
     "info": {
-        "_postman_id": "d3e64d72-c0ec-4d36-8fac-6d40b4e3174b",
+        "_postman_id": "8dbb403c-2443-4566-9f6b-19e260470a5a",
         "name": "Tateca API",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {
