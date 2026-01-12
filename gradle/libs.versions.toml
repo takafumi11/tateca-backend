@@ -24,7 +24,7 @@ lombok = "1.18.42"
 
 # Testing
 testcontainers = "1.21.3"
-wiremock = "3.9.1"
+wiremock = "3.13.2"
 wiremock-testcontainers = "1.0-alpha-13"
 rest-assured = "5.5.0"
 
