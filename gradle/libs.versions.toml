@@ -23,7 +23,7 @@ spring-dotenv = "4.0.0"
 lombok = "1.18.42"
 
 # Testing
-testcontainers = "1.21.3"
+testcontainers = "1.21.4"
 wiremock = "3.9.1"
 wiremock-testcontainers = "1.0-alpha-13"
 rest-assured = "5.5.0"
