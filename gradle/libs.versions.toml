@@ -19,7 +19,7 @@ micrometer = "1.15.6"
 datasource-proxy = "1.10"
 
 # Development Tools
-spring-dotenv = "4.0.0"
+spring-dotenv = "5.1.0"
 lombok = "1.18.42"
 
 # Testing
