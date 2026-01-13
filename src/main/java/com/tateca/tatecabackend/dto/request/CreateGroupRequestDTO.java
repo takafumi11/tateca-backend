@@ -12,13 +12,13 @@ import java.util.List;
 @Schema(description = "Request to create a new group")
 public record CreateGroupRequestDTO(
         @NotBlank(message = "Group name is required")
-        @Size(max = 100, message = "Group name must not exceed 100 characters")
+        @Size(min = 1, max = 100, message = "Group name must be between 1 and 100 characters")
         @JsonProperty("group_name")
         @Schema(description = "Name of the group", example = "Team Outing 2024")
         String groupName,
 
         @NotBlank(message = "Host name is required")
-        @Size(max = 50, message = "Host name must not exceed 50 characters")
+        @Size(min = 1, max = 50, message = "Host name must be between 1 and 50 characters")
         @JsonProperty("host_name")
         @Schema(description = "Name of the group host", example = "John Doe")
         String hostName,
@@ -27,6 +27,6 @@ public record CreateGroupRequestDTO(
         @Size(min = 1, max = BusinessConstants.MAX_GROUP_PARTICIPANTS, message = "Participants must be between 1 and " + BusinessConstants.MAX_GROUP_PARTICIPANTS)
         @JsonProperty("participants_name")
         @Schema(description = "List of participant names (minimum 1, maximum " + BusinessConstants.MAX_GROUP_PARTICIPANTS + ")", example = "[\"Alice\", \"Bob\", \"Charlie\"]")
-        List<@NotBlank(message = "Participant name cannot be blank") @Size(max = 50, message = "Participant name must not exceed 50 characters") String> participantsName
+        List<@NotBlank(message = "Participant name cannot be blank") @Size(min = 1, max = 50, message = "Participant name must be between 1 and 50 characters") String> participantsName
 ) {
 }
