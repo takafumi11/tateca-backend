@@ -10,7 +10,7 @@ spring-dependency-management = "1.1.7"
 # Core Dependencies
 firebase-admin = "9.4.2"
 resilience4j = "2.2.0"
-mysql-connector = "9.1.0"
+mysql-connector = "9.5.0"
 springdoc = "2.8.1"
 
 # Observability
