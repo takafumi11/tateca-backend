@@ -174,6 +174,34 @@ class UserControllerWebTest {
     }
 
     @Test
+    @DisplayName("Should accept name with exactly 1 character")
+    void shouldAcceptNameWith1Character() throws Exception {
+        // Given: Request with 1 character (minimum boundary value)
+        UUID userId = UUID.randomUUID();
+        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("A");
+
+        UserResponseDTO expectedResponse = new UserResponseDTO(
+                userId.toString(),
+                "A",
+                null,
+                "2024-01-01T09:00:00+09:00",
+                "2024-01-15T09:00:00+09:00"
+        );
+
+        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
+                .thenReturn(expectedResponse);
+
+        // When & Then: Should accept minimum length name
+        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("A"));
+
+        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
+    }
+
+    @Test
     @DisplayName("Should accept name with exactly 50 characters")
     void shouldAcceptNameWith50Characters() throws Exception {
         // Given: Request with 50 characters (boundary value)
