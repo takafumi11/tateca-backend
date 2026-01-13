@@ -175,6 +175,77 @@ class GroupControllerWebTest {
         }
 
         @Test
+        @DisplayName("Should accept group groupName with exactly 1 character")
+        void shouldAcceptGroupNameWith1Character() throws Exception {
+            // Given: Group groupName with 1 character (minimum boundary value)
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "A",
+                    "Host",
+                    List.of("P1")
+            );
+
+            UUID groupId = UUID.randomUUID();
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(),
+                    "A",
+                    UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z",
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should accept minimum length group name
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.group.name").value("A"));
+
+            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+        }
+
+        @Test
+        @DisplayName("Should accept group groupName with exactly 100 characters")
+        void shouldAcceptGroupNameWith100Characters() throws Exception {
+            // Given: Group groupName with 100 characters (maximum boundary value)
+            String name100Chars = "A".repeat(100);
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    name100Chars,
+                    "Host",
+                    List.of("P1")
+            );
+
+            UUID groupId = UUID.randomUUID();
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(),
+                    name100Chars,
+                    UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z",
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should accept maximum length group name
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.group.name").value(name100Chars));
+
+            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+        }
+
+        @Test
         @DisplayName("Should return 400 when group groupName exceeds 100 characters")
         void shouldReturn400WhenGroupNameExceedsMaxLength() throws Exception {
             // Given: Group groupName with 101 characters
@@ -206,6 +277,75 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.status").value(400));
 
             verify(groupService, never()).createGroup(anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should accept host groupName with exactly 1 character")
+        void shouldAcceptHostNameWith1Character() throws Exception {
+            // Given: Host groupName with 1 character (minimum boundary value)
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "Group",
+                    "H",
+                    List.of("P1")
+            );
+
+            UUID groupId = UUID.randomUUID();
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(),
+                    "Group",
+                    UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z",
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should accept minimum length host name
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+
+            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+        }
+
+        @Test
+        @DisplayName("Should accept host groupName with exactly 50 characters")
+        void shouldAcceptHostNameWith50Characters() throws Exception {
+            // Given: Host groupName with 50 characters (maximum boundary value)
+            String name50Chars = "H".repeat(50);
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "Group",
+                    name50Chars,
+                    List.of("P1")
+            );
+
+            UUID groupId = UUID.randomUUID();
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(),
+                    "Group",
+                    UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z",
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should accept maximum length host name
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+
+            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -273,6 +413,75 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.status").value(400));
 
             verify(groupService, never()).createGroup(anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should accept participant groupName with exactly 1 character")
+        void shouldAcceptParticipantNameWith1Character() throws Exception {
+            // Given: Participant groupName with 1 character (minimum boundary value)
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "Group",
+                    "Host",
+                    List.of("P")
+            );
+
+            UUID groupId = UUID.randomUUID();
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(),
+                    "Group",
+                    UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z",
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should accept minimum length participant name
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+
+            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+        }
+
+        @Test
+        @DisplayName("Should accept participant groupName with exactly 50 characters")
+        void shouldAcceptParticipantNameWith50Characters() throws Exception {
+            // Given: Participant groupName with 50 characters (maximum boundary value)
+            String name50Chars = "P".repeat(50);
+            CreateGroupRequestDTO request = new CreateGroupRequestDTO(
+                    "Group",
+                    "Host",
+                    List.of(name50Chars)
+            );
+
+            UUID groupId = UUID.randomUUID();
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(),
+                    "Group",
+                    UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z",
+                    "2024-01-01T09:00:00+09:00",
+                    "2024-01-01T09:00:00+09:00"
+            );
+
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
+                    .thenReturn(expectedResponse);
+
+            // When & Then: Should accept maximum length participant name
+            mockMvc.perform(post(BASE_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
+
+            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
