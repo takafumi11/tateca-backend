@@ -204,30 +204,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(HttpServletRequest request, EntityNotFoundException ex) {
         logger.warn("EntityNotFoundException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
+        HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.NOT_FOUND.value())
+                .status(httpStatus.value())
                 .errorCode(ex.getErrorCode().getCode())
                 .message(message)
                 .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResourceException(HttpServletRequest request, DuplicateResourceException ex) {
         logger.warn("DuplicateResourceException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
+        HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.CONFLICT.value())
+                .status(httpStatus.value())
                 .errorCode(ex.getErrorCode().getCode())
                 .message(message)
                 .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -250,15 +252,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessRuleViolationException(HttpServletRequest request, BusinessRuleViolationException ex) {
         logger.warn("BusinessRuleViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
+        HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .status(httpStatus.value())
                 .errorCode(ex.getErrorCode().getCode())
                 .message(message)
                 .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     /**
