@@ -25,6 +25,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -99,12 +100,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(HttpServletRequest request, ConstraintViolationException ex) {
-        String message = ex.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(Collectors.joining(", "));
-        logger.warn("ConstraintViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
+        logger.warn("ConstraintViolationException at {} {}: {} violations",
+                request.getMethod(), request.getRequestURI(), ex.getConstraintViolations().size());
 
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        String message = messageResolver.getMessage(ErrorCode.VALIDATION_FAILED);
+
+        // Build structured field errors
+        List<ErrorResponse.FieldError> fieldErrors = ex.getConstraintViolations().stream()
+                .map(violation -> ErrorResponse.FieldError.builder()
+                        .field(violation.getPropertyPath().toString())
+                        .message(violation.getMessage())
+                        .rejectedValue(violation.getInvalidValue())
+                        .build())
+                .collect(Collectors.toList());
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(Instant.now().toString())
                 .status(httpStatus.value())
@@ -112,6 +122,7 @@ public class GlobalExceptionHandler {
                 .errorCode(ErrorCode.VALIDATION_FAILED.getCode())
                 .message(message)
                 .path(request.getRequestURI())
+                .errors(fieldErrors)
                 .build();
 
         return new ResponseEntity<>(errorResponse, httpStatus);
@@ -119,12 +130,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(HttpServletRequest request, MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
-        logger.warn("MethodArgumentNotValidException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
+        logger.warn("MethodArgumentNotValidException at {} {}: {} field errors",
+                request.getMethod(), request.getRequestURI(), ex.getBindingResult().getFieldErrors().size());
 
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        String message = messageResolver.getMessage(ErrorCode.VALIDATION_FAILED);
+
+        // Build structured field errors
+        List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> ErrorResponse.FieldError.builder()
+                        .field(error.getField())
+                        .message(error.getDefaultMessage())
+                        .rejectedValue(error.getRejectedValue())
+                        .build())
+                .collect(Collectors.toList());
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(Instant.now().toString())
                 .status(httpStatus.value())
@@ -132,6 +152,7 @@ public class GlobalExceptionHandler {
                 .errorCode(ErrorCode.VALIDATION_FAILED.getCode())
                 .message(message)
                 .path(request.getRequestURI())
+                .errors(fieldErrors)
                 .build();
 
         return new ResponseEntity<>(errorResponse, httpStatus);
