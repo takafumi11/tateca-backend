@@ -41,11 +41,60 @@ public class UserController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "Empty or blank name",
+                        description = "When user_name is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "name: User name is required and cannot be blank"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Name exceeds maximum length",
+                        description = "When user_name exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "name: User name must be between 1 and 50 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid UUID format",
+                        description = "When userId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'userId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Malformed JSON",
+                        description = "When request body is not valid JSON",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid request body format. Please check the data types and structure."
+                            }
+                            """
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 400,
-                          "message": "Invalid request parameters"
+                          "status": 401,
+                          "message": "Unauthorized"
                         }
                         """
                 )
@@ -67,15 +116,30 @@ public class UserController {
             )
         ),
         @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 401,
-                          "message": "Unauthorized"
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 500,
+                          "message": "An unexpected error occurred"
                         }
                         """
                 )

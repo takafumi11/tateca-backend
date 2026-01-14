@@ -40,22 +40,24 @@ public class TransactionController {
     private final TransactionService service;
 
     @GetMapping("/history")
-    @Operation(summary = "Get transaction history for a group")
+    @Operation(summary = "Get transaction history for a group", description = "Retrieve transaction history with optional count parameter (default: 5)")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             description = "Transaction history retrieved successfully"
         ),
         @ApiResponse(
-            responseCode = "404",
-            description = "Group not found",
+            responseCode = "400",
+            description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
+                    name = "Invalid UUID format",
+                    description = "When groupId path parameter has invalid UUID format",
                     value = """
                         {
-                          "status": 404,
-                          "message": "Group not found"
+                          "status": 400,
+                          "message": "Invalid format for parameter 'groupId': expected UUID"
                         }
                         """
                 )
@@ -71,6 +73,21 @@ public class TransactionController {
                         {
                           "status": 401,
                           "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
                         }
                         """
                 )
@@ -93,15 +110,17 @@ public class TransactionController {
             description = "Settlement information retrieved successfully"
         ),
         @ApiResponse(
-            responseCode = "404",
-            description = "Group not found",
+            responseCode = "400",
+            description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
+                    name = "Invalid UUID format",
+                    description = "When groupId path parameter has invalid UUID format",
                     value = """
                         {
-                          "status": 404,
-                          "message": "Group not found"
+                          "status": 400,
+                          "message": "Invalid format for parameter 'groupId': expected UUID"
                         }
                         """
                 )
@@ -117,6 +136,21 @@ public class TransactionController {
                         {
                           "status": 401,
                           "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
                         }
                         """
                 )
@@ -142,11 +176,140 @@ public class TransactionController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "Transaction type is null",
+                        description = "When transaction_type is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "transactionType: Transaction type is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Title is blank or null",
+                        description = "When title is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "title: Title is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Title exceeds maximum length",
+                        description = "When title exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "title: Title must not exceed 50 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Amount is null, zero, or negative",
+                        description = "When amount is null, zero, or negative number",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "amount: Amount must be a positive number"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Currency code is invalid",
+                        description = "When currency_code is blank, not uppercase, or not 3 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "currencyCode: Currency code must be 3 uppercase letters (ISO 4217)"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Date format is invalid",
+                        description = "When date_str is not ISO 8601 format with timezone (e.g., 2024-01-15T18:30:00+09:00)",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "dateStr: Date must be in ISO 8601 format with timezone"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Payer ID is null",
+                        description = "When payer_id is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "payerId: Payer ID is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "LOAN without loan details",
+                        description = "When transaction_type is LOAN but loan field is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "LOAN transaction must have loan details"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "REPAYMENT without repayment details",
+                        description = "When transaction_type is REPAYMENT but repayment field is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "REPAYMENT transaction must have repayment details"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligations list is empty or exceeds maximum",
+                        description = "When obligations list is empty or has more than 8 items",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations: Obligations must have between 1 and 8 items"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligation amount is invalid",
+                        description = "When obligation amount is null, zero, or negative",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations[].amount: Amount must be a positive number"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligation user UUID is null",
+                        description = "When obligation user_uuid is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations[].userUuid: User UUID is required"
+                            }
+                            """
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 400,
-                          "message": "Invalid request parameters"
+                          "status": 401,
+                          "message": "Unauthorized"
                         }
                         """
                 )
@@ -168,15 +331,15 @@ public class TransactionController {
             )
         ),
         @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 401,
-                          "message": "Unauthorized"
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
                         }
                         """
                 )
@@ -212,18 +375,32 @@ public class TransactionController {
             description = "Transaction details retrieved successfully"
         ),
         @ApiResponse(
-            responseCode = "404",
-            description = "Transaction or group not found",
+            responseCode = "400",
+            description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 404,
-                          "message": "Transaction not found"
-                        }
-                        """
-                )
+                examples = {
+                    @ExampleObject(
+                        name = "Invalid groupId UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid transactionId UUID format",
+                        description = "When transactionId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'transactionId': expected UUID"
+                            }
+                            """
+                    )
+                }
             )
         ),
         @ApiResponse(
@@ -236,6 +413,21 @@ public class TransactionController {
                         {
                           "status": 401,
                           "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Transaction not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Transaction not found"
                         }
                         """
                 )
@@ -258,18 +450,32 @@ public class TransactionController {
             description = "Transaction deleted successfully"
         ),
         @ApiResponse(
-            responseCode = "404",
-            description = "Transaction or group not found",
+            responseCode = "400",
+            description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 404,
-                          "message": "Transaction not found"
-                        }
-                        """
-                )
+                examples = {
+                    @ExampleObject(
+                        name = "Invalid groupId UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid transactionId UUID format",
+                        description = "When transactionId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'transactionId': expected UUID"
+                            }
+                            """
+                    )
+                }
             )
         ),
         @ApiResponse(
@@ -297,6 +503,21 @@ public class TransactionController {
                         {
                           "status": 403,
                           "message": "Forbidden"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Transaction not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Transaction not found"
                         }
                         """
                 )
