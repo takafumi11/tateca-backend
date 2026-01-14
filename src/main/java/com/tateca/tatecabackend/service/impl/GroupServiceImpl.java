@@ -10,6 +10,7 @@ import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
 import com.tateca.tatecabackend.exception.ErrorCode;
+import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
@@ -21,10 +22,8 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +46,7 @@ public class GroupServiceImpl implements GroupService {
     public GroupResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
         if (userGroups.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found with: " + groupId);
+            throw new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND, groupId);
         }
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
@@ -171,7 +170,7 @@ public class GroupServiceImpl implements GroupService {
         if (exists) {
             logger.warn("User already joined this group: userId={}, groupId={}",
                     PiiMaskingUtil.maskUid(uid), PiiMaskingUtil.maskUuid(groupId));
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already joined this group");
+            throw new BusinessRuleViolationException(ErrorCode.GROUP_ALREADY_JOINED);
         }
 
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
@@ -182,7 +181,7 @@ public class GroupServiceImpl implements GroupService {
                     PiiMaskingUtil.maskUid(uid),
                     PiiMaskingUtil.maskUuid(groupId),
                     PiiMaskingUtil.maskToken(request.joinToken().toString()));
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token: " + request.joinToken());
+            throw new BusinessRuleViolationException(ErrorCode.GROUP_INVALID_TOKEN);
         }
 
         // Update users.auth_user_uid to link authUser and user
@@ -238,7 +237,7 @@ public class GroupServiceImpl implements GroupService {
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
         if (!uid.equals("v6CGVApOmVM4VWTijmRTg8m01Kj1") && userEntityList.size() >= 9) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User can't join more than 10 groups");
+            throw new BusinessRuleViolationException(ErrorCode.GROUP_MAX_COUNT_EXCEEDED);
         }
     }
 }
