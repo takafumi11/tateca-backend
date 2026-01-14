@@ -9,7 +9,9 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
+import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
@@ -26,8 +28,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,14 +121,10 @@ class GroupServiceUnitTest {
         when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                 .thenReturn(new ArrayList<>());
 
-        // When & Then: Should throw ResponseStatusException
+        // When & Then: Should throw EntityNotFoundException
         assertThatThrownBy(() -> groupService.getGroupInfo(testGroupId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    assertThat(rse.getReason()).contains("Group Not Found with");
-                });
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Group Not Found with");
     }
 
     @Test
@@ -444,12 +440,8 @@ class GroupServiceUnitTest {
 
         // When & Then: Should throw conflict exception
         assertThatThrownBy(() -> groupService.createGroup(uid, request))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(rse.getReason()).contains("can't join more than 10 groups");
-                });
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("can't join more than 10 groups");
 
         verify(groupRepository, never()).save(any());
     }
@@ -599,12 +591,8 @@ class GroupServiceUnitTest {
 
         // When & Then: Should throw forbidden exception
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-                    assertThat(rse.getReason()).contains("Invalid join token");
-                });
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessageContaining("Invalid join token");
 
         verify(userRepository, never()).save(any());
     }
@@ -629,12 +617,8 @@ class GroupServiceUnitTest {
 
         // When & Then: Should throw conflict exception
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(rse.getReason()).contains("already joined this group");
-                });
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("already joined this group");
     }
 
     @Test
@@ -657,12 +641,8 @@ class GroupServiceUnitTest {
 
         // When & Then: Should throw conflict exception
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(rse.getReason()).contains("can't join more than 10 groups");
-                });
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("can't join more than 10 groups");
     }
 
     @Test
@@ -780,11 +760,7 @@ class GroupServiceUnitTest {
 
         // When & Then: Should detect duplicate
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                });
+                .isInstanceOf(BusinessRuleViolationException.class);
     }
 
     @Test
@@ -910,11 +886,11 @@ class GroupServiceUnitTest {
 
         when(groupRepository.findById(testGroupId)).thenReturn(Optional.of(testGroup));
         when(userGroupRepository.findByUserUuidAndGroupUuid(userUuid, testGroupId))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not in group"));
+                .thenThrow(new EntityNotFoundException("User not in group"));
 
         // When & Then: Should throw exception
         assertThatThrownBy(() -> groupService.leaveGroup(testGroupId, userUuid))
-                .isInstanceOf(ResponseStatusException.class);
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(userRepository, never()).save(any());
     }

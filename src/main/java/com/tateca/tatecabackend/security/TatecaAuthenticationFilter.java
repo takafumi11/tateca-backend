@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.tateca.tatecabackend.constants.ApiConstants;
+import com.tateca.tatecabackend.exception.domain.AuthenticationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -84,9 +84,12 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
         } catch (FirebaseAuthException e) {
             logAuthenticationFailure("Firebase", path, e.getMessage());
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid Firebase authentication token");
-        } catch (ResponseStatusException e) {
-            logAuthenticationFailure("General", path, e.getReason());
-            response.sendError(e.getStatusCode().value(), e.getReason());
+        } catch (AuthenticationException e) {
+            logAuthenticationFailure("Authentication", path, e.getMessage());
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logAuthenticationFailure("Bad Request", path, e.getMessage());
+            response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         } finally {
             // Clear security context after request
             SecurityContextHolder.clearContext();
@@ -127,13 +130,11 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (bearerToken == null || bearerToken.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Missing Authorization header");
+            throw new IllegalArgumentException("Missing Authorization header");
         }
 
         if (!bearerToken.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Invalid Authorization header format. Expected: Bearer <token>");
+            throw new IllegalArgumentException("Invalid Authorization header format. Expected: Bearer <token>");
         }
 
         String idToken = bearerToken.substring(7);
@@ -145,20 +146,20 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
         // Validate audience
         String audience = (String) firebaseToken.getClaims().get("aud");
         if (!firebaseProjectId.equals(audience)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+            throw new AuthenticationException(
                 "Token audience mismatch. Expected: " + firebaseProjectId + ", Got: " + audience);
         }
 
         // Validate issuer
         String expectedIssuer = "https://securetoken.google.com/" + firebaseProjectId;
         if (!expectedIssuer.equals(firebaseToken.getIssuer())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+            throw new AuthenticationException(
                 "Token issuer mismatch. Expected: " + expectedIssuer + ", Got: " + firebaseToken.getIssuer());
         }
 
         // Validate subject (UID)
         if (firebaseToken.getUid() == null || firebaseToken.getUid().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing user ID in token");
+            throw new AuthenticationException("Missing user ID in token");
         }
 
         FirebaseAuthentication authentication = new FirebaseAuthentication(firebaseToken.getUid());
