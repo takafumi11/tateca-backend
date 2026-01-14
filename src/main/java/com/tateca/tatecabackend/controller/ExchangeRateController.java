@@ -27,11 +27,55 @@ public class ExchangeRateController {
     private final ExchangeRateService service;
 
     @GetMapping("/{date}")
-    @Operation(summary = "Get exchange rates for a specific date")
+    @Operation(summary = "Get exchange rates for a specific date", description = "Retrieve exchange rates for a specific date in ISO 8601 format (YYYY-MM-DD)")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             description = "Exchange rates retrieved successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid date format",
+            content = @Content(
+                mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "Invalid date format",
+                        description = "When date is not in ISO 8601 format (YYYY-MM-DD) or invalid date (e.g., 2024-13-45)",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid date format: expected ISO 8601 date (YYYY-MM-DD)"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Malformed date string",
+                        description = "When date parameter is not a valid date string",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Failed to convert value of type 'java.lang.String' to required type 'java.time.LocalDate'"
+                            }
+                            """
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
         ),
         @ApiResponse(
             responseCode = "404",
@@ -49,15 +93,15 @@ public class ExchangeRateController {
             )
         ),
         @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            responseCode = "500",
+            description = "Internal Server Error",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 401,
-                          "message": "Unauthorized"
+                          "status": 500,
+                          "message": "Database connection error"
                         }
                         """
                 )

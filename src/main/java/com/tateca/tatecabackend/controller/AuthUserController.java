@@ -95,11 +95,50 @@ public class AuthUserController {
                     description = "Validation error - Invalid request parameters",
                     content = @Content(
                             mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "Email is null, empty, or whitespace only",
+                                            description = "When email is null, empty string, or only whitespace",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "email: Email is required and cannot be blank"
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Email exceeds maximum length",
+                                            description = "When email exceeds 255 characters",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "email: Email must not exceed 255 characters"
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Malformed JSON",
+                                            description = "When request body is not valid JSON",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "Invalid request body format. Please check the data types and structure."
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Invalid or missing authentication token",
+                    content = @Content(
+                            mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
                                             {
-                                              "status": 400,
-                                              "message": "Invalid request parameters"
+                                              "status": 401,
+                                              "message": "Unauthorized"
                                             }
                                             """
                             )
@@ -114,22 +153,37 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 409,
-                                              "message": "User with this UID already exists"
+                                              "message": "Email already exists"
                                             }
                                             """
                             )
                     )
             ),
             @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized - Invalid or missing authentication token",
+                    responseCode = "415",
+                    description = "Unsupported Media Type - Content-Type header must be application/json",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
                                             {
-                                              "status": 401,
-                                              "message": "Unauthorized"
+                                              "status": 415,
+                                              "message": "Unsupported Media Type. Content-Type must be application/json"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal Server Error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "status": 500,
+                                              "message": "Database error"
                                             }
                                             """
                             )
@@ -203,11 +257,50 @@ public class AuthUserController {
                     description = "Validation error - Invalid request parameters",
                     content = @Content(
                             mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "App review status is null",
+                                            description = "When app_review_status is null",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "appReviewStatus: App review status is required"
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Invalid ENUM value",
+                                            description = "When app_review_status is not a valid enum value (PENDING, COMPLETED, PERMANENTLY_DECLINED)",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "Invalid value for app_review_status: must be PENDING, COMPLETED, or PERMANENTLY_DECLINED"
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Malformed JSON",
+                                            description = "When request body is not valid JSON",
+                                            value = """
+                                                    {
+                                                      "status": 400,
+                                                      "message": "Invalid request body format. Please check the data types and structure."
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Invalid or missing authentication token",
+                    content = @Content(
+                            mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
                                             {
-                                              "status": 400,
-                                              "message": "Invalid request parameters"
+                                              "status": 401,
+                                              "message": "Unauthorized"
                                             }
                                             """
                             )
@@ -229,15 +322,30 @@ public class AuthUserController {
                     )
             ),
             @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized - Invalid or missing authentication token",
+                    responseCode = "415",
+                    description = "Unsupported Media Type - Content-Type header must be application/json",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
                                             {
-                                              "status": 401,
-                                              "message": "Unauthorized"
+                                              "status": 415,
+                                              "message": "Unsupported Media Type. Content-Type must be application/json"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal Server Error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "status": 500,
+                                              "message": "Database error"
                                             }
                                             """
                             )

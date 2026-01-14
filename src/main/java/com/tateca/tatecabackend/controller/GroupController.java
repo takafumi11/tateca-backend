@@ -52,14 +52,88 @@ public class GroupController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 400,
-                          "message": "Invalid request parameters"
-                        }
-                        """
-                )
+                examples = {
+                    @ExampleObject(
+                        name = "Empty or blank group name",
+                        description = "When group_name is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "groupName: Group name is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Group name exceeds maximum length",
+                        description = "When group_name exceeds 100 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "groupName: Group name must be between 1 and 100 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Empty or blank host name",
+                        description = "When host_name is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "hostName: Host name is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Host name exceeds maximum length",
+                        description = "When host_name exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "hostName: Host name must be between 1 and 50 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Empty participants list",
+                        description = "When participants_name list is empty",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "participantsName: Participants must be between 1 and 8"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Participants list exceeds maximum size",
+                        description = "When participants_name list has more than 8 members",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "participantsName: Participants must be between 1 and 8"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Participant name is blank",
+                        description = "When a participant name in the list is blank",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "participantsName[]: Participant name cannot be blank"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Participant name exceeds maximum length",
+                        description = "When a participant name exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "participantsName[]: Participant name must be between 1 and 50 characters"
+                            }
+                            """
+                    )
+                }
             )
         ),
         @ApiResponse(
@@ -72,6 +146,36 @@ public class GroupController {
                         {
                           "status": 401,
                           "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Conflict - User has reached maximum group limit",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 409,
+                          "message": "can't join more than 10 groups"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
                         }
                         """
                 )
@@ -109,29 +213,38 @@ public class GroupController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 400,
-                          "message": "Invalid request parameters"
-                        }
-                        """
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Group not found",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 404,
-                          "message": "Group not found"
-                        }
-                        """
-                )
+                examples = {
+                    @ExampleObject(
+                        name = "Empty or blank group name",
+                        description = "When group_name is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "groupName: Group name is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Group name exceeds maximum length",
+                        description = "When group_name exceeds 100 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "groupName: Group name must be between 1 and 100 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    )
+                }
             )
         ),
         @ApiResponse(
@@ -163,6 +276,36 @@ public class GroupController {
                         """
                 )
             )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
+                        }
+                        """
+                )
+            )
         )
     })
     public ResponseEntity<GroupResponseDTO> updateGroupName(
@@ -181,15 +324,17 @@ public class GroupController {
             description = "Group information retrieved successfully"
         ),
         @ApiResponse(
-            responseCode = "404",
-            description = "Group not found",
+            responseCode = "400",
+            description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
+                    name = "Invalid UUID format",
+                    description = "When groupId path parameter has invalid UUID format",
                     value = """
                         {
-                          "status": 404,
-                          "message": "Group not found"
+                          "status": 400,
+                          "message": "Invalid format for parameter 'groupId': expected UUID"
                         }
                         """
                 )
@@ -205,6 +350,21 @@ public class GroupController {
                         {
                           "status": 401,
                           "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group Not Found"
                         }
                         """
                 )
@@ -257,14 +417,78 @@ public class GroupController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Validation error - Invalid invitation token or request parameters",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "User UUID is null",
+                        description = "When user_uuid is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "userUuid: User UUID is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Join token is null",
+                        description = "When join_token is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "joinToken: Join token is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid UUID format for user_uuid",
+                        description = "When user_uuid has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid value for field 'user_uuid': expected UUID but received String"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid UUID format for groupId",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 400,
-                          "message": "Invalid invitation token"
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - Invalid join token",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 403,
+                          "message": "Invalid join token"
                         }
                         """
                 )
@@ -294,22 +518,22 @@ public class GroupController {
                     value = """
                         {
                           "status": 409,
-                          "message": "User already member of the group"
+                          "message": "already joined this group"
                         }
                         """
                 )
             )
         ),
         @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
                     value = """
                         {
-                          "status": 401,
-                          "message": "Unauthorized"
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
                         }
                         """
                 )
@@ -345,18 +569,32 @@ public class GroupController {
             description = "User left group successfully"
         ),
         @ApiResponse(
-            responseCode = "404",
-            description = "Group or user not found",
+            responseCode = "400",
+            description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 404,
-                          "message": "Group or user not found"
-                        }
-                        """
-                )
+                examples = {
+                    @ExampleObject(
+                        name = "Invalid groupId UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid userUuid UUID format",
+                        description = "When userUuid path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'userUuid': expected UUID"
+                            }
+                            """
+                    )
+                }
             )
         ),
         @ApiResponse(
@@ -384,6 +622,21 @@ public class GroupController {
                         {
                           "status": 403,
                           "message": "Forbidden"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
                         }
                         """
                 )
