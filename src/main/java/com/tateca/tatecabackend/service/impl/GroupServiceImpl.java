@@ -9,6 +9,7 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
@@ -62,7 +63,7 @@ public class GroupServiceImpl implements GroupService {
         logger.info("Updating group name: groupId={}", PiiMaskingUtil.maskUuid(groupId));
 
         GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND, groupId));
         String oldName = group.getName();
         group.setName(name);
         groupRepository.save(group);
@@ -106,7 +107,7 @@ public class GroupServiceImpl implements GroupService {
 
         // Create new records into users table
         AuthUserEntity authUser = authUserRepository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND, uid));
 
         List<UserEntity> userEntityList = new ArrayList<>();
 
@@ -157,7 +158,7 @@ public class GroupServiceImpl implements GroupService {
 
         // check if token is valid or not
         GroupEntity groupEntity = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND, groupId));
 
         // Check if user has already joined this group.
         List<UserGroupEntity> userGroupEntityList = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
@@ -186,9 +187,9 @@ public class GroupServiceImpl implements GroupService {
 
         // Update users.auth_user_uid to link authUser and user
         UserEntity userEntity = userRepository.findById(request.userUuid())
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.userUuid()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, request.userUuid()));
         AuthUserEntity authUserEntity = authUserRepository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND, uid));
         userEntity.setAuthUser(authUserEntity);
         userRepository.save(userEntity);
 
@@ -213,15 +214,15 @@ public class GroupServiceImpl implements GroupService {
 
         // Verify group exists
         GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND, groupId));
 
         // Verify user is in the group (using composite primary key for efficiency)
         userGroupRepository.findByUserUuidAndGroupUuid(userUuid, groupId)
-                .orElseThrow(() -> new EntityNotFoundException("User is not in this group"));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
 
         // Get user entity
         UserEntity userEntity = userRepository.findById(userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userUuid));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, userUuid));
 
         // Set auth_user to null (leave group)
         String authUserId = userEntity.getAuthUser() != null ? userEntity.getAuthUser().getUid() : null;

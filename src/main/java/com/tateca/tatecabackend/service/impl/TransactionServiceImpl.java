@@ -17,6 +17,7 @@ import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.ParticipantModel;
 import com.tateca.tatecabackend.model.TransactionType;
@@ -223,7 +224,7 @@ public class TransactionServiceImpl implements TransactionService {
                     ExchangeRateEntity latestRate = exchangeRateRepository
                             .findLatestByCurrencyCode(request.currencyCode())
                             .orElseThrow(() -> new EntityNotFoundException(
-                                    "No exchange rate found for currency code: " + request.currencyCode()
+                                    ErrorCode.EXCHANGE_RATE_NOT_FOUND, request.currencyCode()
                             ));
 
                     logger.debug("Using latest exchange rate as fallback: currency={}, date={}, rate={}",
@@ -239,9 +240,9 @@ public class TransactionServiceImpl implements TransactionService {
                 });
 
         UserEntity payer = userRepository.findById(request.payerId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, request.payerId()));
         GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND, groupId));
         TransactionHistoryEntity savedTransaction = transactionRepository.save(TransactionHistoryEntity.from(request.transactionType(), request.title(), request.amount(), dateStringToInstant(request.dateStr()), payer, group, exchangeRate));
 
         // Save into transaction_obligations
@@ -249,7 +250,7 @@ public class TransactionServiceImpl implements TransactionService {
             List<TransactionObligationEntity> transactionObligationEntityList = request.loan().obligations().stream()
                     .map(obligation -> {
                         UserEntity obligationUser = userRepository.findById(obligation.userUuid())
-                                .orElseThrow(() -> new EntityNotFoundException("User not found: " + obligation.userUuid()));
+                                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, obligation.userUuid()));
 
                         return TransactionObligationEntity.builder()
                                 .uuid(UUID.randomUUID())
@@ -269,7 +270,7 @@ public class TransactionServiceImpl implements TransactionService {
             return CreateTransactionResponseDTO.from(savedTransaction, savedObligations);
         } else {
             UserEntity recipient = userRepository.findById(request.repayment().recipientId())
-                    .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.repayment().recipientId()));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND, request.repayment().recipientId()));
 
             TransactionObligationEntity savedObligation = obligationRepository.save(TransactionObligationEntity.from(savedTransaction, recipient));
 
@@ -285,7 +286,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(readOnly = true)
     public CreateTransactionResponseDTO getTransactionDetail(UUID transactionId) {
         TransactionHistoryEntity transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new EntityNotFoundException("Transaction not found: " + transactionId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.TRANSACTION_NOT_FOUND, transactionId));
         TransactionType transactionType = transaction.getTransactionType();
 
         List<TransactionObligationEntity> transactionObligationEntityList = obligationRepository.findByTransactionId(transactionId);

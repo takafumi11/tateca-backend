@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.AppReviewStatus;
@@ -32,7 +33,7 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Transactional
     public AuthUserResponseDTO getAuthUserInfo(String uid) {
         AuthUserEntity authUser = repository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND, uid));
 
         authUser.setLastLoginTime(Instant.now());
         authUser.setTotalLoginCount(authUser.getTotalLoginCount() + 1);
@@ -56,7 +57,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         if (repository.existsByEmail(request.email())) {
             logger.warn("User registration failed - email already exists: email={}",
                     PiiMaskingUtil.maskEmail(request.email()));
-            throw new DuplicateResourceException("Email already exists: " + request.email());
+            throw new DuplicateResourceException(ErrorCode.AUTH_EMAIL_ALREADY_EXISTS, request.email());
         }
 
         AuthUserEntity authUser = AuthUserEntity.builder()
@@ -83,7 +84,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
         // Verify auth user exists
         AuthUserEntity authUser = repository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND, uid));
 
         List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
         int groupCount = userEntityList.size();
@@ -104,7 +105,7 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Transactional
     public AuthUserResponseDTO updateAppReview(String uid, UpdateAppReviewRequestDTO request) {
         AuthUserEntity authUser = repository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND, uid));
 
         authUser.setLastAppReviewDialogShownAt(Instant.now());
         authUser.setAppReviewStatus(request.appReviewStatus());
