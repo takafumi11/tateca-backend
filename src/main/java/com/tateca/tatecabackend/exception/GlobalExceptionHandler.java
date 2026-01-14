@@ -46,31 +46,35 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(HttpServletRequest request, IllegalArgumentException ex) {
         logger.warn("IllegalArgumentException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.VALIDATION_FAILED.getCode())
                 .message(ex.getMessage()) // Keep original message for backward compatibility
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDataAccessException(HttpServletRequest request, DataAccessException ex) {
         logger.error("DataAccessException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         String message = messageResolver.getMessage(ErrorCode.DATABASE_ERROR);
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.DATABASE_ERROR.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -81,10 +85,12 @@ public class GlobalExceptionHandler {
             logger.warn("ResponseStatusException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getReason());
         }
 
+        HttpStatus httpStatus = HttpStatus.resolve(ex.getStatusCode().value());
         ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now().toString())
                 .status(ex.getStatusCode().value())
+                .error(httpStatus != null ? httpStatus.getReasonPhrase() : "Unknown")
                 .message(ex.getReason())
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
@@ -98,15 +104,17 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         logger.warn("ConstraintViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
 
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.VALIDATION_FAILED.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -116,15 +124,17 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         logger.warn("MethodArgumentNotValidException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
 
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.VALIDATION_FAILED.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -140,15 +150,17 @@ public class GlobalExceptionHandler {
 
         logger.warn("MethodArgumentTypeMismatchException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
 
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.REQUEST_INVALID_PARAMETER.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -173,15 +185,17 @@ public class GlobalExceptionHandler {
 
         logger.warn("HttpMessageNotReadableException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
 
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.REQUEST_INVALID_FORMAT.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -189,15 +203,17 @@ public class GlobalExceptionHandler {
         String message = messageResolver.getMessage(ErrorCode.REQUEST_UNSUPPORTED_MEDIA_TYPE);
         logger.warn("HttpMediaTypeNotSupportedException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
+        HttpStatus httpStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE;
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.REQUEST_UNSUPPORTED_MEDIA_TYPE.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -207,10 +223,11 @@ public class GlobalExceptionHandler {
         HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now().toString())
                 .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ex.getErrorCode().getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(errorResponse, httpStatus);
@@ -223,10 +240,11 @@ public class GlobalExceptionHandler {
         HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now().toString())
                 .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ex.getErrorCode().getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(errorResponse, httpStatus);
@@ -236,16 +254,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(HttpServletRequest request, DataIntegrityViolationException ex) {
         logger.warn("DataIntegrityViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
+        HttpStatus httpStatus = HttpStatus.CONFLICT;
         String message = messageResolver.getMessage(ErrorCode.DATABASE_CONSTRAINT_VIOLATION);
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.CONFLICT.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.DATABASE_CONSTRAINT_VIOLATION.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
     @ExceptionHandler(BusinessRuleViolationException.class)
@@ -255,10 +275,11 @@ public class GlobalExceptionHandler {
         HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now().toString())
                 .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ex.getErrorCode().getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(errorResponse, httpStatus);
@@ -271,15 +292,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnexpectedException(HttpServletRequest request, Exception ex) {
         logger.error("Unexpected exception at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         String message = messageResolver.getMessage(ErrorCode.SYSTEM_UNEXPECTED_ERROR);
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .timestamp(Instant.now().toString())
+                .status(httpStatus.value())
+                .error(httpStatus.getReasonPhrase())
                 .errorCode(ErrorCode.SYSTEM_UNEXPECTED_ERROR.getCode())
                 .message(message)
-                .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(errorResponse, httpStatus);
     }
 }
