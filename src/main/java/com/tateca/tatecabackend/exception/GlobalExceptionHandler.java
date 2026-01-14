@@ -218,7 +218,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(HttpServletRequest request, EntityNotFoundException ex) {
-        logger.warn("EntityNotFoundException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        // Log with technical details for debugging
+        if (ex.getMessageArgs() != null && ex.getMessageArgs().length > 0) {
+            logger.warn("EntityNotFoundException at {} {}: {} (args: {})",
+                request.getMethod(), request.getRequestURI(), ex.getErrorCode().getCode(),
+                java.util.Arrays.toString(ex.getMessageArgs()));
+        } else {
+            logger.warn("EntityNotFoundException at {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getErrorCode().getCode());
+        }
 
         HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
@@ -235,7 +243,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResourceException(HttpServletRequest request, DuplicateResourceException ex) {
-        logger.warn("DuplicateResourceException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        // Log with technical details for debugging
+        if (ex.getMessageArgs() != null && ex.getMessageArgs().length > 0) {
+            logger.warn("DuplicateResourceException at {} {}: {} (args: {})",
+                request.getMethod(), request.getRequestURI(), ex.getErrorCode().getCode(),
+                java.util.Arrays.toString(ex.getMessageArgs()));
+        } else {
+            logger.warn("DuplicateResourceException at {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getErrorCode().getCode());
+        }
 
         HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
@@ -270,7 +286,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessRuleViolationException.class)
     public ResponseEntity<ErrorResponse> handleBusinessRuleViolationException(HttpServletRequest request, BusinessRuleViolationException ex) {
-        logger.warn("BusinessRuleViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        // Log with technical details for debugging
+        if (ex.getMessageArgs() != null && ex.getMessageArgs().length > 0) {
+            logger.warn("BusinessRuleViolationException at {} {}: {} (args: {})",
+                request.getMethod(), request.getRequestURI(), ex.getErrorCode().getCode(),
+                java.util.Arrays.toString(ex.getMessageArgs()));
+        } else {
+            logger.warn("BusinessRuleViolationException at {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getErrorCode().getCode());
+        }
 
         HttpStatus httpStatus = ex.getErrorCode().getHttpStatus();
         String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
