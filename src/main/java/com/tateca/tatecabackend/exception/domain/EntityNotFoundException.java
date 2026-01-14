@@ -15,7 +15,7 @@ public class EntityNotFoundException extends RuntimeException {
     private final Object[] messageArgs;
 
     /**
-     * Constructor with ErrorCode for i18n support (recommended).
+     * Constructor with ErrorCode for i18n support.
      *
      * @param errorCode Error code enum
      * @param messageArgs Message parameters (e.g., user ID, group ID)
@@ -24,27 +24,5 @@ public class EntityNotFoundException extends RuntimeException {
         super(errorCode.getCode());
         this.errorCode = errorCode;
         this.messageArgs = messageArgs;
-    }
-
-    /**
-     * Legacy constructor for backward compatibility during migration.
-     * @deprecated Use {@link #EntityNotFoundException(ErrorCode, Object...)} instead
-     */
-    @Deprecated(since = "0.9.0", forRemoval = true)
-    public EntityNotFoundException(String message) {
-        super(message);
-        this.errorCode = null;
-        this.messageArgs = null;
-    }
-
-    /**
-     * Legacy constructor for backward compatibility during migration.
-     * @deprecated Use {@link #EntityNotFoundException(ErrorCode, Object...)} instead
-     */
-    @Deprecated(since = "0.9.0", forRemoval = true)
-    public EntityNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-        this.errorCode = null;
-        this.messageArgs = null;
     }
 }

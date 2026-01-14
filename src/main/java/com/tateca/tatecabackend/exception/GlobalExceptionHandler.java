@@ -204,23 +204,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(HttpServletRequest request, EntityNotFoundException ex) {
         logger.warn("EntityNotFoundException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-        // New i18n path
-        if (ex.getErrorCode() != null) {
-            String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
-            ErrorResponse errorResponse = ErrorResponse.builder()
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .errorCode(ex.getErrorCode().getCode())
-                    .message(message)
-                    .timestamp(Instant.now())
-                    .path(request.getRequestURI())
-                    .build();
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-        }
-
-        // Legacy path (backward compatibility)
+        String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
+                .errorCode(ex.getErrorCode().getCode())
+                .message(message)
                 .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
@@ -231,23 +219,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDuplicateResourceException(HttpServletRequest request, DuplicateResourceException ex) {
         logger.warn("DuplicateResourceException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-        // New i18n path
-        if (ex.getErrorCode() != null) {
-            String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
-            ErrorResponse errorResponse = ErrorResponse.builder()
-                    .status(HttpStatus.CONFLICT.value())
-                    .errorCode(ex.getErrorCode().getCode())
-                    .message(message)
-                    .timestamp(Instant.now())
-                    .path(request.getRequestURI())
-                    .build();
-            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-        }
-
-        // Legacy path
+        String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.CONFLICT.value())
-                .message(ex.getMessage())
+                .errorCode(ex.getErrorCode().getCode())
+                .message(message)
                 .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();
@@ -274,23 +250,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessRuleViolationException(HttpServletRequest request, BusinessRuleViolationException ex) {
         logger.warn("BusinessRuleViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-        // New i18n path
-        if (ex.getErrorCode() != null) {
-            String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
-            ErrorResponse errorResponse = ErrorResponse.builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .errorCode(ex.getErrorCode().getCode())
-                    .message(message)
-                    .timestamp(Instant.now())
-                    .path(request.getRequestURI())
-                    .build();
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
-
-        // Legacy path
+        String message = messageResolver.getMessage(ex.getErrorCode(), ex.getMessageArgs());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
+                .errorCode(ex.getErrorCode().getCode())
+                .message(message)
                 .timestamp(Instant.now())
                 .path(request.getRequestURI())
                 .build();

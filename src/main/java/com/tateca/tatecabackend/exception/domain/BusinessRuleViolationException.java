@@ -21,7 +21,7 @@ public class BusinessRuleViolationException extends RuntimeException {
     private final Object[] messageArgs;
 
     /**
-     * Constructor with ErrorCode for i18n support (recommended).
+     * Constructor with ErrorCode for i18n support.
      *
      * @param errorCode Error code enum
      * @param messageArgs Message parameters (e.g., group ID, token)
@@ -30,27 +30,5 @@ public class BusinessRuleViolationException extends RuntimeException {
         super(errorCode.getCode());
         this.errorCode = errorCode;
         this.messageArgs = messageArgs;
-    }
-
-    /**
-     * Legacy constructor for backward compatibility during migration.
-     * @deprecated Use {@link #BusinessRuleViolationException(ErrorCode, Object...)} instead
-     */
-    @Deprecated(since = "0.9.0", forRemoval = true)
-    public BusinessRuleViolationException(String message) {
-        super(message);
-        this.errorCode = null;
-        this.messageArgs = null;
-    }
-
-    /**
-     * Legacy constructor for backward compatibility during migration.
-     * @deprecated Use {@link #BusinessRuleViolationException(ErrorCode, Object...)} instead
-     */
-    @Deprecated(since = "0.9.0", forRemoval = true)
-    public BusinessRuleViolationException(String message, Throwable cause) {
-        super(message, cause);
-        this.errorCode = null;
-        this.messageArgs = null;
     }
 }

@@ -9,6 +9,7 @@ import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.dto.response.internal.ExchangeRateResponse;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.SymbolPosition;
@@ -977,7 +978,7 @@ class TransactionControllerWebTest {
             UUID groupId = UUID.randomUUID();
 
             when(transactionService.getSettlements(eq(groupId)))
-                    .thenThrow(new EntityNotFoundException("Group not found"));
+                    .thenThrow(new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND, groupId));
 
             // When & Then: Should return 404
             mockMvc.perform(get(BASE_ENDPOINT + "/settlement", groupId))
@@ -1069,7 +1070,7 @@ class TransactionControllerWebTest {
             UUID transactionId = UUID.randomUUID();
 
             when(transactionService.getTransactionDetail(eq(transactionId)))
-                    .thenThrow(new EntityNotFoundException("Transaction not found"));
+                    .thenThrow(new EntityNotFoundException(ErrorCode.TRANSACTION_NOT_FOUND, transactionId));
 
             // When & Then: Should return 404
             mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
@@ -1139,7 +1140,7 @@ class TransactionControllerWebTest {
             UUID groupId = UUID.randomUUID();
             UUID transactionId = UUID.randomUUID();
 
-            doThrow(new EntityNotFoundException("Transaction not found"))
+            doThrow(new EntityNotFoundException(ErrorCode.TRANSACTION_NOT_FOUND, transactionId))
                     .when(transactionService).deleteTransaction(eq(transactionId));
 
             // When & Then: Should return 404
