@@ -117,11 +117,15 @@ class AuthUserControllerWebTest {
             // Given: UID with 129 characters
             String uid129Chars = "A".repeat(129);
 
-            // When & Then: Should return 400 BAD_REQUEST
+            // When & Then: Should return 400 BAD_REQUEST with structured validation errors
             mockMvc.perform(get(BASE_ENDPOINT + "/{uid}", uid129Chars))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("UID must not exceed 128 characters"));
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field").value("getAuthUser.uid"))
+                .andExpect(jsonPath("$.errors[0].message").value("UID must not exceed 128 characters"));
 
             // And: Service should NOT be called
             verify(authUserService, never()).getAuthUserInfo(any());
@@ -489,11 +493,15 @@ class AuthUserControllerWebTest {
             // Given: UID with 129 characters
             String uid129Chars = "A".repeat(129);
 
-            // When & Then: Should return 400 BAD_REQUEST
+            // When & Then: Should return 400 BAD_REQUEST with structured validation errors
             mockMvc.perform(delete(BASE_ENDPOINT + "/{uid}", uid129Chars))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("UID must not exceed 128 characters"));
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field").value("deleteUserInfo.uid"))
+                .andExpect(jsonPath("$.errors[0].message").value("UID must not exceed 128 characters"));
 
             // And: Service should NOT be called
             verify(authUserService, never()).deleteAuthUser(any());
