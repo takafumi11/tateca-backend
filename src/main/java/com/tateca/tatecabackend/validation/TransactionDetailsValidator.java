@@ -35,19 +35,19 @@ public class TransactionDetailsValidator
 
         if (dto.loan() == null) {
             context.buildConstraintViolationWithTemplate(
-                    "Loan details are required when transaction type is LOAN"
+                    "{validation.transaction.details.loan.required}"
             ).addPropertyNode("loan").addConstraintViolation();
             isValid = false;
         } else if (dto.loan().obligations() == null || dto.loan().obligations().isEmpty()) {
             context.buildConstraintViolationWithTemplate(
-                    "Obligations list cannot be null or empty for LOAN transactions"
+                    "{validation.transaction.details.loan.obligations.empty}"
             ).addPropertyNode("loan").addPropertyNode("obligations").addConstraintViolation();
             isValid = false;
         }
 
         if (dto.repayment() != null) {
             context.buildConstraintViolationWithTemplate(
-                    "Repayment details should not be provided when transaction type is LOAN"
+                    "{validation.transaction.details.loan.repayment.conflict}"
             ).addPropertyNode("repayment").addConstraintViolation();
             isValid = false;
         }
@@ -60,19 +60,19 @@ public class TransactionDetailsValidator
 
         if (dto.repayment() == null) {
             context.buildConstraintViolationWithTemplate(
-                    "Repayment details are required when transaction type is REPAYMENT"
+                    "{validation.transaction.details.repayment.required}"
             ).addPropertyNode("repayment").addConstraintViolation();
             isValid = false;
         } else if (dto.repayment().recipientId() == null) {
             context.buildConstraintViolationWithTemplate(
-                    "Recipient ID is required for REPAYMENT transactions"
+                    "{validation.transaction.details.repayment.recipientId.required}"
             ).addPropertyNode("repayment").addPropertyNode("recipientId").addConstraintViolation();
             isValid = false;
         }
 
         if (dto.loan() != null) {
             context.buildConstraintViolationWithTemplate(
-                    "Loan details should not be provided when transaction type is REPAYMENT"
+                    "{validation.transaction.details.repayment.loan.conflict}"
             ).addPropertyNode("loan").addConstraintViolation();
             isValid = false;
         }

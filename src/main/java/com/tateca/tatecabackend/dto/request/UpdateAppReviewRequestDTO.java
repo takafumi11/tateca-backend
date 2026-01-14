@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 public record UpdateAppReviewRequestDTO(
         @JsonProperty("app_review_status")
         @Schema(description = "App review status", example = "COMPLETED", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull(message = "App review status is required")
+        @NotNull(message = "{validation.appReview.status.required}")
         AppReviewStatus appReviewStatus
 ) {
 

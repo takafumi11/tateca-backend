@@ -11,22 +11,22 @@ import java.util.List;
 
 @Schema(description = "Request to create a new group")
 public record CreateGroupRequestDTO(
-        @NotBlank(message = "Group name is required")
-        @Size(min = 1, max = 100, message = "Group name must be between 1 and 100 characters")
+        @NotBlank(message = "{validation.group.groupName.required}")
+        @Size(min = 1, max = 100, message = "{validation.group.groupName.size}")
         @JsonProperty("group_name")
         @Schema(description = "Name of the group", example = "Team Outing 2024")
         String groupName,
 
-        @NotBlank(message = "Host name is required")
-        @Size(min = 1, max = 50, message = "Host name must be between 1 and 50 characters")
+        @NotBlank(message = "{validation.group.hostName.required}")
+        @Size(min = 1, max = 50, message = "{validation.group.hostName.size}")
         @JsonProperty("host_name")
         @Schema(description = "Name of the group host", example = "John Doe")
         String hostName,
 
-        @NotNull(message = "Participants list is required")
-        @Size(min = 1, max = BusinessConstants.MAX_GROUP_PARTICIPANTS, message = "Participants must be between 1 and " + BusinessConstants.MAX_GROUP_PARTICIPANTS)
+        @NotNull(message = "{validation.group.participants.required}")
+        @Size(min = 1, max = BusinessConstants.MAX_GROUP_PARTICIPANTS, message = "{validation.group.participants.size}")
         @JsonProperty("participants_name")
         @Schema(description = "List of participant names (minimum 1, maximum " + BusinessConstants.MAX_GROUP_PARTICIPANTS + ")", example = "[\"Alice\", \"Bob\", \"Charlie\"]")
-        List<@NotBlank(message = "Participant name cannot be blank") @Size(min = 1, max = 50, message = "Participant name must be between 1 and 50 characters") String> participantsName
+        List<@NotBlank(message = "{validation.group.participantName.required}") @Size(min = 1, max = 50, message = "{validation.group.participantName.size}") String> participantsName
 ) {
 }
