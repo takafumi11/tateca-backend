@@ -63,8 +63,8 @@ class ActuatorHealthCheckIntegrationTest extends AbstractIntegrationTest {
         void thenProtectedEndpointsShouldRequireAuthentication() throws Exception {
             // When: Accessing protected endpoint without authentication
             mockMvc.perform(get("/groups"))
-                    // Then: Should return 400 Bad Request (missing Authorization header)
-                    .andExpect(status().isBadRequest());
+                    // Then: Should return 401 Unauthorized (missing authentication)
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test

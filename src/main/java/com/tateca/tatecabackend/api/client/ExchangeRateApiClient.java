@@ -2,13 +2,12 @@ package com.tateca.tatecabackend.api.client;
 
 
 import com.tateca.tatecabackend.api.response.ExchangeRateClientResponse;
+import com.tateca.tatecabackend.exception.domain.ExternalServiceException;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 @Component
 public class ExchangeRateApiClient {
@@ -47,6 +46,6 @@ public class ExchangeRateApiClient {
 
     private ExchangeRateClientResponse fetchLatestFallback(Exception e) {
         logger.error("Failed to fetch latest exchange rate after all retries exhausted: {}", e.getMessage(), e);
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Exchange rate service unavailable", e);
+        throw new ExternalServiceException("Exchange rate service unavailable", e);
     }
 }

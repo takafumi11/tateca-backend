@@ -1,25 +1,28 @@
 package com.tateca.tatecabackend.exception.domain;
 
-public class DuplicateResourceException extends RuntimeException {
+/**
+ * Exception thrown when authentication fails (HTTP 401 Unauthorized)
+ */
+public class AuthenticationException extends RuntimeException {
     private final String errorCode;
 
-    public DuplicateResourceException(String errorCode, String message) {
+    public AuthenticationException(String errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    public DuplicateResourceException(String errorCode, String message, Throwable cause) {
+    public AuthenticationException(String errorCode, String message, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }
 
     // Backward compatibility constructors
-    public DuplicateResourceException(String message) {
+    public AuthenticationException(String message) {
         super(message);
         this.errorCode = null;
     }
 
-    public DuplicateResourceException(String message, Throwable cause) {
+    public AuthenticationException(String message, Throwable cause) {
         super(message, cause);
         this.errorCode = null;
     }
