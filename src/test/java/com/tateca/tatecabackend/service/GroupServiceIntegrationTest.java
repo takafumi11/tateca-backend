@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
+import com.tateca.tatecabackend.dto.request.AddMemberRequestDTO;
 import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
@@ -1342,6 +1343,238 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // When & Then: Should throw not found exception
             assertThatThrownBy(() -> groupService.leaveGroup(testGroupId, nonExistentUserUuid))
                     .hasMessageContaining("User is not in this group");
+        }
+    }
+
+    // ========================================
+    // addMember Tests (5 nested classes)
+    // ========================================
+
+    @Nested
+    @DisplayName("Given valid request from group member")
+    class WhenValidRequestFromGroupMember {
+
+        @Test
+        @DisplayName("Then should add member successfully and persist")
+        void thenShouldAddMemberSuccessfullyAndPersist() {
+            // Given: User in group
+            UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            userRepository.save(requestingUser);
+            userGroupRepository.save(TestFixtures.UserGroups.create(requestingUser, testGroup));
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("New Member");
+
+            // When: Adding member
+            GroupResponseDTO result = groupService.addMember(testGroupId, TEST_UID, request);
+
+            // Then: Should return updated group info
+            assertThat(result).isNotNull();
+            assertThat(result.groupInfo().uuid()).isEqualTo(testGroupId.toString());
+            assertThat(result.users()).hasSize(2); // requesting user + new member
+
+            // And: New member should be persisted without authUser
+            flushAndClear();
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
+            assertThat(userGroups).hasSize(2);
+
+            UserEntity newMember = userGroups.stream()
+                    .map(UserGroupEntity::getUser)
+                    .filter(u -> "New Member".equals(u.getName()))
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(newMember.getAuthUser()).isNull();
+        }
+
+        @Test
+        @DisplayName("Then should allow adding members with duplicate names")
+        void thenShouldAllowAddingMembersWithDuplicateNames() {
+            // Given: Group with existing member named "Alice"
+            UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            UserEntity existingMember = TestFixtures.Users.userWithoutAuthUser("Alice");
+            userRepository.saveAll(List.of(requestingUser, existingMember));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(requestingUser, testGroup),
+                    TestFixtures.UserGroups.create(existingMember, testGroup)
+            ));
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("Alice");
+
+            // When: Adding another member with same name
+            GroupResponseDTO result = groupService.addMember(testGroupId, TEST_UID, request);
+
+            // Then: Should succeed (duplicate names allowed)
+            assertThat(result.users()).hasSize(3);
+
+            flushAndClear();
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
+            long aliceCount = userGroups.stream()
+                    .map(UserGroupEntity::getUser)
+                    .filter(u -> "Alice".equals(u.getName()))
+                    .count();
+            assertThat(aliceCount).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("Then should increment member count correctly")
+        void thenShouldIncrementMemberCountCorrectly() {
+            // Given: Group with 3 existing members
+            UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            UserEntity member1 = TestFixtures.Users.userWithoutAuthUser("Member 1");
+            UserEntity member2 = TestFixtures.Users.userWithoutAuthUser("Member 2");
+            userRepository.saveAll(List.of(requestingUser, member1, member2));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(requestingUser, testGroup),
+                    TestFixtures.UserGroups.create(member1, testGroup),
+                    TestFixtures.UserGroups.create(member2, testGroup)
+            ));
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("Member 4");
+
+            // When: Adding member
+            GroupResponseDTO result = groupService.addMember(testGroupId, TEST_UID, request);
+
+            // Then: Member count should be 4
+            assertThat(result.users()).hasSize(4);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given user is not a group member")
+    class WhenUserIsNotGroupMember {
+
+        @Test
+        @DisplayName("Then should throw forbidden exception")
+        void thenShouldThrowForbiddenException() {
+            // Given: User exists but not in the group
+            UserEntity nonMember = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            UserEntity existingMember = TestFixtures.Users.userWithoutAuthUser("Existing Member");
+            userRepository.saveAll(List.of(nonMember, existingMember));
+            userGroupRepository.save(TestFixtures.UserGroups.create(existingMember, testGroup));
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("New Member");
+
+            // When & Then: Should throw forbidden exception
+            assertThatThrownBy(() -> groupService.addMember(testGroupId, TEST_UID, request))
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasMessageContaining("Only group members can add members");
+        }
+    }
+
+    @Nested
+    @DisplayName("Given group has reached maximum size")
+    class WhenGroupHasReachedMaximumSize {
+
+        @Test
+        @DisplayName("Then should throw conflict exception when at limit")
+        void thenShouldThrowConflictExceptionWhenAtLimit() {
+            // Given: Group with 10 members (maximum)
+            UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            userRepository.save(requestingUser);
+            userGroupRepository.save(TestFixtures.UserGroups.create(requestingUser, testGroup));
+
+            IntStream.range(0, 9).forEach(i -> {
+                UserEntity member = TestFixtures.Users.userWithoutAuthUser("Member " + i);
+                userRepository.save(member);
+                userGroupRepository.save(TestFixtures.UserGroups.create(member, testGroup));
+            });
+
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("11th Member");
+
+            // When & Then: Should throw conflict exception
+            assertThatThrownBy(() -> groupService.addMember(testGroupId, TEST_UID, request))
+                    .isInstanceOf(BusinessRuleViolationException.class)
+                    .hasMessageContaining("Group has reached maximum size of 10 members");
+        }
+
+        @Test
+        @DisplayName("Then should allow adding when under limit")
+        void thenShouldAllowAddingWhenUnderLimit() {
+            // Given: Group with 9 members (one under maximum)
+            UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            userRepository.save(requestingUser);
+            userGroupRepository.save(TestFixtures.UserGroups.create(requestingUser, testGroup));
+
+            IntStream.range(0, 8).forEach(i -> {
+                UserEntity member = TestFixtures.Users.userWithoutAuthUser("Member " + i);
+                userRepository.save(member);
+                userGroupRepository.save(TestFixtures.UserGroups.create(member, testGroup));
+            });
+
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("10th Member");
+
+            // When: Adding member
+            GroupResponseDTO result = groupService.addMember(testGroupId, TEST_UID, request);
+
+            // Then: Should succeed
+            assertThat(result).isNotNull();
+            assertThat(result.users()).hasSize(10);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given group does not exist for addMember")
+    class WhenGroupDoesNotExistForAddMember {
+
+        @Test
+        @DisplayName("Then should throw not found exception when group not found")
+        void thenShouldThrowNotFoundExceptionWhenGroupNotFound() {
+            // Given: Non-existent group ID
+            UUID nonExistentGroupId = UUID.randomUUID();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("New Member");
+
+            // When & Then: Should throw not found exception
+            assertThatThrownBy(() -> groupService.addMember(nonExistentGroupId, TEST_UID, request))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Group not found");
+        }
+    }
+
+    @Nested
+    @DisplayName("Given transaction boundaries for addMember")
+    class WhenTransactionBoundariesForAddMember {
+
+        @Test
+        @DisplayName("Then should commit all entities atomically")
+        void thenShouldCommitAllEntitiesAtomically() {
+            // Given: User in group
+            UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            userRepository.save(requestingUser);
+            userGroupRepository.save(TestFixtures.UserGroups.create(requestingUser, testGroup));
+            flushAndClear();
+
+            AddMemberRequestDTO request =
+                    new AddMemberRequestDTO("New Member");
+
+            // When: Adding member
+            GroupResponseDTO result = groupService.addMember(testGroupId, TEST_UID, request);
+
+            // Then: All entities should be committed together
+            flushAndClear();
+
+            // New user should exist
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
+            assertThat(userGroups).hasSize(2);
+
+            // User entity should be persisted
+            userGroups.forEach(ug -> {
+                assertThat(userRepository.findById(ug.getUserUuid())).isPresent();
+            });
         }
     }
 }

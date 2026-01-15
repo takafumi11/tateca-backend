@@ -655,7 +655,7 @@ class TransactionControllerWebTest {
         @Test
         @DisplayName("Should return 400 when obligations list exceeds maximum size")
         void shouldReturn400WhenObligationsListExceedsMaxSize() throws Exception {
-            // Given: LOAN transaction with 9 obligations (exceeds max of 8)
+            // Given: LOAN transaction with 10 obligations (exceeds max of 9)
             UUID groupId = UUID.randomUUID();
             UUID payerId = UUID.randomUUID();
 
