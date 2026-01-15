@@ -7,7 +7,9 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
+import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
@@ -18,7 +20,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -158,7 +159,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw exception
             assertThatThrownBy(() -> groupService.getGroupInfo(testGroupId))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Group Not Found");
         }
     }
@@ -175,7 +176,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw exception
             assertThatThrownBy(() -> groupService.getGroupInfo(nonExistentGroupId))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Group Not Found");
         }
     }
@@ -723,7 +724,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw conflict exception
             assertThatThrownBy(() -> groupService.createGroup(TEST_UID, request))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(BusinessRuleViolationException.class)
                     .hasMessageContaining("User can't join more than 10 groups");
         }
 
@@ -969,7 +970,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw forbidden exception
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, TEST_UID))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(ForbiddenException.class)
                     .hasMessageContaining("Invalid join token");
 
             // And: User should not be modified
@@ -1001,7 +1002,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw conflict exception
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, TEST_UID))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(BusinessRuleViolationException.class)
                     .hasMessageContaining("You have already joined this group");
         }
 
@@ -1024,7 +1025,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should detect duplicate by authUser UID
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, TEST_UID))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(BusinessRuleViolationException.class)
                     .hasMessageContaining("You have already joined this group");
         }
     }
@@ -1063,7 +1064,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             // When & Then: Should throw conflict exception
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, TEST_UID))
-                    .isInstanceOf(ResponseStatusException.class)
+                    .isInstanceOf(BusinessRuleViolationException.class)
                     .hasMessageContaining("User can't join more than 10 groups");
         }
     }
