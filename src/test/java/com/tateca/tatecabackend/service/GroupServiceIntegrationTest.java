@@ -971,7 +971,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // When & Then: Should throw forbidden exception
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, TEST_UID))
                     .isInstanceOf(ForbiddenException.class)
-                    .hasMessageContaining("Invalid join token");
+                    .hasMessageContaining("Invalid or expired join token");
 
             // And: User should not be modified
             flushAndClear();

@@ -592,7 +592,7 @@ class GroupServiceUnitTest {
         // When & Then: Should throw forbidden exception
         assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, uid))
                 .isInstanceOf(ForbiddenException.class)
-                .hasMessageContaining("Invalid join token");
+                .hasMessageContaining("Invalid or expired join token");
 
         verify(userRepository, never()).save(any());
     }

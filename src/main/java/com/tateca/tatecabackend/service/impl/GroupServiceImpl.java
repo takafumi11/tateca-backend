@@ -62,7 +62,10 @@ public class GroupServiceImpl implements GroupService {
         logger.info("Updating group name: groupId={}", PiiMaskingUtil.maskUuid(groupId));
 
         GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> {
+                    logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
+                    return new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+                });
         String oldName = group.getName();
         group.setName(name);
         groupRepository.save(group);
@@ -106,7 +109,10 @@ public class GroupServiceImpl implements GroupService {
 
         // Create new records into users table
         AuthUserEntity authUser = authUserRepository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> {
+                    logger.warn("Auth user not found: uid={}", PiiMaskingUtil.maskUid(uid));
+                    return new EntityNotFoundException("AUTH_USER.NOT_FOUND", "Auth user not found");
+                });
 
         List<UserEntity> userEntityList = new ArrayList<>();
 
@@ -157,7 +163,10 @@ public class GroupServiceImpl implements GroupService {
 
         // check if token is valid or not
         GroupEntity groupEntity = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> {
+                    logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
+                    return new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+                });
 
         // Check if user has already joined this group.
         List<UserGroupEntity> userGroupEntityList = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
@@ -181,14 +190,20 @@ public class GroupServiceImpl implements GroupService {
                     PiiMaskingUtil.maskUid(uid),
                     PiiMaskingUtil.maskUuid(groupId),
                     PiiMaskingUtil.maskToken(request.joinToken().toString()));
-            throw new ForbiddenException("Invalid join token: " + request.joinToken());
+            throw new ForbiddenException("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token");
         }
 
         // Update users.auth_user_uid to link authUser and user
         UserEntity userEntity = userRepository.findById(request.userUuid())
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.userUuid()));
+                .orElseThrow(() -> {
+                    logger.warn("User not found: userUuid={}", PiiMaskingUtil.maskUuid(request.userUuid()));
+                    return new EntityNotFoundException("USER.NOT_FOUND", "User not found");
+                });
         AuthUserEntity authUserEntity = authUserRepository.findById(uid)
-                .orElseThrow(() -> new EntityNotFoundException("Auth user not found: " + uid));
+                .orElseThrow(() -> {
+                    logger.warn("Auth user not found: uid={}", PiiMaskingUtil.maskUid(uid));
+                    return new EntityNotFoundException("AUTH_USER.NOT_FOUND", "Auth user not found");
+                });
         userEntity.setAuthUser(authUserEntity);
         userRepository.save(userEntity);
 
@@ -213,7 +228,10 @@ public class GroupServiceImpl implements GroupService {
 
         // Verify group exists
         GroupEntity group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Group not found: " + groupId));
+                .orElseThrow(() -> {
+                    logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
+                    return new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+                });
 
         // Verify user is in the group (using composite primary key for efficiency)
         userGroupRepository.findByUserUuidAndGroupUuid(userUuid, groupId)
@@ -221,7 +239,10 @@ public class GroupServiceImpl implements GroupService {
 
         // Get user entity
         UserEntity userEntity = userRepository.findById(userUuid)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userUuid));
+                .orElseThrow(() -> {
+                    logger.warn("User not found: userUuid={}", PiiMaskingUtil.maskUuid(userUuid));
+                    return new EntityNotFoundException("USER.NOT_FOUND", "User not found");
+                });
 
         // Set auth_user to null (leave group)
         String authUserId = userEntity.getAuthUser() != null ? userEntity.getAuthUser().getUid() : null;

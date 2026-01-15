@@ -130,11 +130,13 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (bearerToken == null || bearerToken.isEmpty()) {
-            throw new IllegalArgumentException("Missing Authorization header");
+            logger.warn("Missing Authorization header for request: {} {}", request.getMethod(), request.getRequestURI());
+            throw new AuthenticationException("AUTH.MISSING_CREDENTIALS", "Authentication required");
         }
 
         if (!bearerToken.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Invalid Authorization header format. Expected: Bearer <token>");
+            logger.warn("Invalid Authorization header format for request: {} {}", request.getMethod(), request.getRequestURI());
+            throw new AuthenticationException("AUTH.INVALID_FORMAT", "Invalid authentication credentials");
         }
 
         String idToken = bearerToken.substring(7);
@@ -146,20 +148,21 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
         // Validate audience
         String audience = (String) firebaseToken.getClaims().get("aud");
         if (!firebaseProjectId.equals(audience)) {
-            throw new AuthenticationException(
-                "Token audience mismatch. Expected: " + firebaseProjectId + ", Got: " + audience);
+            logger.warn("Token audience mismatch: expected={}, got={}", firebaseProjectId, audience);
+            throw new AuthenticationException("AUTH.INVALID_TOKEN", "Invalid authentication token");
         }
 
         // Validate issuer
         String expectedIssuer = "https://securetoken.google.com/" + firebaseProjectId;
         if (!expectedIssuer.equals(firebaseToken.getIssuer())) {
-            throw new AuthenticationException(
-                "Token issuer mismatch. Expected: " + expectedIssuer + ", Got: " + firebaseToken.getIssuer());
+            logger.warn("Token issuer mismatch: expected={}, got={}", expectedIssuer, firebaseToken.getIssuer());
+            throw new AuthenticationException("AUTH.INVALID_TOKEN", "Invalid authentication token");
         }
 
         // Validate subject (UID)
         if (firebaseToken.getUid() == null || firebaseToken.getUid().isEmpty()) {
-            throw new AuthenticationException("Missing user ID in token");
+            logger.warn("Missing user ID in token");
+            throw new AuthenticationException("AUTH.MISSING_USER_ID", "Missing user ID in token");
         }
 
         FirebaseAuthentication authentication = new FirebaseAuthentication(firebaseToken.getUid());

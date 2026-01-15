@@ -595,7 +595,7 @@ class GroupControllerWebTest {
             UpdateGroupNameRequestDTO request = new UpdateGroupNameRequestDTO("New Name");
 
             when(groupService.updateGroupName(eq(groupId), anyString()))
-                    .thenThrow(new EntityNotFoundException("group not found"));
+                    .thenThrow(new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found"));
 
             // When & Then: Should return 404 with structured error response
             mockMvc.perform(patch(BASE_ENDPOINT + "/{groupId}", groupId)
@@ -605,8 +605,9 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(404))
                     .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("group not found"))
-                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
+                    .andExpect(jsonPath("$.message").value("Group not found"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId))
+                    .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"));
 
             verify(groupService, times(1)).updateGroupName(eq(groupId), anyString());
         }
@@ -862,7 +863,7 @@ class GroupControllerWebTest {
             JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
             when(groupService.joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString()))
-                    .thenThrow(new ForbiddenException("Invalid join token"));
+                    .thenThrow(new ForbiddenException("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token"));
 
             // When & Then: Should return 403 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
@@ -872,8 +873,9 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(403))
                     .andExpect(jsonPath("$.error").value("Forbidden"))
-                    .andExpect(jsonPath("$.message").value("Invalid join token"))
-                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
+                    .andExpect(jsonPath("$.message").value("Invalid or expired join token"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId))
+                    .andExpect(jsonPath("$.error_code").value("GROUP.INVALID_JOIN_TOKEN"));
 
             verify(groupService, times(1)).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
         }

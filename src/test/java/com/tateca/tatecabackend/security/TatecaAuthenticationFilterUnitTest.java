@@ -149,7 +149,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(400, "Missing Authorization header");
+            verify(response).sendError(401, "Authentication required");
             verify(filterChain, never()).doFilter(request, response);
         }
 
@@ -164,7 +164,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(400, "Invalid Authorization header format. Expected: Bearer <token>");
+            verify(response).sendError(401, "Invalid authentication credentials");
             verify(filterChain, never()).doFilter(request, response);
         }
 

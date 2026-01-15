@@ -237,6 +237,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode(ex.getErrorCode())
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -254,6 +255,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode(ex.getErrorCode())
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -271,6 +273,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode(ex.getErrorCode())
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -288,6 +291,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode(ex.getErrorCode())
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -305,6 +309,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode(ex.getErrorCode())
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -322,6 +327,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode(ex.getErrorCode())
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);

@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonPropertyOrder({"timestamp", "status", "error", "message", "path", "request_id", "errors"})
+@JsonPropertyOrder({"timestamp", "status", "error", "message", "path", "request_id", "error_code", "errors"})
 @Schema(description = "Standard error response following modern REST API best practices")
 public class ErrorResponse {
     @Schema(description = "Timestamp when the request arrived at the API application in ISO 8601 format", example = "2025-01-14T12:34:56.789Z")
@@ -36,6 +36,11 @@ public class ErrorResponse {
     @JsonProperty("request_id")
     @Schema(description = "Unique request ID for tracing and correlation with logs", example = "550e8400-e29b-41d4-a716-446655440000")
     private String requestId;
+
+    @JsonProperty("error_code")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(description = "Machine-readable error code for client-side handling", example = "AUTH.INVALID_TOKEN")
+    private String errorCode;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Field-level validation errors (only present for validation failures)")
