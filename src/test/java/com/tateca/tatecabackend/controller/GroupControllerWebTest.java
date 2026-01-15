@@ -9,6 +9,9 @@ import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.dto.response.internal.GroupResponse;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
+import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
+import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import com.tateca.tatecabackend.service.GroupService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,12 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -117,15 +118,18 @@ class GroupControllerWebTest {
             );
 
             when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
-                    .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "can't join more than 10 groups"));
+                    .thenThrow(new BusinessRuleViolationException("can't join more than 10 groups"));
 
-            // When & Then: Should return 409
+            // When & Then: Should return 409 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(409))
-                    .andExpect(jsonPath("$.message").exists());
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.message").value("can't join more than 10 groups"))
+                    .andExpect(jsonPath("$.path").value("/groups"));
 
             verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
@@ -591,15 +595,18 @@ class GroupControllerWebTest {
             UpdateGroupNameRequestDTO request = new UpdateGroupNameRequestDTO("New Name");
 
             when(groupService.updateGroupName(eq(groupId), anyString()))
-                    .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "group not found"));
+                    .thenThrow(new EntityNotFoundException("group not found"));
 
-            // When & Then: Should return 404
+            // When & Then: Should return 404 with structured error response
             mockMvc.perform(patch(BASE_ENDPOINT + "/{groupId}", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.message").exists());
+                    .andExpect(jsonPath("$.error").value("Not Found"))
+                    .andExpect(jsonPath("$.message").value("group not found"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
 
             verify(groupService, times(1)).updateGroupName(eq(groupId), anyString());
         }
@@ -729,12 +736,16 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
 
             when(groupService.getGroupInfo(eq(groupId)))
-                    .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Group Not Found"));
+                    .thenThrow(new EntityNotFoundException("Group Not Found"));
 
-            // When & Then: Should return 404
+            // When & Then: Should return 404 with structured error response
             mockMvc.perform(get(BASE_ENDPOINT + "/{groupId}", groupId))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404));
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.error").value("Not Found"))
+                    .andExpect(jsonPath("$.message").value("Group Not Found"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
 
             verify(groupService, times(1)).getGroupInfo(eq(groupId));
         }
@@ -851,14 +862,18 @@ class GroupControllerWebTest {
             JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
             when(groupService.joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString()))
-                    .thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join token"));
+                    .thenThrow(new ForbiddenException("Invalid join token"));
 
-            // When & Then: Should return 403
+            // When & Then: Should return 403 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.status").value(403));
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.status").value(403))
+                    .andExpect(jsonPath("$.error").value("Forbidden"))
+                    .andExpect(jsonPath("$.message").value("Invalid join token"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
 
             verify(groupService, times(1)).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
         }
@@ -874,14 +889,18 @@ class GroupControllerWebTest {
             JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
             when(groupService.joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString()))
-                    .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "already joined this group"));
+                    .thenThrow(new BusinessRuleViolationException("already joined this group"));
 
-            // When & Then: Should return 409
+            // When & Then: Should return 409 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.status").value(409));
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.status").value(409))
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.message").value("already joined this group"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
 
             verify(groupService, times(1)).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
         }
@@ -1030,13 +1049,17 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
             UUID userUuid = UUID.randomUUID();
 
-            doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"))
+            doThrow(new EntityNotFoundException("Group not found"))
                     .when(groupService).leaveGroup(eq(groupId), eq(userUuid));
 
-            // When & Then: Should return 404
+            // When & Then: Should return 404 with structured error response
             mockMvc.perform(delete(BASE_ENDPOINT + "/{groupId}/users/{userUuid}", groupId, userUuid))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404));
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.error").value("Not Found"))
+                    .andExpect(jsonPath("$.message").value("Group not found"))
+                    .andExpect(jsonPath("$.path").value("/groups/" + groupId + "/users/" + userUuid));
 
             verify(groupService, times(1)).leaveGroup(eq(groupId), eq(userUuid));
         }
