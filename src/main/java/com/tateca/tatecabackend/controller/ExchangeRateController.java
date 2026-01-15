@@ -1,10 +1,12 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.dto.response.ExchangeRateResponseDTO;
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.service.ExchangeRateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +40,7 @@ public class ExchangeRateController {
             description = "Validation error - Invalid date format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Invalid date format",
@@ -67,6 +70,7 @@ public class ExchangeRateController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -82,6 +86,7 @@ public class ExchangeRateController {
             description = "Exchange rates not found for the specified date",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -97,6 +102,7 @@ public class ExchangeRateController {
             description = "Internal Server Error",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {

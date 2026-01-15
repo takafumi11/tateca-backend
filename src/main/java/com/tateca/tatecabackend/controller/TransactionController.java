@@ -4,6 +4,7 @@ import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.service.TransactionService;
 import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +52,7 @@ public class TransactionController {
             description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     name = "Invalid UUID format",
                     description = "When groupId path parameter has invalid UUID format",
@@ -68,6 +70,7 @@ public class TransactionController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -83,6 +86,7 @@ public class TransactionController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -114,6 +118,7 @@ public class TransactionController {
             description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     name = "Invalid UUID format",
                     description = "When groupId path parameter has invalid UUID format",
@@ -131,6 +136,7 @@ public class TransactionController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -146,6 +152,7 @@ public class TransactionController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -176,6 +183,7 @@ public class TransactionController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Transaction type is null",
@@ -305,6 +313,7 @@ public class TransactionController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -320,6 +329,7 @@ public class TransactionController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -335,6 +345,7 @@ public class TransactionController {
             description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -379,6 +390,7 @@ public class TransactionController {
             description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Invalid groupId UUID format",
@@ -408,6 +420,7 @@ public class TransactionController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -423,6 +436,7 @@ public class TransactionController {
             description = "Transaction not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -454,6 +468,7 @@ public class TransactionController {
             description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Invalid groupId UUID format",
@@ -483,6 +498,7 @@ public class TransactionController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -498,6 +514,7 @@ public class TransactionController {
             description = "Forbidden - User doesn't have permission to delete this transaction",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -513,6 +530,7 @@ public class TransactionController {
             description = "Transaction not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {

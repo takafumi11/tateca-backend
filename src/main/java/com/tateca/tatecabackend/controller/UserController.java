@@ -3,10 +3,12 @@ package com.tateca.tatecabackend.controller;
 import com.tateca.tatecabackend.constants.ApiConstants;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,6 +43,7 @@ public class UserController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Empty or blank name",
@@ -90,6 +93,7 @@ public class UserController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -105,6 +109,7 @@ public class UserController {
             description = "User not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -120,6 +125,7 @@ public class UserController {
             description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -135,6 +141,7 @@ public class UserController {
             description = "Internal Server Error",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
