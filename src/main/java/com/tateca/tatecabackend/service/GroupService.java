@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.service;
 
+import com.tateca.tatecabackend.dto.request.AddMemberRequestDTO;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
@@ -19,4 +20,6 @@ public interface GroupService {
     GroupResponseDTO joinGroupInvited(JoinGroupRequestDTO request, UUID groupId, String uid);
 
     void leaveGroup(UUID groupId, UUID userUuid);
+
+    GroupResponseDTO addMember(UUID groupId, String uid, AddMemberRequestDTO request);
 }

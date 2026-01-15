@@ -1,6 +1,8 @@
 package com.tateca.tatecabackend.service.impl;
 
+import com.tateca.tatecabackend.constants.BusinessConstants;
 import com.tateca.tatecabackend.repository.TransactionRepository;
+import com.tateca.tatecabackend.dto.request.AddMemberRequestDTO;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
@@ -92,7 +94,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO createGroup(String uid, CreateGroupRequestDTO request) {
-        int totalMembers = 1 + request.participantsName().size(); // host + participants
+        int totalMembers = 1 + request.memberNames().size(); // creator + other members
         logger.info("Creating new group: userId={}, groupName={}, memberCount={}",
                 PiiMaskingUtil.maskUid(uid), request.groupName(), totalMembers);
 
@@ -116,13 +118,13 @@ public class GroupServiceImpl implements GroupService {
 
         List<UserEntity> userEntityList = new ArrayList<>();
 
-        UserEntity host = UserEntity.builder()
+        UserEntity creator = UserEntity.builder()
                 .uuid(UUID.randomUUID())
-                .name(request.hostName())
+                .name(request.yourName())
                 .authUser(authUser)
                 .build();
-        userEntityList.add(host);
-        request.participantsName().forEach(userName -> {
+        userEntityList.add(creator);
+        request.memberNames().forEach(userName -> {
             UserEntity user = UserEntity.builder()
                     .uuid(UUID.randomUUID())
                     .name(userName)
@@ -253,6 +255,78 @@ public class GroupServiceImpl implements GroupService {
                 authUserId != null ? PiiMaskingUtil.maskUid(authUserId) : "unknown",
                 PiiMaskingUtil.maskUuid(groupId),
                 group.getName());
+    }
+
+    @Override
+    @Transactional
+    public GroupResponseDTO addMember(UUID groupId, String uid, AddMemberRequestDTO request) {
+        logger.info("Adding member to group: groupId={}, uid={}, memberName={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUid(uid),
+                request.memberName());
+
+        // Get group members (also verifies group exists implicitly)
+        List<UserGroupEntity> userGroupEntityList = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
+
+        if (userGroupEntityList.isEmpty()) {
+            logger.warn("Group not found or has no members: groupId={}", PiiMaskingUtil.maskUuid(groupId));
+            throw new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+        }
+
+        // Verify requester is a group member (authorization check)
+        boolean isRequesterMember = userGroupEntityList.stream()
+                .anyMatch(userGroupEntity -> {
+                    AuthUserEntity authUser = userGroupEntity.getUser().getAuthUser();
+                    return authUser != null && uid.equals(authUser.getUid());
+                });
+
+        if (!isRequesterMember) {
+            logger.warn("User is not a member of this group: uid={}, groupId={}",
+                    PiiMaskingUtil.maskUid(uid),
+                    PiiMaskingUtil.maskUuid(groupId));
+            throw new ForbiddenException("USER.NOT_GROUP_MEMBER", "Only group members can add members");
+        }
+
+        // Check if group has reached maximum size
+        int currentMemberCount = userGroupEntityList.size();
+        if (currentMemberCount >= BusinessConstants.MAX_GROUP_SIZE) {
+            logger.warn("Group has reached maximum size: groupId={}, currentSize={}, maxSize={}",
+                    PiiMaskingUtil.maskUuid(groupId),
+                    currentMemberCount,
+                    BusinessConstants.MAX_GROUP_SIZE);
+            throw new BusinessRuleViolationException("Group has reached maximum size of " + BusinessConstants.MAX_GROUP_SIZE + " members");
+        }
+
+        // Create new user entity for the member
+        UserEntity member = UserEntity.builder()
+                .uuid(UUID.randomUUID())
+                .name(request.memberName())
+                .build();
+        UserEntity savedMember = userRepository.save(member);
+
+        // Create user-group relationship
+        GroupEntity group = userGroupEntityList.get(0).getGroup();
+        UserGroupEntity userGroupEntity = UserGroupEntity.builder()
+                .userUuid(savedMember.getUuid())
+                .groupUuid(groupId)
+                .user(savedMember)
+                .group(group)
+                .build();
+        userGroupRepository.save(userGroupEntity);
+
+        logger.info("Member added successfully: groupId={}, memberUuid={}, newMemberCount={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUuid(savedMember.getUuid()),
+                currentMemberCount + 1);
+
+        // Build response directly (like joinGroupInvited does)
+        List<UserEntity> users = userGroupEntityList.stream()
+                .map(UserGroupEntity::getUser)
+                .collect(Collectors.toList());
+        users.add(savedMember);
+        Long transactionCount = transactionRepository.countByGroup_Uuid(groupId);
+
+        return GroupResponseDTO.from(users, group, transactionCount);
     }
 
     private void validateMaxGroupCount(String uid) {

@@ -10,22 +10,22 @@ public class BusinessConstants {
      * Maximum number of participants in a group (excluding the host).
      * This limit ensures optimal group management and performance.
      */
-    public static final int MAX_GROUP_PARTICIPANTS = 8;
+    public static final int MAX_GROUP_PARTICIPANTS = 9;
 
     /**
      * Maximum total members in a group including the host.
-     * Calculated as: MAX_GROUP_PARTICIPANTS + 1 (host) = 9 total members
+     * Calculated as: MAX_GROUP_PARTICIPANTS + 1 (host) = 10 total members
      */
-    public static final int MAX_GROUP_SIZE = MAX_GROUP_PARTICIPANTS + 1; // 9 total
+    public static final int MAX_GROUP_SIZE = MAX_GROUP_PARTICIPANTS + 1; // 10 total
 
     /**
      * Maximum number of obligations in a loan transaction.
      * This equals MAX_GROUP_PARTICIPANTS because:
-     * - A group has up to 9 members (8 participants + 1 host)
+     * - A group has up to 10 members (9 participants + 1 host)
      * - The payer/lender cannot owe themselves
-     * - Therefore, maximum obligations = 9 - 1 = 8
+     * - Therefore, maximum obligations = 10 - 1 = 9
      */
-    public static final int MAX_TRANSACTION_OBLIGATIONS = MAX_GROUP_PARTICIPANTS; // 8
+    public static final int MAX_TRANSACTION_OBLIGATIONS = MAX_GROUP_PARTICIPANTS; // 9
 
     private BusinessConstants() {
         // Private constructor to prevent instantiation

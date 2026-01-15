@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.annotation.UId;
+import com.tateca.tatecabackend.dto.request.AddMemberRequestDTO;
 import com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
@@ -77,62 +78,62 @@ public class GroupController {
                             """
                     ),
                     @ExampleObject(
-                        name = "Empty or blank host name",
+                        name = "Empty or blank your name",
                         description = "When host_name is null, empty string, or only whitespace",
                         value = """
                             {
                               "status": 400,
-                              "message": "hostName: Host name is required"
+                              "message": "yourName: Your name is required"
                             }
                             """
                     ),
                     @ExampleObject(
-                        name = "Host name exceeds maximum length",
+                        name = "Your name exceeds maximum length",
                         description = "When host_name exceeds 50 characters",
                         value = """
                             {
                               "status": 400,
-                              "message": "hostName: Host name must be between 1 and 50 characters"
+                              "message": "yourName: Your name must be between 1 and 50 characters"
                             }
                             """
                     ),
                     @ExampleObject(
-                        name = "Empty participants list",
+                        name = "Empty member names list",
                         description = "When participants_name list is empty",
                         value = """
                             {
                               "status": 400,
-                              "message": "participantsName: Participants must be between 1 and 8"
+                              "message": "memberNames: Member names must be between 1 and 9"
                             }
                             """
                     ),
                     @ExampleObject(
-                        name = "Participants list exceeds maximum size",
-                        description = "When participants_name list has more than 8 members",
+                        name = "Member names list exceeds maximum size",
+                        description = "When participants_name list has more than 9 members",
                         value = """
                             {
                               "status": 400,
-                              "message": "participantsName: Participants must be between 1 and 8"
+                              "message": "memberNames: Member names must be between 1 and 9"
                             }
                             """
                     ),
                     @ExampleObject(
-                        name = "Participant name is blank",
-                        description = "When a participant name in the list is blank",
+                        name = "Member name is blank",
+                        description = "When a member name in the list is blank",
                         value = """
                             {
                               "status": 400,
-                              "message": "participantsName[]: Participant name cannot be blank"
+                              "message": "memberNames[]: Member name cannot be blank"
                             }
                             """
                     ),
                     @ExampleObject(
-                        name = "Participant name exceeds maximum length",
-                        description = "When a participant name exceeds 50 characters",
+                        name = "Member name exceeds maximum length",
+                        description = "When a member name exceeds 50 characters",
                         value = """
                             {
                               "status": 400,
-                              "message": "participantsName[]: Participant name must be between 1 and 50 characters"
+                              "message": "memberNames[]: Member name must be between 1 and 50 characters"
                             }
                             """
                     )
@@ -683,6 +684,156 @@ public class GroupController {
                 PiiMaskingUtil.maskUuid(userUuid));
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Add a new member to an existing group")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Member added successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                    @ExampleObject(
+                        name = "Empty or blank member name",
+                        description = "When member_name is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "memberName: Member name is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Member name exceeds maximum length",
+                        description = "When member_name exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "memberName: Member name must be between 1 and 50 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User is not a member of this group",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 403,
+                          "message": "Only group members can add members"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Group not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Group not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Conflict - Group has reached maximum size",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 409,
+                          "message": "Group has reached maximum size of 10 members"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<GroupResponseDTO> addMember(
+            @PathVariable("groupId") UUID groupId,
+            @UId String uid,
+            @Valid @RequestBody AddMemberRequestDTO request
+    ) {
+        logger.info("Adding member to group: groupId={}, uid={}, memberName={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUid(uid),
+                request.memberName());
+
+        GroupResponseDTO response = service.addMember(groupId, uid, request);
+
+        if (response != null && response.users() != null) {
+            logger.info("Member added successfully: groupId={}, uid={}, newMemberCount={}",
+                    PiiMaskingUtil.maskUuid(groupId),
+                    PiiMaskingUtil.maskUid(uid),
+                    response.users().size());
+        }
+
+        return ResponseEntity.ok(response);
     }
 
 }

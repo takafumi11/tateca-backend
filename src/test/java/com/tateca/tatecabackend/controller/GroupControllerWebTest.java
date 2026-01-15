@@ -387,13 +387,13 @@ class GroupControllerWebTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when participants list exceeds 8 members")
+        @DisplayName("Should return 400 when participants list exceeds 9 members")
         void shouldReturn400WhenParticipantsListExceedsMaxSize() throws Exception {
-            // Given: Request with 9 participants (exceeds max of 8)
+            // Given: Request with 10 participants (exceeds max of 9)
             CreateGroupRequestDTO request = new CreateGroupRequestDTO(
                     "Group",
                     "Host",
-                    List.of("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9")
+                    List.of("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10")
             );
 
             // When & Then: Should return 400
