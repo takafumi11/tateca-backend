@@ -9,7 +9,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "88a464d6-7f04-4daa-b5f2-4930de7b2f62",
+                            "id": "2e47682f-d386-45da-9a15-4fffab0ebfcb",
                             "name": "Update exchange rates (fetches latest rates)",
                             "request": {
                                 "name": "Update exchange rates (fetches latest rates)",
@@ -56,7 +56,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "1c469587-0bcb-46ec-943f-c0a31c4b65b1",
+                                    "id": "18c60d45-afb1-4741-aad7-ade5376c70d1",
                                     "name": "Exchange rates updated successfully",
                                     "originalRequest": {
                                         "url": {
@@ -90,7 +90,7 @@
                                     "_postman_previewlanguage": "text"
                                 },
                                 {
-                                    "id": "4b68edf0-27b2-46bc-b330-db4329c9ca98",
+                                    "id": "8b260da8-ffa3-4c72-bd3b-9d834e8dcaa7",
                                     "name": "Unauthorized - Missing or invalid X-API-Key header",
                                     "originalRequest": {
                                         "url": {
@@ -129,12 +129,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "66e3e0e6-cd09-4202-90dd-5e5a3caf44a0",
+                                    "id": "6d042a77-e46d-41a9-b43b-bed0a6d5131e",
                                     "name": "Internal server error - External API unavailable or database error",
                                     "originalRequest": {
                                         "url": {
@@ -173,7 +173,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"status\": \"<integer>\",\n  \"message\": \"<string>\"\n}",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -192,7 +192,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "9775ceaf-a621-497d-aeaf-9143b5dab3c9",
+                    "id": "be0bfd79-2f57-4fad-b7ef-ac5891478f7d",
                     "name": "Create a new group",
                     "request": {
                         "name": "Create a new group",
@@ -232,7 +232,7 @@
                     },
                     "response": [
                         {
-                            "id": "d9ed6b8a-062a-410d-b39b-2f458eaeb7be",
+                            "id": "5fe67e2f-2170-4c44-b5da-ec6a9c43f2c8",
                             "name": "Group created successfully",
                             "originalRequest": {
                                 "url": {
@@ -283,12 +283,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"COMPLETED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
+                            "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e82da001-bec0-45f2-bb80-a3a849b0175c",
+                            "id": "a2654074-c5f5-4bc8-9d48-630288f8adfd",
                             "name": "Validation error - Invalid request parameters",
                             "originalRequest": {
                                 "url": {
@@ -339,12 +339,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "",
+                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c7bc252d-1bf6-40a4-9b83-660e7eb39388",
+                            "id": "687f9603-a724-4ae2-b279-0660bcac283a",
                             "name": "Unauthorized - Invalid or missing Firebase JWT token",
                             "originalRequest": {
                                 "url": {
@@ -395,12 +395,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "",
+                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "9a78c789-5de4-4522-a318-fcb955e9309a",
+                            "id": "38d02302-db95-41ec-b0f8-0ab767128aab",
                             "name": "Conflict - User has reached maximum group limit",
                             "originalRequest": {
                                 "url": {
@@ -451,12 +451,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "",
+                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "044651f5-c29e-41cb-a394-efb720ddf669",
+                            "id": "f6a52288-d0d8-40ef-a9a2-a9357496a3ec",
                             "name": "Unsupported Media Type - Content-Type header must be application/json",
                             "originalRequest": {
                                 "url": {
@@ -507,7 +507,7 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "",
+                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         }
@@ -522,7 +522,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "74a9916e-1cc9-485b-a1eb-5f83ffddfa96",
+                            "id": "58fd285e-0ad8-4bd4-a717-cbf6a52796a1",
                             "name": "Get group information by ID",
                             "request": {
                                 "name": "Get group information by ID",
@@ -561,7 +561,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "0c366b68-9a37-40d3-9ec5-0af602027a1f",
+                                    "id": "3986169a-9a3f-43d2-a03b-59fceadc5a3d",
                                     "name": "Group information retrieved successfully",
                                     "originalRequest": {
                                         "url": {
@@ -611,12 +611,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"COMPLETED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
+                                    "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "5161b8b6-3384-4dee-a2cf-89584f2cb8da",
+                                    "id": "c96de235-7890-4ee5-8835-4b807185f1df",
                                     "name": "Validation error - Invalid UUID format",
                                     "originalRequest": {
                                         "url": {
@@ -666,12 +666,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "722e0421-fcae-41b4-a775-df1604751143",
+                                    "id": "7a0678b4-2936-4b56-ac2d-eab9b36dfaae",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -721,12 +721,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "14d1499f-0430-49a3-b3bd-ec5cf5d4a545",
+                                    "id": "0e1e067f-df1e-443e-a414-b4b69d845b8d",
                                     "name": "Group not found",
                                     "originalRequest": {
                                         "url": {
@@ -776,7 +776,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -787,7 +787,7 @@
                             }
                         },
                         {
-                            "id": "f86a5b67-8ad8-4d2c-a53b-9dd190019482",
+                            "id": "6f00fdba-516d-4bd5-b5e2-93395b8f4d52",
                             "name": "Join a group using invitation token",
                             "request": {
                                 "name": "Join a group using invitation token",
@@ -839,7 +839,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "18cc824d-67ed-4884-93d5-268059fad45a",
+                                    "id": "cb477fea-d2bf-46e2-a04c-8c4508516410",
                                     "name": "User joined group successfully",
                                     "originalRequest": {
                                         "url": {
@@ -902,12 +902,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"COMPLETED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
+                                    "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "ea7b41f5-2362-478e-b496-44b62c1da492",
+                                    "id": "8effae5c-60cb-4b9b-9269-5f866dcfbcb1",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -970,12 +970,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "b4485538-2468-410d-98ea-af65ae0c96d1",
+                                    "id": "76c1c32f-2e3c-45c7-bd94-534b4e55557d",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -1038,12 +1038,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "7d334fa9-8fbc-46f9-b6e4-ae54afa78ba8",
+                                    "id": "d7f5e8a6-a480-4b05-a1f2-6dc320df862f",
                                     "name": "Forbidden - Invalid join token",
                                     "originalRequest": {
                                         "url": {
@@ -1106,12 +1106,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "e4b7d5d3-0caa-4611-9ef6-bac62ca53adc",
+                                    "id": "dcb42a33-31eb-4ae0-a2c3-11f2291a4cc7",
                                     "name": "Group not found",
                                     "originalRequest": {
                                         "url": {
@@ -1174,12 +1174,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "71793170-6e73-4c13-8bbd-ca65ccd098f5",
+                                    "id": "f420635a-6753-4326-b77f-efb980bfccfc",
                                     "name": "Conflict - User already member of the group",
                                     "originalRequest": {
                                         "url": {
@@ -1242,12 +1242,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "4f177eec-1aa1-4f90-ab8b-2e3c9dd3fd59",
+                                    "id": "429e6073-a5e2-4778-8551-f1523861d352",
                                     "name": "Unsupported Media Type - Content-Type header must be application/json",
                                     "originalRequest": {
                                         "url": {
@@ -1310,7 +1310,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -1321,7 +1321,7 @@
                             }
                         },
                         {
-                            "id": "6843e0c6-3357-4d84-b715-77c6c77753ba",
+                            "id": "2238c49c-b610-4564-ac19-78bd433cfc73",
                             "name": "Update group name",
                             "request": {
                                 "name": "Update group name",
@@ -1373,7 +1373,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "1d4d171a-a975-40fa-8e83-85407a13acb3",
+                                    "id": "5d8f9be0-44cb-4806-b54a-7ad926f38f5e",
                                     "name": "Group name updated successfully",
                                     "originalRequest": {
                                         "url": {
@@ -1436,12 +1436,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"COMPLETED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
+                                    "body": "{\n  \"group\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"join_token\": \"<string>\",\n    \"token_expires\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"users\": [\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    },\n    {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PENDING\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  ],\n  \"transaction_count\": \"<long>\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "b9565343-c298-447d-bb91-1591bced9f89",
+                                    "id": "b85f8b06-023c-43cf-812d-f6a7862ba852",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -1504,12 +1504,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "aed0f04b-9bc2-4158-a2de-4316a96aec54",
+                                    "id": "736c8222-30b6-4443-abfe-0e69890a50d8",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -1572,12 +1572,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "e828ed1a-f385-449c-b4f4-29bdd8ca2971",
+                                    "id": "dfa2df1f-f67d-4760-98f6-3e60d62fbce9",
                                     "name": "Forbidden - User doesn't have permission to update this group",
                                     "originalRequest": {
                                         "url": {
@@ -1640,12 +1640,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "2c85db0f-b373-4f1e-8f91-e2cf98fdf687",
+                                    "id": "8ae91d9f-15cf-44a9-a52a-974bcf29348c",
                                     "name": "Group not found",
                                     "originalRequest": {
                                         "url": {
@@ -1708,12 +1708,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "d25c431c-e6b8-4ed7-a918-f0e76cdd2628",
+                                    "id": "22697791-8fdf-443f-a570-d60e42fb8882",
                                     "name": "Unsupported Media Type - Content-Type header must be application/json",
                                     "originalRequest": {
                                         "url": {
@@ -1776,7 +1776,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -1791,7 +1791,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "07f284da-1c92-4b33-922b-962704874e26",
+                                    "id": "db3d4f28-0253-4078-b77b-ebdf461427d8",
                                     "name": "Create a new transaction",
                                     "request": {
                                         "name": "Create a new transaction",
@@ -1832,7 +1832,7 @@
                                         "method": "POST",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"MGY\",\n  \"date_str\": \"2574-06-67T24:67:45Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                            "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"JTK\",\n  \"date_str\": \"9194-97-91T57:20:56Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -1844,7 +1844,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "56e68d75-0fb7-4412-b590-7da411422c1f",
+                                            "id": "42dbcc9d-164f-4ebd-bca8-45a0126ecb0d",
                                             "name": "Transaction created successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -1891,7 +1891,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"MGY\",\n  \"date_str\": \"2574-06-67T24:67:45Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"JTK\",\n  \"date_str\": \"9194-97-91T57:20:56Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -1908,12 +1908,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"PENDING\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"PREFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
+                                            "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"PERMANENTLY_DECLINED\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"SUFFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PERMANENTLY_DECLINED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PENDING\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"COMPLETED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "7e72a4ac-9014-43cf-b514-b058c1e271fa",
+                                            "id": "a58447fe-5c9e-4d5d-8fa6-9b2be145b033",
                                             "name": "Validation error - Invalid request parameters",
                                             "originalRequest": {
                                                 "url": {
@@ -1960,7 +1960,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"MGY\",\n  \"date_str\": \"2574-06-67T24:67:45Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"JTK\",\n  \"date_str\": \"9194-97-91T57:20:56Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -1977,12 +1977,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "75b8eb24-a92b-408a-96b5-fc7014be1b44",
+                                            "id": "0d935768-625c-4b19-ac72-0c0a0cbf6a98",
                                             "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                             "originalRequest": {
                                                 "url": {
@@ -2029,7 +2029,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"MGY\",\n  \"date_str\": \"2574-06-67T24:67:45Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"JTK\",\n  \"date_str\": \"9194-97-91T57:20:56Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -2046,12 +2046,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "45f37860-ad4a-4ea5-bd1e-d5b49fd097a3",
+                                            "id": "bea2e51f-9e64-4860-aa6b-01b0f7e9755a",
                                             "name": "Group not found",
                                             "originalRequest": {
                                                 "url": {
@@ -2098,7 +2098,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"MGY\",\n  \"date_str\": \"2574-06-67T24:67:45Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"JTK\",\n  \"date_str\": \"9194-97-91T57:20:56Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -2115,12 +2115,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "770c9be5-e56a-4506-942a-698b3f224805",
+                                            "id": "e54182b5-0ca7-494c-ab70-b073e3f868a9",
                                             "name": "Unsupported Media Type - Content-Type header must be application/json",
                                             "originalRequest": {
                                                 "url": {
@@ -2167,7 +2167,7 @@
                                                 "method": "POST",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"MGY\",\n  \"date_str\": \"2574-06-67T24:67:45Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
+                                                    "raw": "{\n  \"amount\": \"<integer>\",\n  \"currency_code\": \"JTK\",\n  \"date_str\": \"9194-97-91T57:20:56Z\",\n  \"payer_id\": \"<uuid>\",\n  \"title\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      },\n      {\n        \"amount\": \"<integer>\",\n        \"user_uuid\": \"<uuid>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient_id\": \"<uuid>\"\n  }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -2184,7 +2184,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         }
@@ -2199,7 +2199,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "143aed76-0891-45f2-a5b1-a11053064fcc",
+                                            "id": "0b292884-1ab4-4ac6-9f69-33d977eb089c",
                                             "name": "Get transaction details by ID",
                                             "request": {
                                                 "name": "Get transaction details by ID",
@@ -2250,7 +2250,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "c013c692-a9ab-48c6-943d-336ef38a18fd",
+                                                    "id": "cad9d5e1-6762-4f22-8958-c226995133e8",
                                                     "name": "Transaction details retrieved successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -2312,12 +2312,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"LOAN\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"PENDING\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"PREFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"COMPLETED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"PERMANENTLY_DECLINED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
+                                                    "body": "{\n  \"transaction_id\": \"<string>\",\n  \"transaction_type\": \"REPAYMENT\",\n  \"title\": \"<string>\",\n  \"amount\": \"<long>\",\n  \"payer\": {\n    \"uuid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"auth_user\": {\n      \"uid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"email\": \"<string>\",\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\",\n      \"last_login_time\": \"<string>\",\n      \"total_login_count\": \"<integer>\",\n      \"last_app_review_dialog_shown_at\": \"<string>\",\n      \"app_review_status\": \"PERMANENTLY_DECLINED\"\n    },\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\"\n  },\n  \"exchange_rate\": {\n    \"currency_code\": \"<string>\",\n    \"jp_currency_name\": \"<string>\",\n    \"eng_currency_name\": \"<string>\",\n    \"jp_country_name\": \"<string>\",\n    \"eng_country_name\": \"<string>\",\n    \"currency_symbol\": \"<string>\",\n    \"symbol_position\": \"SUFFIX\",\n    \"exchange_rate\": \"<string>\"\n  },\n  \"date_str\": \"<string>\",\n  \"loan\": {\n    \"obligations\": [\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PERMANENTLY_DECLINED\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      },\n      {\n        \"user\": {\n          \"uuid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"auth_user\": {\n            \"uid\": \"<string>\",\n            \"name\": \"<string>\",\n            \"email\": \"<string>\",\n            \"created_at\": \"<string>\",\n            \"updated_at\": \"<string>\",\n            \"last_login_time\": \"<string>\",\n            \"total_login_count\": \"<integer>\",\n            \"last_app_review_dialog_shown_at\": \"<string>\",\n            \"app_review_status\": \"PENDING\"\n          },\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\"\n        },\n        \"amount\": \"<long>\"\n      }\n    ]\n  },\n  \"repayment\": {\n    \"recipient\": {\n      \"uuid\": \"<string>\",\n      \"name\": \"<string>\",\n      \"auth_user\": {\n        \"uid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"email\": \"<string>\",\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\",\n        \"last_login_time\": \"<string>\",\n        \"total_login_count\": \"<integer>\",\n        \"last_app_review_dialog_shown_at\": \"<string>\",\n        \"app_review_status\": \"COMPLETED\"\n      },\n      \"created_at\": \"<string>\",\n      \"updated_at\": \"<string>\"\n    }\n  }\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "53064da8-413a-447a-a305-522a43a6dc24",
+                                                    "id": "396f5a37-d15a-47d2-b365-e9caffb274cc",
                                                     "name": "Validation error - Invalid UUID format",
                                                     "originalRequest": {
                                                         "url": {
@@ -2379,12 +2379,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "263997c9-02b5-4386-b3f3-a926c1a1863b",
+                                                    "id": "3e329f3f-f29a-41a9-b858-9aac5b45c4c3",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -2446,12 +2446,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "715ee092-6d47-47a5-aa70-6b1dc445bbc7",
+                                                    "id": "b8518a6e-f0bf-429a-9289-6210fa27d3f4",
                                                     "name": "Transaction not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2513,7 +2513,7 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 }
@@ -2524,7 +2524,7 @@
                                             }
                                         },
                                         {
-                                            "id": "b038e3dc-33e1-4abb-8aef-d36b8cd99fe0",
+                                            "id": "d8f4f4c7-8137-42dc-a222-ec6cf8027a41",
                                             "name": "Delete a transaction",
                                             "request": {
                                                 "name": "Delete a transaction",
@@ -2575,7 +2575,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "ed76ea1e-ca39-4505-9ab5-a41ad6592862",
+                                                    "id": "1de54acb-4f2a-402a-ac20-5ec60ec9527a",
                                                     "name": "Transaction deleted successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -2632,7 +2632,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "602af598-e1dd-4096-a764-fdb68437133d",
+                                                    "id": "2198100e-622d-4f58-9669-e6ae5567cec6",
                                                     "name": "Validation error - Invalid UUID format",
                                                     "originalRequest": {
                                                         "url": {
@@ -2694,12 +2694,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "e07b79fb-c44a-4c44-87a0-0c9ad2c380c8",
+                                                    "id": "fa0d3fc6-a11f-496a-bab7-ea095f3126eb",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -2761,12 +2761,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "42a0e996-d8ef-490e-a9fe-56d7bad92271",
+                                                    "id": "8270347a-e820-470c-98ae-cb59fc65044e",
                                                     "name": "Forbidden - User doesn't have permission to delete this transaction",
                                                     "originalRequest": {
                                                         "url": {
@@ -2828,12 +2828,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "99de93b9-766c-498f-8b5a-b15c259a7564",
+                                                    "id": "a98b7816-6b9d-488e-9564-7c430624e679",
                                                     "name": "Transaction not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2895,7 +2895,7 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 }
@@ -2912,7 +2912,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "98e2ef22-047f-495e-8e76-b4fc32f7234f",
+                                            "id": "c50b956c-d565-45d5-8b63-05ef8ebd9d18",
                                             "name": "Get settlement information for a group in JPY",
                                             "request": {
                                                 "name": "Get settlement information for a group in JPY",
@@ -2953,7 +2953,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "82221912-ee42-4256-bf36-f917fc2ce9f5",
+                                                    "id": "1582dc11-1f72-4f1f-bf34-3acca0b15a07",
                                                     "name": "Settlement information retrieved successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -3005,12 +3005,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "{\n  \"transactions_settlement\": [\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    },\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    }\n  ]\n}",
+                                                    "body": "{\n  \"transactions_settlement\": [\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"PERMANENTLY_DECLINED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    },\n    {\n      \"from\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"to\": {\n        \"uuid\": \"<string>\",\n        \"name\": \"<string>\",\n        \"auth_user\": {\n          \"uid\": \"<string>\",\n          \"name\": \"<string>\",\n          \"email\": \"<string>\",\n          \"created_at\": \"<string>\",\n          \"updated_at\": \"<string>\",\n          \"last_login_time\": \"<string>\",\n          \"total_login_count\": \"<integer>\",\n          \"last_app_review_dialog_shown_at\": \"<string>\",\n          \"app_review_status\": \"COMPLETED\"\n        },\n        \"created_at\": \"<string>\",\n        \"updated_at\": \"<string>\"\n      },\n      \"amount\": \"<long>\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "0934716a-b2de-46d5-af8d-d0e2889fb841",
+                                                    "id": "5c940f1c-ae8d-462f-be8f-0cd0506a8212",
                                                     "name": "Validation error - Invalid UUID format",
                                                     "originalRequest": {
                                                         "url": {
@@ -3062,12 +3062,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "06d980b6-5ef1-431c-98cf-87146e9fedb5",
+                                                    "id": "ecb43a41-1271-4bcb-9e8c-aed64b28ff3b",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -3119,12 +3119,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "a3e0c0ac-c296-4ee4-a84f-7acca3ded80a",
+                                                    "id": "e2573837-20e1-42da-ae68-5e7f8ce6f2a6",
                                                     "name": "Group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -3176,7 +3176,7 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 }
@@ -3193,7 +3193,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "f54f4a89-0a99-4339-936e-82961dbba567",
+                                            "id": "daa3fb06-0bc6-476d-a0d5-400d88da0a43",
                                             "name": "Get transaction history for a group",
                                             "request": {
                                                 "name": "Get transaction history for a group",
@@ -3247,7 +3247,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "bc00c2b1-c062-4a6a-8a1d-860f94f62dfc",
+                                                    "id": "620997e6-d836-45ad-91e9-d5a460e2cada",
                                                     "name": "Transaction history retrieved successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -3309,12 +3309,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "{\n  \"transactions_history\": [\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"REPAYMENT\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"SUFFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    },\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"LOAN\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"PREFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    }\n  ]\n}",
+                                                    "body": "{\n  \"transactions_history\": [\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"LOAN\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"SUFFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    },\n    {\n      \"transaction_id\": \"<string>\",\n      \"transaction_type\": \"LOAN\",\n      \"title\": \"<string>\",\n      \"amount\": \"<integer>\",\n      \"exchange_rate\": {\n        \"currency_code\": \"<string>\",\n        \"jp_currency_name\": \"<string>\",\n        \"eng_currency_name\": \"<string>\",\n        \"jp_country_name\": \"<string>\",\n        \"eng_country_name\": \"<string>\",\n        \"currency_symbol\": \"<string>\",\n        \"symbol_position\": \"SUFFIX\",\n        \"exchange_rate\": \"<string>\"\n      },\n      \"date\": \"<string>\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "101de8e1-6a4f-472a-ae3d-6f488fb0c877",
+                                                    "id": "d9e7cac8-ad24-4698-970f-86ccd620e4e7",
                                                     "name": "Validation error - Invalid UUID format",
                                                     "originalRequest": {
                                                         "url": {
@@ -3376,12 +3376,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "79377fd8-bfc1-425d-b94c-d2e2b33ef268",
+                                                    "id": "61db17b8-d228-4cf1-93f7-9aee1c9cb365",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -3443,12 +3443,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "2b47a391-8501-4bb2-90c6-3a1e6d2d2d72",
+                                                    "id": "5b87700f-ba48-438e-98e9-53f23f49affd",
                                                     "name": "Group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -3510,7 +3510,7 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 }
@@ -3533,7 +3533,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "7550e5f6-3749-43d2-9fe7-ac8bb8b7fa28",
+                                            "id": "26fae96c-0b1f-4b77-bb84-8e07c966983c",
                                             "name": "Leave a group",
                                             "request": {
                                                 "name": "Leave a group",
@@ -3584,7 +3584,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "20b26fba-8e79-4dbc-8001-a51254477986",
+                                                    "id": "3469a5b3-5d24-4971-a939-dbf325c3b9d2",
                                                     "name": "User left group successfully",
                                                     "originalRequest": {
                                                         "url": {
@@ -3641,7 +3641,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "8aade916-9aaa-4498-bd1b-5e2fe09ce07b",
+                                                    "id": "5e3dc151-fc62-4927-b8f7-4abca4360413",
                                                     "name": "Validation error - Invalid UUID format",
                                                     "originalRequest": {
                                                         "url": {
@@ -3703,12 +3703,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "7e7bed64-32e5-487f-b9cb-29b519a6fd09",
+                                                    "id": "aebd2516-fe50-40ce-8db5-59ff09e78069",
                                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                                     "originalRequest": {
                                                         "url": {
@@ -3770,12 +3770,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "b592ad17-4924-4ed6-a2cf-1fb704275acb",
+                                                    "id": "80ad2c2f-addf-4d90-bcd4-0a16e47206ae",
                                                     "name": "Forbidden - User doesn't have permission to remove this user",
                                                     "originalRequest": {
                                                         "url": {
@@ -3837,12 +3837,12 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "c4395047-2df7-49f2-abe9-6729e62658ce",
+                                                    "id": "cd26ab1c-e5c1-44d4-a35e-289d81e241cf",
                                                     "name": "Group not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -3904,7 +3904,7 @@
                                                             "value": "application/json"
                                                         }
                                                     ],
-                                                    "body": "",
+                                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                                     "cookie": [],
                                                     "_postman_previewlanguage": "json"
                                                 }
@@ -3925,7 +3925,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "e4443fef-b768-461b-9775-7cf7f1ae27ac",
+                            "id": "4c041c3f-5daf-425e-8e81-6c805b792d34",
                             "name": "Get list of groups for the current user",
                             "request": {
                                 "name": "Get list of groups for the current user",
@@ -3953,7 +3953,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "01ee6b76-dfec-4fd3-9bff-fd87bd5989e1",
+                                    "id": "ac00fc36-0d63-4126-91d3-739b4118a980",
                                     "name": "Group list retrieved successfully",
                                     "originalRequest": {
                                         "url": {
@@ -3997,7 +3997,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "c654bb5e-d619-498a-905b-a1174a87e19f",
+                                    "id": "c955d340-36e1-44dc-aaa2-06f5af821f44",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -4036,7 +4036,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -4059,7 +4059,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "4db0271c-5952-4153-b17a-c21d821e7a96",
+                            "id": "99c6e5f1-c8cb-480c-be1f-293040d72ff9",
                             "name": "Create new authenticated user",
                             "request": {
                                 "name": "Create new authenticated user",
@@ -4103,7 +4103,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "3c220df1-62cb-4750-bbc2-130dde18823c",
+                                    "id": "ca746ba7-4847-4205-8664-9469383b174a",
                                     "name": "User created successfully",
                                     "originalRequest": {
                                         "url": {
@@ -4155,12 +4155,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                    "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "becc80f1-0cdc-4a4d-a356-e1516f648db0",
+                                    "id": "66d6b00a-4726-49ee-9d45-0d98371606e3",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -4212,12 +4212,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "cc4374fe-7ff6-46fd-9789-baa44c0d8ca0",
+                                    "id": "f7b1bf34-8712-486f-9423-d0d60f119ef0",
                                     "name": "Unauthorized - Invalid or missing authentication token",
                                     "originalRequest": {
                                         "url": {
@@ -4269,12 +4269,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "7c1c6cae-365e-4b95-80c9-3d378c5f8c92",
+                                    "id": "2293ca2d-9907-496b-86c6-5cea413905c3",
                                     "name": "Conflict - User already exists",
                                     "originalRequest": {
                                         "url": {
@@ -4326,12 +4326,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "4a420038-be97-497a-af79-984518fc1865",
+                                    "id": "cf655455-f38b-4103-b3c0-5c4af0d2346d",
                                     "name": "Unsupported Media Type - Content-Type header must be application/json",
                                     "originalRequest": {
                                         "url": {
@@ -4383,12 +4383,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "25bd0f7b-e9c9-42c4-b5fc-f2382bd8a428",
+                                    "id": "afc3fd27-70cf-472c-82c2-7864ae5452e6",
                                     "name": "Internal Server Error",
                                     "originalRequest": {
                                         "url": {
@@ -4440,7 +4440,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -4455,7 +4455,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "1b8df50c-2c09-4f0d-b539-e8e4a2bc5583",
+                                    "id": "855e2cd3-9d24-497c-974a-20743bfd6449",
                                     "name": "Update app review preferences",
                                     "request": {
                                         "name": "Update app review preferences",
@@ -4500,7 +4500,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "b6d64876-1694-4fbd-b5f5-f7434b3525cc",
+                                            "id": "06167c13-aefe-4bd3-a918-1fb0d6f804f6",
                                             "name": "Review preferences updated successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -4553,12 +4553,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "5cde02fd-7e04-4e61-989c-ee690fd0a164",
+                                            "id": "d05e5fc6-237a-435d-b27c-f9b8490db71d",
                                             "name": "Validation error - Invalid request parameters",
                                             "originalRequest": {
                                                 "url": {
@@ -4611,12 +4611,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "aa5002b3-241e-4389-8393-d379f0956493",
+                                            "id": "c73080c6-708c-445b-8a86-e1df1a7eb5fe",
                                             "name": "Unauthorized - Invalid or missing authentication token",
                                             "originalRequest": {
                                                 "url": {
@@ -4669,12 +4669,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "e94b12a2-d15c-4f6a-95cc-ddeedb8c013a",
+                                            "id": "b24373f8-b58a-4b91-ac49-33b306163f28",
                                             "name": "User not found - The specified UID does not exist",
                                             "originalRequest": {
                                                 "url": {
@@ -4727,12 +4727,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "e76c3542-b6e5-42f5-a7e0-eb7f3f716fe7",
+                                            "id": "e7a41187-5ffd-4e11-a5d8-e6a881e8b425",
                                             "name": "Unsupported Media Type - Content-Type header must be application/json",
                                             "originalRequest": {
                                                 "url": {
@@ -4785,12 +4785,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "07930885-c46a-456a-a9d2-322906099f70",
+                                            "id": "a0c7009f-97e4-491a-88c0-f382df383d2b",
                                             "name": "Internal Server Error",
                                             "originalRequest": {
                                                 "url": {
@@ -4843,7 +4843,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         }
@@ -4860,7 +4860,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "36796d59-c1f3-479a-a0d1-2e4b77368976",
+                                    "id": "40fe2d0a-b607-40f2-b420-3230765f62cc",
                                     "name": "Get authenticated user information",
                                     "request": {
                                         "name": "Get authenticated user information",
@@ -4903,7 +4903,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "4240d171-d723-45f3-8694-4758a9f84dd3",
+                                            "id": "c5a1efcc-d31d-48c3-8487-61ccb9b06334",
                                             "name": "User information retrieved successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -4954,12 +4954,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"COMPLETED\"\n}",
+                                            "body": "{\n  \"uid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"email\": \"<string>\",\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\",\n  \"last_login_time\": \"<string>\",\n  \"total_login_count\": \"<integer>\",\n  \"last_app_review_dialog_shown_at\": \"<string>\",\n  \"app_review_status\": \"PERMANENTLY_DECLINED\"\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "e43c26d0-8675-4f03-a166-7a5ac3a505da",
+                                            "id": "c102ca5f-f3f8-4ce0-b477-7e6716a6d091",
                                             "name": "Validation error - Invalid UID format",
                                             "originalRequest": {
                                                 "url": {
@@ -5010,12 +5010,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "8eb88403-8221-45fa-926d-86354a6faf28",
+                                            "id": "6c91d975-5f9d-4658-a486-d77bfa343860",
                                             "name": "User not found - The specified UID does not exist",
                                             "originalRequest": {
                                                 "url": {
@@ -5066,7 +5066,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         }
@@ -5077,7 +5077,7 @@
                                     }
                                 },
                                 {
-                                    "id": "b4f99526-9cfb-4ae0-8f72-7af8518f113c",
+                                    "id": "fdde7903-25aa-431a-9f37-49d1337ebe55",
                                     "name": "Delete authenticated user",
                                     "request": {
                                         "name": "Delete authenticated user",
@@ -5120,7 +5120,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "b64efb9a-3030-441e-8ed0-1a8bfd8235c7",
+                                            "id": "89c7afe5-69e1-491e-8cd1-5f056da55a31",
                                             "name": "User deleted successfully",
                                             "originalRequest": {
                                                 "url": {
@@ -5166,7 +5166,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "7f0198b3-6b1d-4f13-a676-a10b76e6c623",
+                                            "id": "53b9d89f-c0bd-43d6-b114-d596ae211cc9",
                                             "name": "Validation error - Invalid UID format",
                                             "originalRequest": {
                                                 "url": {
@@ -5217,12 +5217,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "024f7296-c3cd-420a-960e-160290f1c857",
+                                            "id": "e40e1da3-4e50-40ac-8b1d-f58eca24e061",
                                             "name": "User not found - The specified UID does not exist",
                                             "originalRequest": {
                                                 "url": {
@@ -5273,7 +5273,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "",
+                                            "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         }
@@ -5298,7 +5298,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "62401c97-f82c-49f8-bdff-a687608052e5",
+                            "id": "717833e5-6d56-4274-8c53-fec1d0e30d16",
                             "name": "Update user name",
                             "request": {
                                 "name": "Update user name",
@@ -5350,7 +5350,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "8d36f633-32ba-4ffc-9534-98c6faf205f1",
+                                    "id": "68738ffd-f57c-45ed-a15e-6e09690d74df",
                                     "name": "User name updated successfully",
                                     "originalRequest": {
                                         "url": {
@@ -5413,12 +5413,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"uuid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"auth_user\": {\n    \"uid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"email\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\",\n    \"last_login_time\": \"<string>\",\n    \"total_login_count\": \"<integer>\",\n    \"last_app_review_dialog_shown_at\": \"<string>\",\n    \"app_review_status\": \"PERMANENTLY_DECLINED\"\n  },\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\"\n}",
+                                    "body": "{\n  \"uuid\": \"<string>\",\n  \"name\": \"<string>\",\n  \"auth_user\": {\n    \"uid\": \"<string>\",\n    \"name\": \"<string>\",\n    \"email\": \"<string>\",\n    \"created_at\": \"<string>\",\n    \"updated_at\": \"<string>\",\n    \"last_login_time\": \"<string>\",\n    \"total_login_count\": \"<integer>\",\n    \"last_app_review_dialog_shown_at\": \"<string>\",\n    \"app_review_status\": \"COMPLETED\"\n  },\n  \"created_at\": \"<string>\",\n  \"updated_at\": \"<string>\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "6a1f2a46-8e8a-468b-87b2-5ebff89efd06",
+                                    "id": "f43cddec-3e13-4228-a81f-b516c3716e24",
                                     "name": "Validation error - Invalid request parameters",
                                     "originalRequest": {
                                         "url": {
@@ -5481,12 +5481,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "7c67b6e2-1e3a-4cdd-96b5-4e9982ba5ba2",
+                                    "id": "f0a6d7da-7863-4156-a2af-a4a8931b647d",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -5549,12 +5549,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "7d18ac0b-1a6c-402c-a131-874122be4516",
+                                    "id": "89ec83c2-62e2-4cd6-9f3a-4904e455804a",
                                     "name": "User not found",
                                     "originalRequest": {
                                         "url": {
@@ -5617,12 +5617,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "ae208697-ec15-4323-8ae0-50b0bcc38906",
+                                    "id": "3141098a-8a72-487a-9aeb-091bfecdb600",
                                     "name": "Unsupported Media Type - Content-Type header must be application/json",
                                     "originalRequest": {
                                         "url": {
@@ -5685,12 +5685,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "357cc92c-3ebb-4490-b6f2-28d4b64cff23",
+                                    "id": "7ac06594-399f-482e-9883-21b43635b0aa",
                                     "name": "Internal Server Error",
                                     "originalRequest": {
                                         "url": {
@@ -5753,7 +5753,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -5776,7 +5776,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "4ea368f6-30f7-42c5-bceb-760cdca0254a",
+                            "id": "495a381c-ba57-4801-849a-dff6c6b24f9a",
                             "name": "Get exchange rates for a specific date",
                             "request": {
                                 "name": "Get exchange rates for a specific date",
@@ -5818,7 +5818,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "ea2869b8-c6cc-4f68-999c-6593e5dc822e",
+                                    "id": "675eee30-3743-4b39-af1e-8865375731b0",
                                     "name": "Exchange rates retrieved successfully",
                                     "originalRequest": {
                                         "url": {
@@ -5868,12 +5868,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"exchange_rate\": [\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"SUFFIX\",\n      \"exchange_rate\": \"<string>\"\n    },\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"SUFFIX\",\n      \"exchange_rate\": \"<string>\"\n    }\n  ]\n}",
+                                    "body": "{\n  \"exchange_rate\": [\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"PREFIX\",\n      \"exchange_rate\": \"<string>\"\n    },\n    {\n      \"currency_code\": \"<string>\",\n      \"jp_currency_name\": \"<string>\",\n      \"eng_currency_name\": \"<string>\",\n      \"jp_country_name\": \"<string>\",\n      \"eng_country_name\": \"<string>\",\n      \"currency_symbol\": \"<string>\",\n      \"symbol_position\": \"PREFIX\",\n      \"exchange_rate\": \"<string>\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "28211b16-7cf1-4071-baf0-f88a0f97ae3b",
+                                    "id": "f5fd4cdb-d997-4221-beb4-64ec1ffe0ac6",
                                     "name": "Validation error - Invalid date format",
                                     "originalRequest": {
                                         "url": {
@@ -5923,12 +5923,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "7dcf81f3-2f1c-4efd-afe6-765b4738c83e",
+                                    "id": "2e972fc3-c0cb-4578-81bf-95d84b3da81a",
                                     "name": "Unauthorized - Invalid or missing Firebase JWT token",
                                     "originalRequest": {
                                         "url": {
@@ -5978,12 +5978,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "425f97db-7bd6-4cfe-a38e-3716dbcf4b3f",
+                                    "id": "603094f0-c8b2-4db1-96cf-b66831bad2e3",
                                     "name": "Exchange rates not found for the specified date",
                                     "originalRequest": {
                                         "url": {
@@ -6033,12 +6033,12 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "7dfd4444-21d5-4a25-8efe-45787b6ca2b6",
+                                    "id": "4e737be2-1aef-436c-87b6-8ed493e052ab",
                                     "name": "Internal Server Error",
                                     "originalRequest": {
                                         "url": {
@@ -6088,7 +6088,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "",
+                                    "body": "{\n  \"timestamp\": \"<string>\",\n  \"status\": \"<integer>\",\n  \"error\": \"<string>\",\n  \"message\": \"<string>\",\n  \"path\": \"<string>\",\n  \"request_id\": \"<string>\",\n  \"error_code\": \"<string>\",\n  \"errors\": [\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    },\n    {\n      \"field\": \"<string>\",\n      \"message\": \"<string>\",\n      \"rejected_value\": \"\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -6107,7 +6107,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "d697a266-45ab-4ef1-b5e8-2d17baa436e5",
+                    "id": "8f69975a-029e-449b-90af-8baf3f61f3b3",
                     "name": "Actuator root web endpoint",
                     "request": {
                         "name": "Actuator root web endpoint",
@@ -6134,7 +6134,7 @@
                     },
                     "response": [
                         {
-                            "id": "3fffda18-a805-4a42-8186-6fa0f88a9366",
+                            "id": "019c32d8-ee4d-45ef-97e3-b78de8c3342a",
                             "name": "OK",
                             "originalRequest": {
                                 "url": {
@@ -6172,7 +6172,7 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"key_0\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_1\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  },\n  \"key_1\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_1\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_2\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  },\n  \"key_2\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_1\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_2\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  }\n}",
+                            "body": "{\n  \"key_0\": {\n    \"key_0\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    },\n    \"key_1\": {\n      \"href\": \"<string>\",\n      \"templated\": \"<boolean>\"\n    }\n  }\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         }
@@ -6187,7 +6187,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "0bb57753-f658-4414-bc4d-c9d98e72c1e0",
+                            "id": "9793dfde-9ffa-4306-8a6a-f873b1092076",
                             "name": "Actuator web endpoint 'prometheus'",
                             "request": {
                                 "name": "Actuator web endpoint 'prometheus'",
@@ -6208,7 +6208,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "format",
-                                            "value": "CONTENT_TYPE_OPENMETRICS_100"
+                                            "value": "CONTENT_TYPE_PROTOBUF"
                                         },
                                         {
                                             "disabled": false,
@@ -6234,7 +6234,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "721d951b-fc32-46d0-9e06-9a649784ae14",
+                                    "id": "5eb90283-31f5-45cf-b387-7c2b5dea7849",
                                     "name": "OK",
                                     "originalRequest": {
                                         "url": {
@@ -6253,7 +6253,7 @@
                                                         "type": "text/plain"
                                                     },
                                                     "key": "format",
-                                                    "value": "CONTENT_TYPE_OPENMETRICS_100"
+                                                    "value": "CONTENT_TYPE_PROTOBUF"
                                                 },
                                                 {
                                                     "disabled": false,
@@ -6309,7 +6309,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "3d70aca9-422d-470b-83bd-33a0a0a7a53b",
+                            "id": "5b6314a4-9b7b-4eb7-8045-06df78638c47",
                             "name": "Actuator web endpoint 'metrics'",
                             "request": {
                                 "name": "Actuator web endpoint 'metrics'",
@@ -6337,7 +6337,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "9a4e52d0-c3e9-43ad-83e6-dae4807e1400",
+                                    "id": "c1e4e12d-37a5-4ce7-96a2-b4cabb7d87d2",
                                     "name": "OK",
                                     "originalRequest": {
                                         "url": {
@@ -6391,7 +6391,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "c44fbba6-f834-4627-96b4-ed24b1e24dee",
+                                    "id": "536d0d59-0729-4916-81f9-6d22eacfcc65",
                                     "name": "Actuator web endpoint 'metrics-requiredMetricName'",
                                     "request": {
                                         "name": "Actuator web endpoint 'metrics-requiredMetricName'",
@@ -6441,7 +6441,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "59a100ab-e08a-457d-bc17-f2ec96b190c6",
+                                            "id": "1a51b2d2-1de6-4949-915e-54b513a2c96f",
                                             "name": "OK",
                                             "originalRequest": {
                                                 "url": {
@@ -6507,7 +6507,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "db29072a-63d1-4590-9af3-c01eb73bc1b8",
+                                            "id": "ee871638-a885-42fa-a10a-7c8180818125",
                                             "name": "Not Found",
                                             "originalRequest": {
                                                 "url": {
@@ -6577,7 +6577,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "511be784-7b3b-44c2-be5b-9c997f847208",
+                            "id": "ffeea57a-90d8-4093-aa2e-4333473bece9",
                             "name": "Actuator web endpoint 'health'",
                             "request": {
                                 "name": "Actuator web endpoint 'health'",
@@ -6605,7 +6605,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "035177f4-9a16-40dd-addb-5158084fef37",
+                                    "id": "815dccc8-9f9f-4bfb-8c30-3b2a08ff5386",
                                     "name": "OK",
                                     "originalRequest": {
                                         "url": {
@@ -6677,7 +6677,7 @@
         }
     ],
     "info": {
-        "_postman_id": "b5ba5f3c-4afd-47be-bfe5-f8bb178835fa",
+        "_postman_id": "823ba63e-fd90-452f-85e4-d9a745f32d9d",
         "name": "Tateca API",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {

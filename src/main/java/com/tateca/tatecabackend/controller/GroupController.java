@@ -6,11 +6,13 @@ import com.tateca.tatecabackend.dto.request.JoinGroupRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.service.GroupService;
 import com.tateca.tatecabackend.util.PiiMaskingUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,6 +54,7 @@ public class GroupController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Empty or blank group name",
@@ -141,6 +144,7 @@ public class GroupController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -156,6 +160,7 @@ public class GroupController {
             description = "Conflict - User has reached maximum group limit",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -171,6 +176,7 @@ public class GroupController {
             description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -213,6 +219,7 @@ public class GroupController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Empty or blank group name",
@@ -252,6 +259,7 @@ public class GroupController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -267,6 +275,7 @@ public class GroupController {
             description = "Forbidden - User doesn't have permission to update this group",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -282,6 +291,7 @@ public class GroupController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -297,6 +307,7 @@ public class GroupController {
             description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -328,6 +339,7 @@ public class GroupController {
             description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     name = "Invalid UUID format",
                     description = "When groupId path parameter has invalid UUID format",
@@ -345,6 +357,7 @@ public class GroupController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -360,6 +373,7 @@ public class GroupController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -390,6 +404,7 @@ public class GroupController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -420,6 +435,7 @@ public class GroupController {
             description = "Validation error - Invalid request parameters",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "User UUID is null",
@@ -469,6 +485,7 @@ public class GroupController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -484,6 +501,7 @@ public class GroupController {
             description = "Forbidden - Invalid join token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -499,6 +517,7 @@ public class GroupController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -514,6 +533,7 @@ public class GroupController {
             description = "Conflict - User already member of the group",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -529,6 +549,7 @@ public class GroupController {
             description = "Unsupported Media Type - Content-Type header must be application/json",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -573,6 +594,7 @@ public class GroupController {
             description = "Validation error - Invalid UUID format",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                     @ExampleObject(
                         name = "Invalid groupId UUID format",
@@ -602,6 +624,7 @@ public class GroupController {
             description = "Unauthorized - Invalid or missing Firebase JWT token",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -617,6 +640,7 @@ public class GroupController {
             description = "Forbidden - User doesn't have permission to remove this user",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -632,6 +656,7 @@ public class GroupController {
             description = "Group not found",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {

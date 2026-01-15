@@ -4,10 +4,12 @@ import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.service.AuthUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,6 +49,7 @@ public class AuthUserController {
                     description = "User not found - The specified UID does not exist",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -62,6 +65,7 @@ public class AuthUserController {
                     description = "Validation error - Invalid UID format",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -95,6 +99,7 @@ public class AuthUserController {
                     description = "Validation error - Invalid request parameters",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = {
                                     @ExampleObject(
                                             name = "Email is null, empty, or whitespace only",
@@ -134,6 +139,7 @@ public class AuthUserController {
                     description = "Unauthorized - Invalid or missing authentication token",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -149,6 +155,7 @@ public class AuthUserController {
                     description = "Conflict - User already exists",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -164,6 +171,7 @@ public class AuthUserController {
                     description = "Unsupported Media Type - Content-Type header must be application/json",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -179,6 +187,7 @@ public class AuthUserController {
                     description = "Internal Server Error",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -209,6 +218,7 @@ public class AuthUserController {
                     description = "User not found - The specified UID does not exist",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -224,6 +234,7 @@ public class AuthUserController {
                     description = "Validation error - Invalid UID format",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -257,6 +268,7 @@ public class AuthUserController {
                     description = "Validation error - Invalid request parameters",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = {
                                     @ExampleObject(
                                             name = "App review status is null",
@@ -296,6 +308,7 @@ public class AuthUserController {
                     description = "Unauthorized - Invalid or missing authentication token",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -311,6 +324,7 @@ public class AuthUserController {
                     description = "User not found - The specified UID does not exist",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -326,6 +340,7 @@ public class AuthUserController {
                     description = "Unsupported Media Type - Content-Type header must be application/json",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -341,6 +356,7 @@ public class AuthUserController {
                     description = "Internal Server Error",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                             {

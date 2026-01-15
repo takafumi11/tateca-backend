@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.controller;
 
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.service.InternalExchangeRateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -54,6 +55,7 @@ public class InternalExchangeRateController {
             description = "Unauthorized - Missing or invalid X-API-Key header",
             content = @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = @ExampleObject(
                     value = """
                         {
@@ -89,11 +91,5 @@ public class InternalExchangeRateController {
         logger.info("Exchange rate update completed successfully. Stored {} total rates (today + tomorrow)", ratesUpdated);
 
         return ResponseEntity.noContent().build();
-    }
-
-    // Inner class for OpenAPI documentation
-    private static class ErrorResponse {
-        public int status;
-        public String message;
     }
 }
