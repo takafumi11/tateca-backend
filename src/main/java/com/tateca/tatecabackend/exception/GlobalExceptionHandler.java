@@ -7,6 +7,9 @@ import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.exception.domain.ExternalServiceException;
 import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import jakarta.servlet.http.HttpServletRequest;
+
+import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_ID_ATTRIBUTE;
+import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -40,11 +43,12 @@ public class GlobalExceptionHandler {
         logger.warn("IllegalArgumentException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -57,11 +61,12 @@ public class GlobalExceptionHandler {
         logger.error("DataAccessException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message("Database error occurred")
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -78,11 +83,12 @@ public class GlobalExceptionHandler {
         }
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getReason())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -106,11 +112,12 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message("Validation failed")
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .errors(fieldErrors)
                 .build();
 
@@ -135,11 +142,12 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message("Validation failed")
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .errors(fieldErrors)
                 .build();
 
@@ -155,11 +163,12 @@ public class GlobalExceptionHandler {
         logger.warn("MethodArgumentTypeMismatchException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(message)
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -187,11 +196,12 @@ public class GlobalExceptionHandler {
         logger.warn("HttpMessageNotReadableException at {} {}: {}", request.getMethod(), request.getRequestURI(), message);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(message)
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -204,11 +214,12 @@ public class GlobalExceptionHandler {
         logger.warn("HttpMediaTypeNotSupportedException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(message)
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -220,11 +231,12 @@ public class GlobalExceptionHandler {
         logger.warn("EntityNotFoundException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -236,11 +248,12 @@ public class GlobalExceptionHandler {
         logger.warn("AuthenticationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -252,11 +265,12 @@ public class GlobalExceptionHandler {
         logger.warn("ForbiddenException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -268,11 +282,12 @@ public class GlobalExceptionHandler {
         logger.warn("BusinessRuleViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -284,11 +299,12 @@ public class GlobalExceptionHandler {
         logger.error("ExternalServiceException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -300,11 +316,12 @@ public class GlobalExceptionHandler {
         logger.warn("DuplicateResourceException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -316,11 +333,12 @@ public class GlobalExceptionHandler {
         logger.warn("DataIntegrityViolationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message("Database constraint violation")
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -335,13 +353,31 @@ public class GlobalExceptionHandler {
         logger.error("Unexpected exception at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now().toString())
+                .timestamp(getRequestTimestamp(request))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message("An unexpected error occurred")
                 .path(request.getRequestURI())
+                .requestId(getRequestId(request))
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
+    }
+
+    /**
+     * Get the request timestamp from request attributes (set by LoggingInterceptor).
+     * Falls back to current time if not available.
+     */
+    private String getRequestTimestamp(HttpServletRequest request) {
+        Instant requestTime = (Instant) request.getAttribute(REQUEST_TIME_ATTRIBUTE);
+        return requestTime != null ? requestTime.toString() : Instant.now().toString();
+    }
+
+    /**
+     * Get the request ID from request attributes (set by LoggingInterceptor).
+     * Returns null if not available.
+     */
+    private String getRequestId(HttpServletRequest request) {
+        return (String) request.getAttribute(REQUEST_ID_ATTRIBUTE);
     }
 }

@@ -15,10 +15,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonPropertyOrder({"timestamp", "status", "error", "message", "path", "errors"})
+@JsonPropertyOrder({"timestamp", "status", "error", "message", "path", "request_id", "errors"})
 @Schema(description = "Standard error response following modern REST API best practices")
 public class ErrorResponse {
-    @Schema(description = "Timestamp when the error occurred in ISO 8601 format", example = "2025-01-14T12:34:56.789Z")
+    @Schema(description = "Timestamp when the request arrived at the API application in ISO 8601 format", example = "2025-01-14T12:34:56.789Z")
     private String timestamp;
 
     @Schema(description = "HTTP status code", example = "400")
@@ -32,6 +32,10 @@ public class ErrorResponse {
 
     @Schema(description = "Request path where the error occurred", example = "/groups/123/transactions")
     private String path;
+
+    @JsonProperty("request_id")
+    @Schema(description = "Unique request ID for tracing and correlation with logs", example = "550e8400-e29b-41d4-a716-446655440000")
+    private String requestId;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Field-level validation errors (only present for validation failures)")
