@@ -2,6 +2,7 @@ package com.tateca.tatecabackend.repository;
 
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -24,4 +25,8 @@ public interface ObligationRepository extends JpaRepository<TransactionObligatio
             WHERE t.group.uuid = :groupId
             """)
     List<TransactionObligationEntity> findByGroupId(UUID groupId);
+
+    @Modifying
+    @Query("DELETE FROM TransactionObligationEntity o WHERE o.transaction.uuid = :transactionId")
+    void deleteAllByTransactionId(UUID transactionId);
 }

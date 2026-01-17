@@ -625,4 +625,645 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(obligationRepository.findByTransactionId(transactionId)).isEmpty();
         }
     }
+
+    // ========================================
+    // updateTransaction Integration Tests (TDD - RED Phase)
+    // ========================================
+
+    @Nested
+    @DisplayName("updateTransaction - Realistic Scenarios")
+    class UpdateTransactionRealisticScenarios {
+
+        private UserEntity userA, userB, userC, userD, userE;
+
+        @BeforeEach
+        void setUpUsers() {
+            // Create a group with 5 members
+            userA = TestFixtures.Users.userWithoutAuthUser("User A");
+            userB = TestFixtures.Users.userWithoutAuthUser("User B");
+            userC = TestFixtures.Users.userWithoutAuthUser("User C");
+            userD = TestFixtures.Users.userWithoutAuthUser("User D");
+            userE = TestFixtures.Users.userWithoutAuthUser("User E");
+
+            userRepository.saveAll(List.of(userA, userB, userC, userD, userE));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(userA, testGroup),
+                    TestFixtures.UserGroups.create(userB, testGroup),
+                    TestFixtures.UserGroups.create(userC, testGroup),
+                    TestFixtures.UserGroups.create(userD, testGroup),
+                    TestFixtures.UserGroups.create(userE, testGroup)
+            ));
+
+            flushAndClear();
+        }
+
+        @Test
+        @DisplayName("Scenario: User corrects wrong input (2 people -> 3 people)")
+        void scenarioCorrectWrongInput() {
+            // Given: Existing LOAN with 2 obligations
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Dinner")
+                    .amount(5000)
+                    .transactionDate(java.time.Instant.parse("2024-01-15T09:30:00Z"))
+                    .payer(userA)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.saveAll(List.of(
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userB)
+                            .amount(2500)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userC)
+                            .amount(2500)
+                            .build()
+            ));
+
+            flushAndClear();
+
+            // When: User realizes D also participated, updates to 3 people
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    userA.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(1666, userB.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(1667, userC.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(1667, userD.getUuid())
+                    )),
+                    null
+            );
+
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(
+                    existingTransaction.getUuid(),
+                    updateRequest
+            );
+
+            flushAndClear();
+
+            // Then: Should have 3 new obligations, old ones deleted
+            assertThat(result).isNotNull();
+            assertThat(result.loan()).isNotNull();
+            assertThat(result.loan().obligationResponses()).hasSize(3);
+
+            List<TransactionObligationEntity> obligations =
+                    obligationRepository.findByTransactionId(existingTransaction.getUuid());
+            assertThat(obligations).hasSize(3);
+
+            assertThat(obligations)
+                    .extracting(o -> o.getUser().getUuid())
+                    .containsExactlyInAnyOrder(userB.getUuid(), userC.getUuid(), userD.getUuid());
+            assertThat(obligations)
+                    .extracting(TransactionObligationEntity::getAmount)
+                    .containsExactlyInAnyOrder(1666, 1667, 1667);
+        }
+
+        @Test
+        @DisplayName("Scenario: User changes payer after creation")
+        void scenarioChangePayerAfterCreation() {
+            // Given: Existing LOAN with Payer=A, Obligations=[B:2500, C:2500]
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Lunch")
+                    .amount(5000)
+                    .transactionDate(java.time.Instant.parse("2024-01-15T03:30:00Z"))
+                    .payer(userA)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.saveAll(List.of(
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userB)
+                            .amount(2500)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userC)
+                            .amount(2500)
+                            .build()
+            ));
+
+            flushAndClear();
+
+            // When: User realizes B actually paid (not A)
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Lunch",
+                    5000,
+                    "JPY",
+                    "2024-01-15T12:30:00+09:00",
+                    userB.getUuid(), // Changed payer
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userA.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userC.getUuid())
+                    )),
+                    null
+            );
+
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(
+                    existingTransaction.getUuid(),
+                    updateRequest
+            );
+
+            flushAndClear();
+
+            // Then: Payer should be updated to B
+            assertThat(result.payer().uuid()).isEqualTo(userB.getUuid().toString());
+
+            TransactionHistoryEntity updated = transactionRepository
+                    .findById(existingTransaction.getUuid())
+                    .orElseThrow();
+            assertThat(updated.getPayer().getUuid()).isEqualTo(userB.getUuid());
+
+            List<TransactionObligationEntity> obligations =
+                    obligationRepository.findByTransactionId(existingTransaction.getUuid());
+            assertThat(obligations)
+                    .extracting(o -> o.getUser().getUuid())
+                    .containsExactlyInAnyOrder(userA.getUuid(), userC.getUuid());
+        }
+
+        @Test
+        @DisplayName("Scenario: User corrects amount and currency")
+//        @org.junit.jupiter.api.Disabled("TODO: Exchange rate update needs further investigation")
+        void scenarioCorrectAmountAndCurrency() {
+            // Given: Existing LOAN: 5000 JPY
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Shopping")
+                    .amount(5000)
+                    .transactionDate(java.time.Instant.parse("2024-01-15T06:30:00Z"))
+                    .payer(userA)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.save(TransactionObligationEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transaction(existingTransaction)
+                    .user(userB)
+                    .amount(5000)
+                    .build());
+
+            // Create USD currency and exchange rate
+            CurrencyEntity usdCurrency = TestFixtures.Currencies.usd();
+            currencyRepository.save(usdCurrency);
+            flushAndClear();
+
+            CurrencyEntity reloadedUsd = currencyRepository.findById("USD").orElseThrow();
+            ExchangeRateEntity usdExchangeRate = ExchangeRateEntity.builder()
+                    .currencyCode("USD")
+                    .date(LocalDate.of(2024, 1, 15))  // Match the request date
+                    .exchangeRate(new BigDecimal("150.00"))
+                    .currency(reloadedUsd)
+                    .build();
+            exchangeRateRepository.save(usdExchangeRate);
+
+            flushAndClear();
+
+            // When: User realizes it was 50 USD (5000 cents), not 5000 JPY
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Shopping",
+                    5000, // 50.00 USD in cents
+                    "USD",
+                    "2024-01-15T15:30:00+09:00",
+                    userA.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(5000, userB.getUuid())
+                    )),
+                    null
+            );
+
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(
+                    existingTransaction.getUuid(),
+                    updateRequest
+            );
+
+            flushAndClear();
+
+            // Then: Currency and exchange rate should be updated
+            assertThat(result.exchangeRateResponse().currencyCode()).isEqualTo("USD");
+
+            TransactionHistoryEntity updated = transactionRepository
+                    .findById(existingTransaction.getUuid())
+                    .orElseThrow();
+            assertThat(updated.getExchangeRate().getCurrencyCode()).isEqualTo("USD");
+            assertThat(updated.getAmount()).isEqualTo(5000);
+        }
+
+        @Test
+        @DisplayName("Scenario: User splits bill differently (5 people -> 2 people)")
+        void scenarioChangeSplitParticipants() {
+            // Given: Existing LOAN with 5 obligations
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Group Dinner")
+                    .amount(5000)
+                    .transactionDate(java.time.Instant.parse("2024-01-15T09:30:00Z"))
+                    .payer(userA)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.saveAll(List.of(
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userB)
+                            .amount(1000)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userC)
+                            .amount(1000)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userD)
+                            .amount(1000)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userE)
+                            .amount(1000)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(testBorrower1)
+                            .amount(1000)
+                            .build()
+            ));
+
+            flushAndClear();
+
+            // When: User realizes only B and C should pay
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Group Dinner",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    userA.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userB.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userC.getUuid())
+                    )),
+                    null
+            );
+
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(
+                    existingTransaction.getUuid(),
+                    updateRequest
+            );
+
+            flushAndClear();
+
+            // Then: Should have exactly 2 obligations
+            assertThat(result.loan().obligationResponses()).hasSize(2);
+
+            List<TransactionObligationEntity> obligations =
+                    obligationRepository.findByTransactionId(existingTransaction.getUuid());
+            assertThat(obligations).hasSize(2);
+            assertThat(obligations)
+                    .extracting(o -> o.getUser().getUuid())
+                    .containsExactlyInAnyOrder(userB.getUuid(), userC.getUuid());
+            assertThat(obligations)
+                    .extracting(TransactionObligationEntity::getAmount)
+                    .containsExactlyInAnyOrder(2500, 2500);
+        }
+
+        @Test
+        @DisplayName("Scenario: Cannot update REPAYMENT transaction")
+        void scenarioCannotUpdateRepayment() {
+            // Given: Existing REPAYMENT transaction
+            TransactionHistoryEntity repaymentTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.REPAYMENT)
+                    .title("Repayment for dinner")
+                    .amount(3000)
+                    .transactionDate(java.time.Instant.parse("2024-01-15T09:30:00Z"))
+                    .payer(userA)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(repaymentTransaction);
+
+            obligationRepository.save(TransactionObligationEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transaction(repaymentTransaction)
+                    .user(userB)
+                    .amount(3000)
+                    .build());
+
+            flushAndClear();
+
+            // When: User tries to update REPAYMENT
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Try to update",
+                    3000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    userA.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(3000, userB.getUuid())
+                    )),
+                    null
+            );
+
+            // Then: Should throw UnsupportedOperationException
+            assertThatThrownBy(() ->
+                    transactionService.updateTransaction(repaymentTransaction.getUuid(), updateRequest)
+            )
+                    .isInstanceOf(UnsupportedOperationException.class)
+                    .hasMessageContaining("Only LOAN transactions can be updated");
+
+            // Verify original REPAYMENT is unchanged
+            TransactionHistoryEntity unchanged = transactionRepository
+                    .findById(repaymentTransaction.getUuid())
+                    .orElseThrow();
+            assertThat(unchanged.getTransactionType()).isEqualTo(TransactionType.REPAYMENT);
+            assertThat(unchanged.getTitle()).isEqualTo("Repayment for dinner");
+        }
+
+        @Test
+        @DisplayName("Scenario: Update with same obligation count but different members")
+        void scenarioSameCountDifferentMembers() {
+            // Given: Existing LOAN with obligations for B, C, D
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Coffee")
+                    .amount(4500)
+                    .transactionDate(java.time.Instant.parse("2024-01-15T00:30:00Z"))
+                    .payer(userA)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.saveAll(List.of(
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userB)
+                            .amount(1500)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userC)
+                            .amount(1500)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(userD)
+                            .amount(1500)
+                            .build()
+            ));
+
+            flushAndClear();
+
+            // When: Replace D with E (still 3 people)
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Coffee",
+                    4500,
+                    "JPY",
+                    "2024-01-15T09:30:00+09:00",
+                    userA.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(1500, userB.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(1500, userC.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(1500, userE.getUuid()) // D -> E
+                    )),
+                    null
+            );
+
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(
+                    existingTransaction.getUuid(),
+                    updateRequest
+            );
+
+            flushAndClear();
+
+            // Then: Should have 3 obligations with E instead of D
+            assertThat(result.loan().obligationResponses()).hasSize(3);
+
+            List<TransactionObligationEntity> obligations =
+                    obligationRepository.findByTransactionId(existingTransaction.getUuid());
+            assertThat(obligations).hasSize(3);
+            assertThat(obligations)
+                    .extracting(o -> o.getUser().getUuid())
+                    .containsExactlyInAnyOrder(userB.getUuid(), userC.getUuid(), userE.getUuid())
+                    .doesNotContain(userD.getUuid());
+        }
+    }
+
+    @Nested
+    @DisplayName("updateTransaction - Data Integrity")
+    class UpdateTransactionDataIntegrity {
+
+        @Test
+        @DisplayName("Should preserve created_at and update updated_at timestamps")
+        void shouldPreserveCreatedAtAndUpdateUpdatedAt() throws InterruptedException {
+            // Given: Existing transaction created at T1
+            java.time.Instant t1 = java.time.Instant.parse("2024-01-01T00:00:00Z");
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Original")
+                    .amount(5000)
+                    .transactionDate(t1)
+                    .payer(testPayer)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .createdAt(t1)
+                    .updatedAt(t1)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.save(TransactionObligationEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transaction(existingTransaction)
+                    .user(testBorrower1)
+                    .amount(5000)
+                    .build());
+
+            flushAndClear();
+
+            // Wait a bit to ensure different timestamp
+            Thread.sleep(100);
+
+            // When: Update at T2 (T2 > T1)
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Updated",
+                    5000,
+                    "JPY",
+                    "2024-01-02T09:00:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower1.getUuid())
+                    )),
+                    null
+            );
+
+            transactionService.updateTransaction(existingTransaction.getUuid(), updateRequest);
+
+            flushAndClear();
+
+            // Then: created_at should be preserved, updated_at should change
+            TransactionHistoryEntity updated = transactionRepository
+                    .findById(existingTransaction.getUuid())
+                    .orElseThrow();
+
+            assertThat(updated.getCreatedAt()).isEqualTo(t1);
+            assertThat(updated.getUpdatedAt()).isAfter(t1);
+            assertThat(updated.getTitle()).isEqualTo("Updated");
+        }
+
+        @Test
+        @DisplayName("Should maintain referential integrity when updating obligations")
+        void shouldMaintainReferentialIntegrity() {
+            // Given: LOAN with 3 obligations
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(UUID.randomUUID())
+                    .transactionType(TransactionType.LOAN)
+                    .title("Test")
+                    .amount(9000)
+                    .transactionDate(java.time.Instant.now())
+                    .payer(testPayer)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+            transactionRepository.save(existingTransaction);
+
+            obligationRepository.saveAll(List.of(
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(testBorrower1)
+                            .amount(3000)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(testBorrower2)
+                            .amount(3000)
+                            .build(),
+                    TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(testPayer)
+                            .amount(3000)
+                            .build()
+            ));
+
+            flushAndClear();
+
+            // When: Update to 5 obligations
+            UserEntity user3 = TestFixtures.Users.userWithoutAuthUser("User 3");
+            UserEntity user4 = TestFixtures.Users.userWithoutAuthUser("User 4");
+            userRepository.saveAll(List.of(user3, user4));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(user3, testGroup),
+                    TestFixtures.UserGroups.create(user4, testGroup)
+            ));
+            flushAndClear();
+
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Test",
+                    10000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(2000, testBorrower1.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(2000, testBorrower2.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(2000, user3.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(2000, user4.getUuid()),
+                            new CreateTransactionRequestDTO.Loan.Obligation(2000, testPayer.getUuid())
+                    )),
+                    null
+            );
+
+            transactionService.updateTransaction(existingTransaction.getUuid(), updateRequest);
+
+            flushAndClear();
+
+            // Then: All obligations should reference correct transaction_uuid and valid user_uuid
+            List<TransactionObligationEntity> obligations =
+                    obligationRepository.findByTransactionId(existingTransaction.getUuid());
+
+            assertThat(obligations).hasSize(5);
+            assertThat(obligations).allMatch(o ->
+                    o.getTransaction().getUuid().equals(existingTransaction.getUuid())
+            );
+            assertThat(obligations).allMatch(o -> o.getUser() != null);
+            assertThat(obligations).allMatch(o -> o.getUser().getUuid() != null);
+
+            // Verify no orphaned obligations exist
+            List<TransactionObligationEntity> allObligations = obligationRepository.findAll();
+            long obligationsForThisTransaction = allObligations.stream()
+                    .filter(o -> o.getTransaction().getUuid().equals(existingTransaction.getUuid()))
+                    .count();
+            assertThat(obligationsForThisTransaction).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when transaction not found")
+        void shouldThrowExceptionWhenTransactionNotFound() {
+            // Given: Non-existent transaction ID
+            UUID nonExistentId = UUID.randomUUID();
+
+            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Test",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(List.of(
+                            new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower1.getUuid())
+                    )),
+                    null
+            );
+
+            // When & Then: Should throw EntityNotFoundException
+            assertThatThrownBy(() ->
+                    transactionService.updateTransaction(nonExistentId, updateRequest)
+            )
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Transaction not found");
+        }
+    }
 }

@@ -350,6 +350,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, status);
     }
 
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedOperationException(HttpServletRequest request, UnsupportedOperationException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        logger.warn("UnsupportedOperationException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(getRequestTimestamp(request))
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .requestId(getRequestId(request))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
     /**
      * Catch-all handler for unexpected exceptions
      */

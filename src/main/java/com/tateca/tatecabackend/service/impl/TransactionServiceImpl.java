@@ -313,4 +313,86 @@ public class TransactionServiceImpl implements TransactionService {
         logger.info("Transaction deleted successfully: transactionId={}, obligationCount={}",
                 PiiMaskingUtil.maskUuid(transactionId), obligationCount);
     }
+
+    @Override
+    @Transactional
+    public CreateTransactionResponseDTO updateTransaction(UUID transactionId, CreateTransactionRequestDTO request) {
+        logger.info("Updating transaction: transactionId={}, type={}, amount={}, currency={}",
+                PiiMaskingUtil.maskUuid(transactionId),
+                request.transactionType(),
+                request.amount(),
+                request.currencyCode());
+
+        // 1. Fetch existing transaction
+        TransactionHistoryEntity existingTransaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction not found: " + transactionId));
+
+        // 2. Business rule: Only LOAN transactions can be updated
+        if (existingTransaction.getTransactionType() != TransactionType.LOAN) {
+            throw new UnsupportedOperationException(
+                    "Only LOAN transactions can be updated. REPAYMENT transactions are immutable.");
+        }
+
+        // 3. Update basic transaction fields
+        existingTransaction.setTitle(request.title());
+        existingTransaction.setAmount(request.amount());
+        existingTransaction.setTransactionDate(dateStringToInstant(request.dateStr()));
+
+        // 4. Update payer
+        UserEntity newPayer = userRepository.findById(request.payerId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.payerId()));
+        existingTransaction.setPayer(newPayer);
+
+        // 5. Update exchange rate
+        LocalDate date = convertToLocalDateInUtc(request.dateStr());
+        ExchangeRateEntity exchangeRate = exchangeRateRepository
+                .findByCurrencyCodeAndDate(request.currencyCode(), date)
+                .orElseGet(() -> {
+                    ExchangeRateEntity latestRate = exchangeRateRepository
+                            .findLatestByCurrencyCode(request.currencyCode())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "No exchange rate found for currency code: " + request.currencyCode()
+                            ));
+
+                    logger.debug("Using latest exchange rate as fallback: currency={}, date={}, rate={}",
+                            request.currencyCode(), date, latestRate.getExchangeRate());
+
+                    ExchangeRateEntity newExchangeRateEntity = ExchangeRateEntity.builder()
+                            .currencyCode(latestRate.getCurrencyCode())
+                            .date(date)
+                            .exchangeRate(latestRate.getExchangeRate())
+                            .currency(latestRate.getCurrency())
+                            .build();
+                    return exchangeRateRepository.save(newExchangeRateEntity);
+                });
+        existingTransaction.setExchangeRate(exchangeRate);
+
+        // 6. Replace obligations: delete all old obligations and create new ones
+        obligationRepository.deleteAllByTransactionId(transactionId);
+
+        List<TransactionObligationEntity> newObligations = request.loan().obligations().stream()
+                .map(obligation -> {
+                    UserEntity obligationUser = userRepository.findById(obligation.userUuid())
+                            .orElseThrow(() -> new EntityNotFoundException("User not found: " + obligation.userUuid()));
+
+                    return TransactionObligationEntity.builder()
+                            .uuid(UUID.randomUUID())
+                            .transaction(existingTransaction)
+                            .user(obligationUser)
+                            .amount(obligation.amount())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        List<TransactionObligationEntity> savedObligations = obligationRepository.saveAll(newObligations);
+
+        // 7. Save updated transaction (updated_at will be set by @PreUpdate)
+        TransactionHistoryEntity updatedTransaction = transactionRepository.save(existingTransaction);
+
+        logger.info("Transaction updated successfully: transactionId={}, obligationCount={}",
+                PiiMaskingUtil.maskUuid(transactionId),
+                savedObligations.size());
+
+        return CreateTransactionResponseDTO.from(updatedTransaction, savedObligations);
+    }
 }

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -557,5 +558,115 @@ public class TransactionController {
                 PiiMaskingUtil.maskUuid(groupId));
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/{transactionId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Update a LOAN transaction", description = "Updates an existing LOAN transaction. REPAYMENT transactions cannot be updated.")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Transaction updated successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    name = "Validation error example",
+                    value = """
+                        {
+                          "status": 400,
+                          "message": "title: Title must not exceed 50 characters"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - Cannot update REPAYMENT transaction",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 403,
+                          "message": "Only LOAN transactions can be updated. REPAYMENT transactions are immutable."
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Transaction not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Transaction not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<CreateTransactionResponseDTO> updateTransaction(
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("transactionId") UUID transactionId,
+            @Valid @RequestBody CreateTransactionRequestDTO request
+    ) {
+        logger.info("Updating transaction: transactionId={}, groupId={}, type={}, amount={}, currency={}",
+                PiiMaskingUtil.maskUuid(transactionId),
+                PiiMaskingUtil.maskUuid(groupId),
+                request.transactionType(),
+                request.amount(),
+                request.currencyCode());
+
+        CreateTransactionResponseDTO response = service.updateTransaction(transactionId, request);
+
+        logger.info("Transaction updated successfully: transactionId={}, groupId={}",
+                PiiMaskingUtil.maskUuid(transactionId),
+                PiiMaskingUtil.maskUuid(groupId));
+
+        return ResponseEntity.ok(response);
     }
 }
