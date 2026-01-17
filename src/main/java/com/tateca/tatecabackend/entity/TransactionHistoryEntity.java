@@ -49,8 +49,8 @@ public class TransactionHistoryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false, updatable = false),
-            @JoinColumn(name = "exchange_rate_date", referencedColumnName = "date", nullable = false, updatable = false)
+            @JoinColumn(name = "currency_code", referencedColumnName = "currency_code", nullable = false),
+            @JoinColumn(name = "exchange_rate_date", referencedColumnName = "date", nullable = false)
     })
     private ExchangeRateEntity exchangeRate;
 
@@ -71,8 +71,12 @@ public class TransactionHistoryEntity {
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
+        if (createdAt == null) {
+            createdAt = now;
+        }
+        if (updatedAt == null) {
+            updatedAt = now;
+        }
     }
 
     @PreUpdate

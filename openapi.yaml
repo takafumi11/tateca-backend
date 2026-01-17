@@ -42,6 +42,291 @@ tags:
 - name: Exchange Rates
   description: Currency exchange rate operations
 paths:
+  /groups/{groupId}/transactions/{transactionId}:
+    get:
+      tags:
+      - Transactions
+      summary: Get transaction details by ID
+      operationId: getTransactionDetail
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Validation error - Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Invalid groupId UUID format:
+                  description: When groupId path parameter has invalid UUID format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'groupId': expected UUID"
+                Invalid transactionId UUID format:
+                  description: When transactionId path parameter has invalid UUID
+                    format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'transactionId': expected\
+                      \ UUID"
+        "200":
+          description: Transaction details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTransactionResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Transaction not found
+    put:
+      tags:
+      - Transactions
+      summary: Update a LOAN transaction
+      description: |
+        Updates an existing LOAN transaction with new details.
+
+        **Updatable fields:**
+        - Title, amount, currency, transaction date
+        - Payer
+        - Obligations (users and amounts)
+
+        **Important notes:**
+        - Only LOAN transactions can be updated
+        - REPAYMENT transactions are immutable
+        - Currency can be changed (e.g., from JPY to USD)
+        - All existing obligations will be replaced with new ones
+      operationId: updateTransaction
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequestDTO"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
+        "400":
+          description: Validation error - Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Transaction type is null:
+                  description: When transaction_type is null
+                  value:
+                    status: 400
+                    message: "transactionType: Transaction type is required"
+                Title is blank or null:
+                  description: "When title is null, empty string, or only whitespace"
+                  value:
+                    status: 400
+                    message: "title: Title is required"
+                Title exceeds maximum length:
+                  description: When title exceeds 50 characters
+                  value:
+                    status: 400
+                    message: "title: Title must not exceed 50 characters"
+                Amount is null, zero, or negative:
+                  description: "When amount is null, zero, or negative number"
+                  value:
+                    status: 400
+                    message: "amount: Amount must be a positive number"
+                Currency code is invalid:
+                  description: "When currency_code is blank, not uppercase, or not\
+                    \ 3 characters"
+                  value:
+                    status: 400
+                    message: "currencyCode: Currency code must be 3 uppercase letters\
+                      \ (ISO 4217)"
+                Date format is invalid:
+                  description: "When date_str is not ISO 8601 format with timezone\
+                    \ (e.g., 2024-01-15T18:30:00+09:00)"
+                  value:
+                    status: 400
+                    message: "dateStr: Date must be in ISO 8601 format with timezone"
+                Payer ID is null:
+                  description: When payer_id is null
+                  value:
+                    status: 400
+                    message: "payerId: Payer ID is required"
+                LOAN without loan details:
+                  description: When transaction_type is LOAN but loan field is null
+                  value:
+                    status: 400
+                    message: LOAN transaction must have loan details
+                Obligations list is empty or exceeds maximum:
+                  description: When obligations list is empty or has more than 8 items
+                  value:
+                    status: 400
+                    message: "obligations: Obligations must have between 1 and 8 items"
+                Obligation amount is invalid:
+                  description: "When obligation amount is null, zero, or negative"
+                  value:
+                    status: 400
+                    message: "obligations[].amount: Amount must be a positive number"
+                Obligation user UUID is null:
+                  description: When obligation user_uuid is null
+                  value:
+                    status: 400
+                    message: "obligations[].userUuid: User UUID is required"
+                Invalid groupId UUID format:
+                  description: When groupId path parameter has invalid UUID format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'groupId': expected UUID"
+                Invalid transactionId UUID format:
+                  description: When transactionId path parameter has invalid UUID
+                    format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'transactionId': expected\
+                      \ UUID"
+                Cannot update REPAYMENT transaction:
+                  description: When attempting to update a REPAYMENT transaction (only
+                    LOAN transactions can be updated)
+                  value:
+                    status: 400
+                    message: Only LOAN transactions can be updated. REPAYMENT transactions
+                      are immutable.
+        "415":
+          description: Unsupported Media Type - Content-Type header must be application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 415
+                message: Unsupported Media Type. Content-Type must be application/json
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Transaction not found
+        "200":
+          description: Transaction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTransactionResponseDTO"
+    delete:
+      tags:
+      - Transactions
+      summary: Delete a transaction
+      operationId: deleteTransaction
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "400":
+          description: Validation error - Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Invalid groupId UUID format:
+                  description: When groupId path parameter has invalid UUID format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'groupId': expected UUID"
+                Invalid transactionId UUID format:
+                  description: When transactionId path parameter has invalid UUID
+                    format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'transactionId': expected\
+                      \ UUID"
+        "204":
+          description: Transaction deleted successfully
+        "403":
+          description: Forbidden - User doesn't have permission to delete this transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 403
+                message: Forbidden
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Transaction not found
   /internal/exchange-rates:
     post:
       tags:
@@ -61,6 +346,8 @@ paths:
         **Request Body:** Not required
       operationId: updateExchangeRates
       responses:
+        "204":
+          description: Exchange rates updated successfully
         "401":
           description: Unauthorized - Missing or invalid X-API-Key header
           content:
@@ -70,8 +357,6 @@ paths:
               example:
                 status: 401
                 message: Invalid API Key
-        "204":
-          description: Exchange rates updated successfully
         "500":
           description: Internal server error - External API unavailable or database
             error
@@ -97,6 +382,15 @@ paths:
               $ref: "#/components/schemas/CreateGroupRequestDTO"
         required: true
       responses:
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -145,6 +439,12 @@ paths:
                     status: 400
                     message: "memberNames[]: Member name must be between 1 and 50\
                       \ characters"
+        "201":
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupResponseDTO"
         "415":
           description: Unsupported Media Type - Content-Type header must be application/json
           content:
@@ -163,21 +463,6 @@ paths:
               example:
                 status: 409
                 message: can't join more than 10 groups
-        "201":
-          description: Group created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GroupResponseDTO"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
   /groups/{groupId}:
     get:
       tags:
@@ -192,15 +477,15 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Group not found
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: 404
-                message: Group Not Found
+                status: 401
+                message: Unauthorized
         "400":
           description: Validation error - Invalid UUID format
           content:
@@ -219,15 +504,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupResponseDTO"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
+        "404":
+          description: Group not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: 401
-                message: Unauthorized
+                status: 404
+                message: Group Not Found
     post:
       tags:
       - Groups
@@ -271,24 +556,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupResponseDTO"
-        "403":
-          description: Forbidden - Invalid join token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 403
-                message: Invalid join token
-        "415":
-          description: Unsupported Media Type - Content-Type header must be application/json
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 415
-                message: Unsupported Media Type. Content-Type must be application/json
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -326,6 +593,24 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
+        "415":
+          description: Unsupported Media Type - Content-Type header must be application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 415
+                message: Unsupported Media Type. Content-Type must be application/json
+        "403":
+          description: Forbidden - Invalid join token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 403
+                message: Invalid join token
     patch:
       tags:
       - Groups
@@ -345,6 +630,39 @@ paths:
               $ref: "#/components/schemas/UpdateGroupNameRequestDTO"
         required: true
       responses:
+        "403":
+          description: Forbidden - User doesn't have permission to update this group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 403
+                message: Forbidden
+        "404":
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: group not found
+        "200":
+          description: Group name updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -376,39 +694,6 @@ paths:
               example:
                 status: 415
                 message: Unsupported Media Type. Content-Type must be application/json
-        "200":
-          description: Group name updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GroupResponseDTO"
-        "404":
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 404
-                message: group not found
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
-        "403":
-          description: Forbidden - User doesn't have permission to update this group
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 403
-                message: Forbidden
   /groups/{groupId}/transactions:
     post:
       tags:
@@ -438,6 +723,15 @@ paths:
               example:
                 status: 404
                 message: Group not found
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "415":
           description: Unsupported Media Type - Content-Type header must be application/json
           content:
@@ -447,6 +741,12 @@ paths:
               example:
                 status: 415
                 message: Unsupported Media Type. Content-Type must be application/json
+        "201":
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTransactionResponseDTO"
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -518,21 +818,6 @@ paths:
                   value:
                     status: 400
                     message: "obligations[].userUuid: User UUID is required"
-        "201":
-          description: Transaction created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateTransactionResponseDTO"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
   /groups/{groupId}/members:
     post:
       tags:
@@ -568,6 +853,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupResponseDTO"
+        "409":
+          description: Conflict - Group has reached maximum size
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: Group has reached maximum size of 10 members
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "415":
           description: Unsupported Media Type - Content-Type header must be application/json
           content:
@@ -577,6 +880,15 @@ paths:
               example:
                 status: 415
                 message: Unsupported Media Type. Content-Type must be application/json
+        "403":
+          description: Forbidden - User is not a member of this group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 403
+                message: Only group members can add members
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -599,33 +911,6 @@ paths:
                   value:
                     status: 400
                     message: "Invalid format for parameter 'groupId': expected UUID"
-        "403":
-          description: Forbidden - User is not a member of this group
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 403
-                message: Only group members can add members
-        "409":
-          description: Conflict - Group has reached maximum size
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 409
-                message: Group has reached maximum size of 10 members
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
   /auth/users:
     post:
       tags:
@@ -640,15 +925,12 @@ paths:
               $ref: "#/components/schemas/CreateAuthUserRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing authentication token
+        "201":
+          description: User created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
+                $ref: "#/components/schemas/AuthUserResponseDTO"
         "409":
           description: Conflict - User already exists
           content:
@@ -658,6 +940,33 @@ paths:
               example:
                 status: 409
                 message: Email already exists
+        "415":
+          description: Unsupported Media Type - Content-Type header must be application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 415
+                message: Unsupported Media Type. Content-Type must be application/json
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: Database error
+        "401":
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -681,30 +990,6 @@ paths:
                     status: 400
                     message: Invalid request body format. Please check the data types
                       and structure.
-        "415":
-          description: Unsupported Media Type - Content-Type header must be application/json
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 415
-                message: Unsupported Media Type. Content-Type must be application/json
-        "201":
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthUserResponseDTO"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 500
-                message: Database error
   /users/{userId}:
     patch:
       tags:
@@ -731,6 +1016,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: User not found
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: An unexpected error occurred
+        "415":
+          description: Unsupported Media Type - Content-Type header must be application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 415
+                message: Unsupported Media Type. Content-Type must be application/json
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -759,42 +1080,6 @@ paths:
                     status: 400
                     message: Invalid request body format. Please check the data types
                       and structure.
-        "415":
-          description: Unsupported Media Type - Content-Type header must be application/json
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 415
-                message: Unsupported Media Type. Content-Type must be application/json
-        "404":
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 404
-                message: User not found
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 500
-                message: An unexpected error occurred
   /auth/users/review-preferences:
     patch:
       tags:
@@ -809,48 +1094,6 @@ paths:
               $ref: "#/components/schemas/UpdateAppReviewRequestDTO"
         required: true
       responses:
-        "401":
-          description: Unauthorized - Invalid or missing authentication token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
-        "415":
-          description: Unsupported Media Type - Content-Type header must be application/json
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 415
-                message: Unsupported Media Type. Content-Type must be application/json
-        "200":
-          description: Review preferences updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthUserResponseDTO"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 500
-                message: Database error
-        "404":
-          description: User not found - The specified UID does not exist
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 404
-                message: User not found
         "400":
           description: Validation error - Invalid request parameters
           content:
@@ -876,62 +1119,32 @@ paths:
                     status: 400
                     message: Invalid request body format. Please check the data types
                       and structure.
-  /groups/{groupId}/transactions/{transactionId}:
-    get:
-      tags:
-      - Transactions
-      summary: Get transaction details by ID
-      operationId: getTransactionDetail
-      parameters:
-      - name: groupId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: transactionId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "404":
-          description: Transaction not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 404
-                message: Transaction not found
-        "400":
-          description: Validation error - Invalid UUID format
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                Invalid groupId UUID format:
-                  description: When groupId path parameter has invalid UUID format
-                  value:
-                    status: 400
-                    message: "Invalid format for parameter 'groupId': expected UUID"
-                Invalid transactionId UUID format:
-                  description: When transactionId path parameter has invalid UUID
-                    format
-                  value:
-                    status: 400
-                    message: "Invalid format for parameter 'transactionId': expected\
-                      \ UUID"
         "200":
-          description: Transaction details retrieved successfully
+          description: Review preferences updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateTransactionResponseDTO"
+                $ref: "#/components/schemas/AuthUserResponseDTO"
+        "415":
+          description: Unsupported Media Type - Content-Type header must be application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 415
+                message: Unsupported Media Type. Content-Type must be application/json
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: Database error
         "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
+          description: Unauthorized - Invalid or missing authentication token
           content:
             application/json:
               schema:
@@ -939,73 +1152,15 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
-    delete:
-      tags:
-      - Transactions
-      summary: Delete a transaction
-      operationId: deleteLoan
-      parameters:
-      - name: groupId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: transactionId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
         "404":
-          description: Transaction not found
+          description: User not found - The specified UID does not exist
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 status: 404
-                message: Transaction not found
-        "204":
-          description: Transaction deleted successfully
-        "400":
-          description: Validation error - Invalid UUID format
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                Invalid groupId UUID format:
-                  description: When groupId path parameter has invalid UUID format
-                  value:
-                    status: 400
-                    message: "Invalid format for parameter 'groupId': expected UUID"
-                Invalid transactionId UUID format:
-                  description: When transactionId path parameter has invalid UUID
-                    format
-                  value:
-                    status: 400
-                    message: "Invalid format for parameter 'transactionId': expected\
-                      \ UUID"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
-        "403":
-          description: Forbidden - User doesn't have permission to delete this transaction
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 403
-                message: Forbidden
+                message: User not found
   /groups/{groupId}/transactions/settlement:
     get:
       tags:
@@ -1035,6 +1190,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionSettlementResponseDTO"
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "400":
           description: Validation error - Invalid UUID format
           content:
@@ -1047,15 +1211,6 @@ paths:
                   value:
                     status: 400
                     message: "Invalid format for parameter 'groupId': expected UUID"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
   /groups/{groupId}/transactions/history:
     get:
       tags:
@@ -1088,6 +1243,15 @@ paths:
               example:
                 status: 404
                 message: Group not found
+        "401":
+          description: Unauthorized - Invalid or missing Firebase JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Unauthorized
         "400":
           description: Validation error - Invalid UUID format
           content:
@@ -1106,15 +1270,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionHistoryResponseDTO"
-        "401":
-          description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 401
-                message: Unauthorized
   /groups/list:
     get:
       tags:
@@ -1153,15 +1308,6 @@ paths:
           type: string
           format: date
       responses:
-        "404":
-          description: Exchange rates not found for the specified date
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                status: 404
-                message: Exchange rates not found for date
         "200":
           description: Exchange rates retrieved successfully
           content:
@@ -1205,6 +1351,15 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
+        "404":
+          description: Exchange rates not found for the specified date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Exchange rates not found for date
   /auth/users/{uid}:
     get:
       tags:
@@ -1222,6 +1377,12 @@ paths:
           maxLength: 128
           minLength: 0
       responses:
+        "200":
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponseDTO"
         "400":
           description: Validation error - Invalid UID format
           content:
@@ -1231,12 +1392,6 @@ paths:
               example:
                 status: 400
                 message: Invalid UID format
-        "200":
-          description: User information retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthUserResponseDTO"
         "404":
           description: User not found - The specified UID does not exist
           content:
@@ -1430,23 +1585,6 @@ paths:
               example:
                 status: 404
                 message: Group not found
-        "400":
-          description: Validation error - Invalid UUID format
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                Invalid groupId UUID format:
-                  description: When groupId path parameter has invalid UUID format
-                  value:
-                    status: 400
-                    message: "Invalid format for parameter 'groupId': expected UUID"
-                Invalid userUuid UUID format:
-                  description: When userUuid path parameter has invalid UUID format
-                  value:
-                    status: 400
-                    message: "Invalid format for parameter 'userUuid': expected UUID"
         "403":
           description: Forbidden - User doesn't have permission to remove this user
           content:
@@ -1465,224 +1603,25 @@ paths:
               example:
                 status: 401
                 message: Unauthorized
+        "400":
+          description: Validation error - Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Invalid groupId UUID format:
+                  description: When groupId path parameter has invalid UUID format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'groupId': expected UUID"
+                Invalid userUuid UUID format:
+                  description: When userUuid path parameter has invalid UUID format
+                  value:
+                    status: 400
+                    message: "Invalid format for parameter 'userUuid': expected UUID"
 components:
   schemas:
-    ErrorResponse:
-      type: object
-      description: Standard error response following modern REST API best practices
-      properties:
-        timestamp:
-          type: string
-          description: Timestamp when the request arrived at the API application in
-            ISO 8601 format
-          example: 2025-01-14T12:34:56.789Z
-        status:
-          type: integer
-          format: int32
-          description: HTTP status code
-          example: 400
-        error:
-          type: string
-          description: HTTP status reason phrase
-          example: Bad Request
-        message:
-          type: string
-          description: Human-readable error message
-          example: Validation failed
-        path:
-          type: string
-          description: Request path where the error occurred
-          example: /groups/123/transactions
-        request_id:
-          type: string
-          description: Unique request ID for tracing and correlation with logs
-          example: 550e8400-e29b-41d4-a716-446655440000
-        error_code:
-          type: string
-          description: Machine-readable error code for client-side handling
-          example: AUTH.INVALID_TOKEN
-        errors:
-          type: array
-          description: Field-level validation errors (only present for validation
-            failures)
-          items:
-            $ref: "#/components/schemas/FieldError"
-    FieldError:
-      type: object
-      description: Field-level validation error details
-      properties:
-        field:
-          type: string
-          description: Name of the field that failed validation
-          example: groupName
-        message:
-          type: string
-          description: Validation error message
-          example: Group name must be between 1 and 100 characters
-        rejected_value:
-          description: The value that was rejected
-    CreateGroupRequestDTO:
-      type: object
-      description: Request to create a new group
-      properties:
-        group_name:
-          type: string
-          description: Name of the group
-          example: Team Outing 2024
-          maxLength: 100
-          minLength: 1
-        host_name:
-          type: string
-          description: Your name as the group creator
-          example: John Doe
-          maxLength: 50
-          minLength: 1
-        participants_name:
-          type: array
-          description: "Names of other group members (minimum 1, maximum 9)"
-          example:
-          - Alice
-          - Bob
-          - Charlie
-          items:
-            type: string
-            maxLength: 50
-            minLength: 1
-          maxItems: 9
-          minItems: 1
-      required:
-      - group_name
-      - host_name
-      - participants_name
-    AuthUserResponseDTO:
-      type: object
-      description: Authentication user information
-      properties:
-        uid:
-          type: string
-          description: Firebase authentication user ID
-          example: firebase-uid-123
-        name:
-          type: string
-          description: User's name from authentication provider
-          example: John Doe
-        email:
-          type: string
-          description: User's email address
-          example: john.doe@example.com
-        created_at:
-          type: string
-          description: Account creation timestamp (Tokyo time)
-          example: 2024-01-01T12:00:00+09:00
-        updated_at:
-          type: string
-          description: Last update timestamp (Tokyo time)
-          example: 2024-01-15T14:30:00+09:00
-        last_login_time:
-          type: string
-          description: Last login timestamp (Tokyo time)
-          example: 2024-01-20T10:15:00+09:00
-        total_login_count:
-          type: integer
-          format: int32
-          description: Total number of logins
-          example: 42
-        last_app_review_dialog_shown_at:
-          type: string
-          description: Timestamp when app review dialog was last shown (Tokyo time)
-          example: 2024-01-18T16:45:00+09:00
-        app_review_status:
-          type: string
-          description: Current app review status
-          enum:
-          - PENDING
-          - COMPLETED
-          - PERMANENTLY_DECLINED
-    GroupResponse:
-      type: object
-      description: Group information
-      properties:
-        uuid:
-          type: string
-          description: Group's unique identifier
-          example: 550e8400-e29b-41d4-a716-446655440000
-        name:
-          type: string
-          description: Group name
-          example: Team Outing 2024
-        join_token:
-          type: string
-          description: Invitation token for joining the group
-          example: 123e4567-e89b-12d3-a456-426614174000
-        token_expires:
-          type: string
-          description: Token expiration date
-          example: 2024-12-31
-        created_at:
-          type: string
-          description: Group creation timestamp (Tokyo time)
-          example: 2024-01-01T12:00:00+09:00
-        updated_at:
-          type: string
-          description: Group last update timestamp (Tokyo time)
-          example: 2024-01-15T14:30:00+09:00
-    GroupResponseDTO:
-      type: object
-      description: Detailed group information including members and statistics
-      properties:
-        group:
-          $ref: "#/components/schemas/GroupResponse"
-          description: Group information
-        users:
-          type: array
-          description: List of users in the group
-          items:
-            $ref: "#/components/schemas/UserResponseDTO"
-        transaction_count:
-          type: integer
-          format: int64
-          description: Total number of transactions in the group
-          example: 42
-    UserResponseDTO:
-      type: object
-      description: User information response
-      properties:
-        uuid:
-          type: string
-          description: User's unique identifier
-          example: 550e8400-e29b-41d4-a716-446655440000
-        name:
-          type: string
-          description: User's display name
-          example: John Doe
-        auth_user:
-          $ref: "#/components/schemas/AuthUserResponseDTO"
-          description: Authentication user details
-        created_at:
-          type: string
-          description: User creation timestamp (Tokyo time)
-          example: 2024-01-01T12:00:00+09:00
-        updated_at:
-          type: string
-          description: User last update timestamp (Tokyo time)
-          example: 2024-01-15T14:30:00+09:00
-    JoinGroupRequestDTO:
-      type: object
-      description: Request to join a group using invitation token
-      properties:
-        user_uuid:
-          type: string
-          format: uuid
-          description: UUID of the user joining the group
-          example: 550e8400-e29b-41d4-a716-446655440000
-        join_token:
-          type: string
-          format: uuid
-          description: Invitation token for joining the group
-          example: 123e4567-e89b-12d3-a456-426614174000
-      required:
-      - join_token
-      - user_uuid
     CreateTransactionRequestDTO:
       type: object
       description: Request to create a new transaction
@@ -1775,6 +1714,104 @@ components:
           example: 550e8400-e29b-41d4-a716-446655440000
       required:
       - recipient_id
+    ErrorResponse:
+      type: object
+      description: Standard error response following modern REST API best practices
+      properties:
+        timestamp:
+          type: string
+          description: Timestamp when the request arrived at the API application in
+            ISO 8601 format
+          example: 2025-01-14T12:34:56.789Z
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: HTTP status reason phrase
+          example: Bad Request
+        message:
+          type: string
+          description: Human-readable error message
+          example: Validation failed
+        path:
+          type: string
+          description: Request path where the error occurred
+          example: /groups/123/transactions
+        request_id:
+          type: string
+          description: Unique request ID for tracing and correlation with logs
+          example: 550e8400-e29b-41d4-a716-446655440000
+        error_code:
+          type: string
+          description: Machine-readable error code for client-side handling
+          example: AUTH.INVALID_TOKEN
+        errors:
+          type: array
+          description: Field-level validation errors (only present for validation
+            failures)
+          items:
+            $ref: "#/components/schemas/FieldError"
+    FieldError:
+      type: object
+      description: Field-level validation error details
+      properties:
+        field:
+          type: string
+          description: Name of the field that failed validation
+          example: groupName
+        message:
+          type: string
+          description: Validation error message
+          example: Group name must be between 1 and 100 characters
+        rejected_value:
+          description: The value that was rejected
+    AuthUserResponseDTO:
+      type: object
+      description: Authentication user information
+      properties:
+        uid:
+          type: string
+          description: Firebase authentication user ID
+          example: firebase-uid-123
+        name:
+          type: string
+          description: User's name from authentication provider
+          example: John Doe
+        email:
+          type: string
+          description: User's email address
+          example: john.doe@example.com
+        created_at:
+          type: string
+          description: Account creation timestamp (Tokyo time)
+          example: 2024-01-01T12:00:00+09:00
+        updated_at:
+          type: string
+          description: Last update timestamp (Tokyo time)
+          example: 2024-01-15T14:30:00+09:00
+        last_login_time:
+          type: string
+          description: Last login timestamp (Tokyo time)
+          example: 2024-01-20T10:15:00+09:00
+        total_login_count:
+          type: integer
+          format: int32
+          description: Total number of logins
+          example: 42
+        last_app_review_dialog_shown_at:
+          type: string
+          description: Timestamp when app review dialog was last shown (Tokyo time)
+          example: 2024-01-18T16:45:00+09:00
+        app_review_status:
+          type: string
+          description: Current app review status
+          enum:
+          - PENDING
+          - COMPLETED
+          - PERMANENTLY_DECLINED
     CreateTransactionResponseDTO:
       type: object
       description: Detailed transaction information
@@ -1881,6 +1918,124 @@ components:
         recipient:
           $ref: "#/components/schemas/UserResponseDTO"
           description: User receiving the repayment
+    UserResponseDTO:
+      type: object
+      description: User information response
+      properties:
+        uuid:
+          type: string
+          description: User's unique identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          description: User's display name
+          example: John Doe
+        auth_user:
+          $ref: "#/components/schemas/AuthUserResponseDTO"
+          description: Authentication user details
+        created_at:
+          type: string
+          description: User creation timestamp (Tokyo time)
+          example: 2024-01-01T12:00:00+09:00
+        updated_at:
+          type: string
+          description: User last update timestamp (Tokyo time)
+          example: 2024-01-15T14:30:00+09:00
+    CreateGroupRequestDTO:
+      type: object
+      description: Request to create a new group
+      properties:
+        group_name:
+          type: string
+          description: Name of the group
+          example: Team Outing 2024
+          maxLength: 100
+          minLength: 1
+        host_name:
+          type: string
+          description: Your name as the group creator
+          example: John Doe
+          maxLength: 50
+          minLength: 1
+        participants_name:
+          type: array
+          description: "Names of other group members (minimum 1, maximum 9)"
+          example:
+          - Alice
+          - Bob
+          - Charlie
+          items:
+            type: string
+            maxLength: 50
+            minLength: 1
+          maxItems: 9
+          minItems: 1
+      required:
+      - group_name
+      - host_name
+      - participants_name
+    GroupResponse:
+      type: object
+      description: Group information
+      properties:
+        uuid:
+          type: string
+          description: Group's unique identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          description: Group name
+          example: Team Outing 2024
+        join_token:
+          type: string
+          description: Invitation token for joining the group
+          example: 123e4567-e89b-12d3-a456-426614174000
+        token_expires:
+          type: string
+          description: Token expiration date
+          example: 2024-12-31
+        created_at:
+          type: string
+          description: Group creation timestamp (Tokyo time)
+          example: 2024-01-01T12:00:00+09:00
+        updated_at:
+          type: string
+          description: Group last update timestamp (Tokyo time)
+          example: 2024-01-15T14:30:00+09:00
+    GroupResponseDTO:
+      type: object
+      description: Detailed group information including members and statistics
+      properties:
+        group:
+          $ref: "#/components/schemas/GroupResponse"
+          description: Group information
+        users:
+          type: array
+          description: List of users in the group
+          items:
+            $ref: "#/components/schemas/UserResponseDTO"
+        transaction_count:
+          type: integer
+          format: int64
+          description: Total number of transactions in the group
+          example: 42
+    JoinGroupRequestDTO:
+      type: object
+      description: Request to join a group using invitation token
+      properties:
+        user_uuid:
+          type: string
+          format: uuid
+          description: UUID of the user joining the group
+          example: 550e8400-e29b-41d4-a716-446655440000
+        join_token:
+          type: string
+          format: uuid
+          description: Invitation token for joining the group
+          example: 123e4567-e89b-12d3-a456-426614174000
+      required:
+      - join_token
+      - user_uuid
     AddMemberRequestDTO:
       type: object
       description: Request to add a new member to an existing group

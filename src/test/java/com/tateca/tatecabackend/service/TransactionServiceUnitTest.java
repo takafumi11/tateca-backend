@@ -870,4 +870,462 @@ class TransactionServiceUnitTest {
             verify(transactionRepository, times(1)).deleteById(transactionId);
         }
     }
+
+    // ========================================
+    // updateTransaction Tests (TDD - RED Phase)
+    // ========================================
+
+    @Nested
+    @DisplayName("updateTransaction - Success Cases")
+    class UpdateTransactionSuccessCases {
+
+        private UUID transactionId;
+        private TransactionHistoryEntity existingTransaction;
+        private UserEntity newPayer;
+        private UserEntity obligationUser1;
+        private UserEntity obligationUser2;
+        private UserEntity obligationUser3;
+
+        @BeforeEach
+        void setUpUpdate() {
+            transactionId = UUID.randomUUID();
+            newPayer = TestFixtures.Users.userWithoutAuthUser("New Payer");
+            obligationUser1 = TestFixtures.Users.userWithoutAuthUser("User 1");
+            obligationUser2 = TestFixtures.Users.userWithoutAuthUser("User 2");
+            obligationUser3 = TestFixtures.Users.userWithoutAuthUser("User 3");
+
+            existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(transactionId)
+                    .transactionType(TransactionType.LOAN)
+                    .title("Original Title")
+                    .amount(5000)
+                    .transactionDate(Instant.now().minusSeconds(86400))
+                    .payer(testPayer)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .createdAt(Instant.now().minusSeconds(86400))
+                    .updatedAt(Instant.now().minusSeconds(86400))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should update LOAN transaction with same obligation count")
+        void shouldUpdateLoanTransactionWithSameObligationCount() {
+            // Given: Existing LOAN with 2 obligations
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(newPayer.getUuid()))
+                    .thenReturn(Optional.of(newPayer));
+            when(userRepository.findById(obligationUser1.getUuid()))
+                    .thenReturn(Optional.of(obligationUser1));
+            when(userRepository.findById(obligationUser2.getUuid()))
+                    .thenReturn(Optional.of(obligationUser2));
+            when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("JPY"), any(LocalDate.class)))
+                    .thenReturn(Optional.of(jpyExchangeRate));
+            when(transactionRepository.save(any(TransactionHistoryEntity.class)))
+                    .thenReturn(existingTransaction);
+            when(obligationRepository.saveAll(anyList()))
+                    .thenReturn(new ArrayList<>());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Updated Title",
+                    6000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    newPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(3000, obligationUser1.getUuid()),
+                                    new CreateTransactionRequestDTO.Loan.Obligation(3000, obligationUser2.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When: Updating with 2 obligations (same count, different members/amounts)
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(transactionId, request);
+
+            // Then: Should update transaction and replace obligations
+            verify(transactionRepository).findById(transactionId);
+            verify(obligationRepository).deleteAllByTransactionId(transactionId);
+            verify(obligationRepository).saveAll(anyList());
+            verify(transactionRepository).save(any(TransactionHistoryEntity.class));
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should update LOAN transaction increasing obligations (2 -> 3)")
+        void shouldUpdateLoanTransactionIncreasingObligations() {
+            // Given: Existing LOAN with 2 obligations
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(testPayer.getUuid()))
+                    .thenReturn(Optional.of(testPayer));
+            when(userRepository.findById(obligationUser1.getUuid()))
+                    .thenReturn(Optional.of(obligationUser1));
+            when(userRepository.findById(obligationUser2.getUuid()))
+                    .thenReturn(Optional.of(obligationUser2));
+            when(userRepository.findById(obligationUser3.getUuid()))
+                    .thenReturn(Optional.of(obligationUser3));
+            when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("JPY"), any(LocalDate.class)))
+                    .thenReturn(Optional.of(jpyExchangeRate));
+            when(transactionRepository.save(any(TransactionHistoryEntity.class)))
+                    .thenReturn(existingTransaction);
+
+            ArgumentCaptor<List<TransactionObligationEntity>> obligationCaptor =
+                    ArgumentCaptor.forClass(List.class);
+            when(obligationRepository.saveAll(obligationCaptor.capture()))
+                    .thenReturn(new ArrayList<>());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Updated Title",
+                    6000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(2000, obligationUser1.getUuid()),
+                                    new CreateTransactionRequestDTO.Loan.Obligation(2000, obligationUser2.getUuid()),
+                                    new CreateTransactionRequestDTO.Loan.Obligation(2000, obligationUser3.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When: Updating to 3 obligations
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(transactionId, request);
+
+            // Then: Should delete old obligations and create 3 new ones
+            verify(obligationRepository).deleteAllByTransactionId(transactionId);
+            verify(obligationRepository).saveAll(anyList());
+
+            List<TransactionObligationEntity> savedObligations = obligationCaptor.getValue();
+            assertThat(savedObligations).hasSize(3);
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should update LOAN transaction decreasing obligations (5 -> 1)")
+        void shouldUpdateLoanTransactionDecreasingObligations() {
+            // Given: Existing LOAN with 5 obligations
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(testPayer.getUuid()))
+                    .thenReturn(Optional.of(testPayer));
+            when(userRepository.findById(obligationUser1.getUuid()))
+                    .thenReturn(Optional.of(obligationUser1));
+            when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("JPY"), any(LocalDate.class)))
+                    .thenReturn(Optional.of(jpyExchangeRate));
+            when(transactionRepository.save(any(TransactionHistoryEntity.class)))
+                    .thenReturn(existingTransaction);
+
+            ArgumentCaptor<List<TransactionObligationEntity>> obligationCaptor =
+                    ArgumentCaptor.forClass(List.class);
+            when(obligationRepository.saveAll(obligationCaptor.capture()))
+                    .thenReturn(new ArrayList<>());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Updated to single obligation",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, obligationUser1.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When: Updating to 1 obligation
+            CreateTransactionResponseDTO result = transactionService.updateTransaction(transactionId, request);
+
+            // Then: Should delete all old obligations and create 1 new one
+            verify(obligationRepository).deleteAllByTransactionId(transactionId);
+
+            List<TransactionObligationEntity> savedObligations = obligationCaptor.getValue();
+            assertThat(savedObligations).hasSize(1);
+            assertThat(savedObligations.get(0).getAmount()).isEqualTo(5000);
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should update all transaction fields (title, amount, currency, date, payer)")
+        void shouldUpdateAllTransactionFields() {
+            // Given: Existing transaction
+            CurrencyEntity usdCurrency = TestFixtures.Currencies.usd();
+            ExchangeRateEntity usdExchangeRate = ExchangeRateEntity.builder()
+                    .currencyCode("USD")
+                    .date(LocalDate.now())
+                    .exchangeRate(new BigDecimal("150.0"))
+                    .currency(usdCurrency)
+                    .build();
+
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(newPayer.getUuid()))
+                    .thenReturn(Optional.of(newPayer));
+            when(userRepository.findById(obligationUser1.getUuid()))
+                    .thenReturn(Optional.of(obligationUser1));
+            when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("USD"), any(LocalDate.class)))
+                    .thenReturn(Optional.of(usdExchangeRate));
+            when(transactionRepository.save(any(TransactionHistoryEntity.class)))
+                    .thenReturn(existingTransaction);
+            when(obligationRepository.saveAll(anyList()))
+                    .thenReturn(new ArrayList<>());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Completely New Title",
+                    10000,
+                    "USD",
+                    "2024-02-20T12:00:00+09:00",
+                    newPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(10000, obligationUser1.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When: Updating all fields
+            transactionService.updateTransaction(transactionId, request);
+
+            // Then: Should update all fields correctly
+            ArgumentCaptor<TransactionHistoryEntity> transactionCaptor =
+                    ArgumentCaptor.forClass(TransactionHistoryEntity.class);
+            verify(transactionRepository).save(transactionCaptor.capture());
+
+            TransactionHistoryEntity savedTransaction = transactionCaptor.getValue();
+            assertThat(savedTransaction.getTitle()).isEqualTo("Completely New Title");
+            assertThat(savedTransaction.getAmount()).isEqualTo(10000);
+            assertThat(savedTransaction.getPayer().getUuid()).isEqualTo(newPayer.getUuid());
+            assertThat(savedTransaction.getExchangeRate().getCurrencyCode()).isEqualTo("USD");
+        }
+
+        @Test
+        @DisplayName("Should preserve created_at timestamp when updating")
+        void shouldPreserveCreatedAtTimestamp() {
+            // Given: Existing transaction with specific created_at
+            Instant originalCreatedAt = Instant.parse("2024-01-01T00:00:00Z");
+            existingTransaction.setCreatedAt(originalCreatedAt);
+
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(testPayer.getUuid()))
+                    .thenReturn(Optional.of(testPayer));
+            when(userRepository.findById(obligationUser1.getUuid()))
+                    .thenReturn(Optional.of(obligationUser1));
+            when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("JPY"), any(LocalDate.class)))
+                    .thenReturn(Optional.of(jpyExchangeRate));
+            when(transactionRepository.save(any(TransactionHistoryEntity.class)))
+                    .thenReturn(existingTransaction);
+            when(obligationRepository.saveAll(anyList()))
+                    .thenReturn(new ArrayList<>());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Updated Title",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, obligationUser1.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When: Updating transaction
+            transactionService.updateTransaction(transactionId, request);
+
+            // Then: created_at should be preserved (updated_at changes via @PreUpdate)
+            ArgumentCaptor<TransactionHistoryEntity> transactionCaptor =
+                    ArgumentCaptor.forClass(TransactionHistoryEntity.class);
+            verify(transactionRepository).save(transactionCaptor.capture());
+
+            TransactionHistoryEntity savedTransaction = transactionCaptor.getValue();
+            assertThat(savedTransaction.getCreatedAt()).isEqualTo(originalCreatedAt);
+            // Note: updated_at will be updated by @PreUpdate hook in entity
+        }
+    }
+
+    @Nested
+    @DisplayName("updateTransaction - Error Cases")
+    class UpdateTransactionErrorCases {
+
+        private UUID transactionId;
+
+        @BeforeEach
+        void setUpErrors() {
+            transactionId = UUID.randomUUID();
+        }
+
+        @Test
+        @DisplayName("Should throw exception when updating REPAYMENT transaction")
+        void shouldThrowExceptionWhenUpdatingRepaymentTransaction() {
+            // Given: Existing REPAYMENT transaction
+            TransactionHistoryEntity repaymentTransaction = TransactionHistoryEntity.builder()
+                    .uuid(transactionId)
+                    .transactionType(TransactionType.REPAYMENT)
+                    .title("Repayment Transaction")
+                    .amount(5000)
+                    .transactionDate(Instant.now())
+                    .payer(testPayer)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(repaymentTransaction));
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Try to update",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When & Then: Should throw UnsupportedOperationException
+            assertThatThrownBy(() -> transactionService.updateTransaction(transactionId, request))
+                    .isInstanceOf(UnsupportedOperationException.class)
+                    .hasMessageContaining("Only LOAN transactions can be updated");
+
+            // Verify no updates were made
+            verify(transactionRepository, never()).save(any());
+            verify(obligationRepository, never()).deleteAllByTransactionId(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when transaction not found")
+        void shouldThrowExceptionWhenTransactionNotFound() {
+            // Given: Non-existent transaction
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.empty());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Title",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When & Then: Should throw EntityNotFoundException
+            assertThatThrownBy(() -> transactionService.updateTransaction(transactionId, request))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Transaction not found");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when payer not found")
+        void shouldThrowExceptionWhenPayerNotFound() {
+            // Given: Existing transaction but payer doesn't exist
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(transactionId)
+                    .transactionType(TransactionType.LOAN)
+                    .title("Title")
+                    .amount(5000)
+                    .transactionDate(Instant.now())
+                    .payer(testPayer)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+
+            UUID nonExistentPayerId = UUID.randomUUID();
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(nonExistentPayerId))
+                    .thenReturn(Optional.empty());
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Title",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    nonExistentPayerId,
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
+                            )
+                    ),
+                    null
+            );
+
+            // When & Then: Should throw EntityNotFoundException
+            assertThatThrownBy(() -> transactionService.updateTransaction(transactionId, request))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("not found");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when obligation user not found")
+        void shouldThrowExceptionWhenObligationUserNotFound() {
+            // Given: Existing transaction but obligation user doesn't exist
+            TransactionHistoryEntity existingTransaction = TransactionHistoryEntity.builder()
+                    .uuid(transactionId)
+                    .transactionType(TransactionType.LOAN)
+                    .title("Title")
+                    .amount(5000)
+                    .transactionDate(Instant.now())
+                    .payer(testPayer)
+                    .group(testGroup)
+                    .exchangeRate(jpyExchangeRate)
+                    .build();
+
+            UUID nonExistentUserId = UUID.randomUUID();
+            when(transactionRepository.findById(transactionId))
+                    .thenReturn(Optional.of(existingTransaction));
+            when(userRepository.findById(testPayer.getUuid()))
+                    .thenReturn(Optional.of(testPayer));
+            when(userRepository.findById(nonExistentUserId))
+                    .thenReturn(Optional.empty());
+            when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("JPY"), any(LocalDate.class)))
+                    .thenReturn(Optional.of(jpyExchangeRate));
+
+            var request = new CreateTransactionRequestDTO(
+                    TransactionType.LOAN,
+                    "Title",
+                    5000,
+                    "JPY",
+                    "2024-01-15T18:30:00+09:00",
+                    testPayer.getUuid(),
+                    new CreateTransactionRequestDTO.Loan(
+                            List.of(
+                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, nonExistentUserId)
+                            )
+                    ),
+                    null
+            );
+
+            // When & Then: Should throw EntityNotFoundException
+            assertThatThrownBy(() -> transactionService.updateTransaction(transactionId, request))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("not found");
+        }
+    }
 }

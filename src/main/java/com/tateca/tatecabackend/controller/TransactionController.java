@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -542,7 +543,7 @@ public class TransactionController {
             )
         )
     })
-    public ResponseEntity<Void> deleteLoan(
+    public ResponseEntity<Void> deleteTransaction(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId
     ) {
@@ -557,5 +558,248 @@ public class TransactionController {
                 PiiMaskingUtil.maskUuid(groupId));
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/{transactionId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        summary = "Update a LOAN transaction",
+        description = """
+            Updates an existing LOAN transaction with new details.
+
+            **Updatable fields:**
+            - Title, amount, currency, transaction date
+            - Payer
+            - Obligations (users and amounts)
+
+            **Important notes:**
+            - Only LOAN transactions can be updated
+            - REPAYMENT transactions are immutable
+            - Currency can be changed (e.g., from JPY to USD)
+            - All existing obligations will be replaced with new ones
+            """
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Transaction updated successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Validation error - Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                    @ExampleObject(
+                        name = "Transaction type is null",
+                        description = "When transaction_type is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "transactionType: Transaction type is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Title is blank or null",
+                        description = "When title is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "title: Title is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Title exceeds maximum length",
+                        description = "When title exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "title: Title must not exceed 50 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Amount is null, zero, or negative",
+                        description = "When amount is null, zero, or negative number",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "amount: Amount must be a positive number"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Currency code is invalid",
+                        description = "When currency_code is blank, not uppercase, or not 3 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "currencyCode: Currency code must be 3 uppercase letters (ISO 4217)"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Date format is invalid",
+                        description = "When date_str is not ISO 8601 format with timezone (e.g., 2024-01-15T18:30:00+09:00)",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "dateStr: Date must be in ISO 8601 format with timezone"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Payer ID is null",
+                        description = "When payer_id is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "payerId: Payer ID is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "LOAN without loan details",
+                        description = "When transaction_type is LOAN but loan field is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "LOAN transaction must have loan details"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligations list is empty or exceeds maximum",
+                        description = "When obligations list is empty or has more than 8 items",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations: Obligations must have between 1 and 8 items"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligation amount is invalid",
+                        description = "When obligation amount is null, zero, or negative",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations[].amount: Amount must be a positive number"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligation user UUID is null",
+                        description = "When obligation user_uuid is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations[].userUuid: User UUID is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid groupId UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid transactionId UUID format",
+                        description = "When transactionId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'transactionId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Cannot update REPAYMENT transaction",
+                        description = "When attempting to update a REPAYMENT transaction (only LOAN transactions can be updated)",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Only LOAN transactions can be updated. REPAYMENT transactions are immutable."
+                            }
+                            """
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing Firebase JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 401,
+                          "message": "Unauthorized"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Transaction not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 404,
+                          "message": "Transaction not found"
+                        }
+                        """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "415",
+            description = "Unsupported Media Type - Content-Type header must be application/json",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "status": 415,
+                          "message": "Unsupported Media Type. Content-Type must be application/json"
+                        }
+                        """
+                )
+            )
+        )
+    })
+    public ResponseEntity<CreateTransactionResponseDTO> updateTransaction(
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("transactionId") UUID transactionId,
+            @Valid @RequestBody CreateTransactionRequestDTO request
+    ) {
+        logger.info("Updating transaction: transactionId={}, groupId={}, type={}, amount={}, currency={}",
+                PiiMaskingUtil.maskUuid(transactionId),
+                PiiMaskingUtil.maskUuid(groupId),
+                request.transactionType(),
+                request.amount(),
+                request.currencyCode());
+
+        CreateTransactionResponseDTO response = service.updateTransaction(transactionId, request);
+
+        logger.info("Transaction updated successfully: transactionId={}, groupId={}",
+                PiiMaskingUtil.maskUuid(transactionId),
+                PiiMaskingUtil.maskUuid(groupId));
+
+        return ResponseEntity.ok(response);
     }
 }

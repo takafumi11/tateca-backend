@@ -52,4 +52,16 @@ public interface TransactionService {
      * @param transactionId the UUID of the transaction to delete
      */
     void deleteTransaction(UUID transactionId);
+
+    /**
+     * Updates an existing LOAN transaction.
+     * Only LOAN transactions can be updated; REPAYMENT transactions are immutable.
+     *
+     * @param transactionId the UUID of the transaction to update
+     * @param request the transaction update request containing new values
+     * @return transaction detail response with updated transaction and obligations
+     * @throws UnsupportedOperationException if attempting to update a REPAYMENT transaction
+     * @throws com.tateca.tatecabackend.exception.domain.EntityNotFoundException if transaction not found
+     */
+    CreateTransactionResponseDTO updateTransaction(UUID transactionId, CreateTransactionRequestDTO request);
 }
