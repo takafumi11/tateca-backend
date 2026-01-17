@@ -329,7 +329,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // 2. Business rule: Only LOAN transactions can be updated
         if (existingTransaction.getTransactionType() != TransactionType.LOAN) {
-            throw new UnsupportedOperationException(
+            throw new IllegalArgumentException(
                     "Only LOAN transactions can be updated. REPAYMENT transactions are immutable.");
         }
 

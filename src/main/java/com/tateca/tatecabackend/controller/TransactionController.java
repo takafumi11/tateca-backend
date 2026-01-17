@@ -561,7 +561,23 @@ public class TransactionController {
     }
 
     @PutMapping(value = "/{transactionId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Update a LOAN transaction", description = "Updates an existing LOAN transaction. REPAYMENT transactions cannot be updated.")
+    @Operation(
+        summary = "Update a LOAN transaction",
+        description = """
+            Updates an existing LOAN transaction with new details.
+
+            **Updatable fields:**
+            - Title, amount, currency, transaction date
+            - Payer
+            - Obligations (users and amounts)
+
+            **Important notes:**
+            - Only LOAN transactions can be updated
+            - REPAYMENT transactions are immutable
+            - Currency can be changed (e.g., from JPY to USD)
+            - All existing obligations will be replaced with new ones
+            """
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -573,15 +589,148 @@ public class TransactionController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class),
-                examples = @ExampleObject(
-                    name = "Validation error example",
-                    value = """
-                        {
-                          "status": 400,
-                          "message": "title: Title must not exceed 50 characters"
-                        }
-                        """
-                )
+                examples = {
+                    @ExampleObject(
+                        name = "Transaction type is null",
+                        description = "When transaction_type is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "transactionType: Transaction type is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Title is blank or null",
+                        description = "When title is null, empty string, or only whitespace",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "title: Title is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Title exceeds maximum length",
+                        description = "When title exceeds 50 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "title: Title must not exceed 50 characters"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Amount is null, zero, or negative",
+                        description = "When amount is null, zero, or negative number",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "amount: Amount must be a positive number"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Currency code is invalid",
+                        description = "When currency_code is blank, not uppercase, or not 3 characters",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "currencyCode: Currency code must be 3 uppercase letters (ISO 4217)"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Date format is invalid",
+                        description = "When date_str is not ISO 8601 format with timezone (e.g., 2024-01-15T18:30:00+09:00)",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "dateStr: Date must be in ISO 8601 format with timezone"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Payer ID is null",
+                        description = "When payer_id is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "payerId: Payer ID is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "LOAN without loan details",
+                        description = "When transaction_type is LOAN but loan field is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "LOAN transaction must have loan details"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligations list is empty or exceeds maximum",
+                        description = "When obligations list is empty or has more than 8 items",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations: Obligations must have between 1 and 8 items"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligation amount is invalid",
+                        description = "When obligation amount is null, zero, or negative",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations[].amount: Amount must be a positive number"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Obligation user UUID is null",
+                        description = "When obligation user_uuid is null",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "obligations[].userUuid: User UUID is required"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid groupId UUID format",
+                        description = "When groupId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'groupId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Invalid transactionId UUID format",
+                        description = "When transactionId path parameter has invalid UUID format",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Invalid format for parameter 'transactionId': expected UUID"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Cannot update REPAYMENT transaction",
+                        description = "When attempting to update a REPAYMENT transaction (only LOAN transactions can be updated)",
+                        value = """
+                            {
+                              "status": 400,
+                              "message": "Only LOAN transactions can be updated. REPAYMENT transactions are immutable."
+                            }
+                            """
+                    )
+                }
             )
         ),
         @ApiResponse(
@@ -595,22 +744,6 @@ public class TransactionController {
                         {
                           "status": 401,
                           "message": "Unauthorized"
-                        }
-                        """
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Forbidden - Cannot update REPAYMENT transaction",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class),
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 403,
-                          "message": "Only LOAN transactions can be updated. REPAYMENT transactions are immutable."
                         }
                         """
                 )

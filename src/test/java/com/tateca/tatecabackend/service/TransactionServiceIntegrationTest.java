@@ -997,11 +997,11 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
                     null
             );
 
-            // Then: Should throw UnsupportedOperationException
+            // Then: Should throw IllegalArgumentException
             assertThatThrownBy(() ->
                     transactionService.updateTransaction(repaymentTransaction.getUuid(), updateRequest)
             )
-                    .isInstanceOf(UnsupportedOperationException.class)
+                    .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Only LOAN transactions can be updated");
 
             // Verify original REPAYMENT is unchanged
