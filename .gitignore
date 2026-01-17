@@ -66,3 +66,6 @@ workers/
 ### Logs ###
 logs/
 *.log
+
+### API Specs (auto-generated in CI/CD) ###
+api-specs/
