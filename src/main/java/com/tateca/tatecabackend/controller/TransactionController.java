@@ -542,7 +542,7 @@ public class TransactionController {
             )
         )
     })
-    public ResponseEntity<Void> deleteLoan(
+    public ResponseEntity<Void> deleteTransaction(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId
     ) {
