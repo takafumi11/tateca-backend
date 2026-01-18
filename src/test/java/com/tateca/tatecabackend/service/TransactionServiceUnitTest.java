@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
@@ -927,20 +928,18 @@ class TransactionServiceUnitTest {
             when(obligationRepository.saveAll(anyList()))
                     .thenReturn(new ArrayList<>());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Updated Title",
                     6000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     newPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(3000, obligationUser1.getUuid()),
-                                    new CreateTransactionRequestDTO.Loan.Obligation(3000, obligationUser2.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(3000, obligationUser1.getUuid()),
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(3000, obligationUser2.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When: Updating with 2 obligations (same count, different members/amounts)
@@ -978,21 +977,19 @@ class TransactionServiceUnitTest {
             when(obligationRepository.saveAll(obligationCaptor.capture()))
                     .thenReturn(new ArrayList<>());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Updated Title",
                     6000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(2000, obligationUser1.getUuid()),
-                                    new CreateTransactionRequestDTO.Loan.Obligation(2000, obligationUser2.getUuid()),
-                                    new CreateTransactionRequestDTO.Loan.Obligation(2000, obligationUser3.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(2000, obligationUser1.getUuid()),
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(2000, obligationUser2.getUuid()),
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(2000, obligationUser3.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When: Updating to 3 obligations
@@ -1027,19 +1024,17 @@ class TransactionServiceUnitTest {
             when(obligationRepository.saveAll(obligationCaptor.capture()))
                     .thenReturn(new ArrayList<>());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Updated to single obligation",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, obligationUser1.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(5000, obligationUser1.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When: Updating to 1 obligation
@@ -1079,19 +1074,17 @@ class TransactionServiceUnitTest {
             when(obligationRepository.saveAll(anyList()))
                     .thenReturn(new ArrayList<>());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Completely New Title",
                     10000,
                     "USD",
                     "2024-02-20T12:00:00+09:00",
                     newPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(10000, obligationUser1.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(10000, obligationUser1.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When: Updating all fields
@@ -1129,19 +1122,17 @@ class TransactionServiceUnitTest {
             when(obligationRepository.saveAll(anyList()))
                     .thenReturn(new ArrayList<>());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Updated Title",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, obligationUser1.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(5000, obligationUser1.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When: Updating transaction
@@ -1187,24 +1178,22 @@ class TransactionServiceUnitTest {
             when(transactionRepository.findById(transactionId))
                     .thenReturn(Optional.of(repaymentTransaction));
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Try to update",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
-            // When & Then: Should throw UnsupportedOperationException
+            // When & Then: Should throw IllegalArgumentException
             assertThatThrownBy(() -> transactionService.updateTransaction(transactionId, request))
-                    .isInstanceOf(UnsupportedOperationException.class)
+                    .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Only LOAN transactions can be updated");
 
             // Verify no updates were made
@@ -1219,19 +1208,17 @@ class TransactionServiceUnitTest {
             when(transactionRepository.findById(transactionId))
                     .thenReturn(Optional.empty());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Title",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When & Then: Should throw EntityNotFoundException
@@ -1261,19 +1248,17 @@ class TransactionServiceUnitTest {
             when(userRepository.findById(nonExistentPayerId))
                     .thenReturn(Optional.empty());
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Title",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     nonExistentPayerId,
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(5000, testBorrower.getUuid())
                             )
-                    ),
-                    null
+                    )
             );
 
             // When & Then: Should throw EntityNotFoundException
@@ -1307,19 +1292,17 @@ class TransactionServiceUnitTest {
             when(exchangeRateRepository.findByCurrencyCodeAndDate(eq("JPY"), any(LocalDate.class)))
                     .thenReturn(Optional.of(jpyExchangeRate));
 
-            var request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            var request = new UpdateTransactionRequestDTO(
                     "Title",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(
+                    new UpdateTransactionRequestDTO.Loan(
                             List.of(
-                                    new CreateTransactionRequestDTO.Loan.Obligation(5000, nonExistentUserId)
+                                    new UpdateTransactionRequestDTO.Loan.Obligation(5000, nonExistentUserId)
                             )
-                    ),
-                    null
+                    )
             );
 
             // When & Then: Should throw EntityNotFoundException

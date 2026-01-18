@@ -6,6 +6,7 @@ import com.tateca.tatecabackend.repository.GroupRepository;
 import com.tateca.tatecabackend.repository.ObligationRepository;
 import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
@@ -316,10 +317,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public CreateTransactionResponseDTO updateTransaction(UUID transactionId, CreateTransactionRequestDTO request) {
-        logger.info("Updating transaction: transactionId={}, type={}, amount={}, currency={}",
+    public CreateTransactionResponseDTO updateTransaction(UUID transactionId, UpdateTransactionRequestDTO request) {
+        logger.info("Updating transaction: transactionId={}, amount={}, currency={}",
                 PiiMaskingUtil.maskUuid(transactionId),
-                request.transactionType(),
                 request.amount(),
                 request.currencyCode());
 
