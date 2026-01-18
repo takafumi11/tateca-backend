@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
@@ -58,10 +59,10 @@ public interface TransactionService {
      * Only LOAN transactions can be updated; REPAYMENT transactions are immutable.
      *
      * @param transactionId the UUID of the transaction to update
-     * @param request the transaction update request containing new values
+     * @param request the transaction update request containing new LOAN values
      * @return transaction detail response with updated transaction and obligations
-     * @throws UnsupportedOperationException if attempting to update a REPAYMENT transaction
+     * @throws IllegalArgumentException if attempting to update a REPAYMENT transaction
      * @throws com.tateca.tatecabackend.exception.domain.EntityNotFoundException if transaction not found
      */
-    CreateTransactionResponseDTO updateTransaction(UUID transactionId, CreateTransactionRequestDTO request);
+    CreateTransactionResponseDTO updateTransaction(UUID transactionId, UpdateTransactionRequestDTO request);
 }

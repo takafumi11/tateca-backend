@@ -1,7 +1,9 @@
 package com.tateca.tatecabackend.service;
 
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
@@ -11,8 +13,6 @@ import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.TransactionHistoryEntity;
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
-import com.tateca.tatecabackend.entity.UserGroupEntity;
-import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.model.TransactionType;
 import com.tateca.tatecabackend.repository.CurrencyRepository;
@@ -691,19 +691,17 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
 
             // When: User realizes D also participated, updates to 3 people
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO(
                     "Dinner",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     userA.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(1666, userB.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(1667, userC.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(1667, userD.getUuid())
-                    )),
-                    null
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(1666, userB.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(1667, userC.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(1667, userD.getUuid())
+                    ))
             );
 
             CreateTransactionResponseDTO result = transactionService.updateTransaction(
@@ -764,19 +762,15 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
 
             // When: User realizes B actually paid (not A)
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Lunch",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Lunch",
                     5000,
                     "JPY",
                     "2024-01-15T12:30:00+09:00",
                     userB.getUuid(), // Changed payer
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userA.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userC.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2500, userA.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2500, userC.getUuid())
+                    )));
 
             CreateTransactionResponseDTO result = transactionService.updateTransaction(
                     existingTransaction.getUuid(),
@@ -841,18 +835,14 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
 
             // When: User realizes it was 50 USD (5000 cents), not 5000 JPY
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Shopping",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Shopping",
                     5000, // 50.00 USD in cents
                     "USD",
                     "2024-01-15T15:30:00+09:00",
                     userA.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(5000, userB.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(5000, userB.getUuid())
+                    )));
 
             CreateTransactionResponseDTO result = transactionService.updateTransaction(
                     existingTransaction.getUuid(),
@@ -923,19 +913,15 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
 
             // When: User realizes only B and C should pay
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Group Dinner",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Group Dinner",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     userA.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userB.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(2500, userC.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2500, userB.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2500, userC.getUuid())
+                    )));
 
             CreateTransactionResponseDTO result = transactionService.updateTransaction(
                     existingTransaction.getUuid(),
@@ -984,18 +970,14 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
 
             // When: User tries to update REPAYMENT
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Try to update",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Try to update",
                     3000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     userA.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(3000, userB.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(3000, userB.getUuid())
+                    )));
 
             // Then: Should throw IllegalArgumentException
             assertThatThrownBy(() ->
@@ -1052,20 +1034,16 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             flushAndClear();
 
             // When: Replace D with E (still 3 people)
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Coffee",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Coffee",
                     4500,
                     "JPY",
                     "2024-01-15T09:30:00+09:00",
                     userA.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(1500, userB.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(1500, userC.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(1500, userE.getUuid()) // D -> E
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(1500, userB.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(1500, userC.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(1500, userE.getUuid()) // D -> E
+                    )));
 
             CreateTransactionResponseDTO result = transactionService.updateTransaction(
                     existingTransaction.getUuid(),
@@ -1123,18 +1101,14 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             Thread.sleep(100);
 
             // When: Update at T2 (T2 > T1)
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Updated",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Updated",
                     5000,
                     "JPY",
                     "2024-01-02T09:00:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower1.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(5000, testBorrower1.getUuid())
+                    )));
 
             transactionService.updateTransaction(existingTransaction.getUuid(), updateRequest);
 
@@ -1199,22 +1173,18 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             ));
             flushAndClear();
 
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Test",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Test",
                     10000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(2000, testBorrower1.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(2000, testBorrower2.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(2000, user3.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(2000, user4.getUuid()),
-                            new CreateTransactionRequestDTO.Loan.Obligation(2000, testPayer.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2000, testBorrower1.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2000, testBorrower2.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2000, user3.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2000, user4.getUuid()),
+                            new UpdateTransactionRequestDTO.Loan.Obligation(2000, testPayer.getUuid())
+                    )));
 
             transactionService.updateTransaction(existingTransaction.getUuid(), updateRequest);
 
@@ -1245,18 +1215,14 @@ class TransactionServiceIntegrationTest extends AbstractIntegrationTest {
             // Given: Non-existent transaction ID
             UUID nonExistentId = UUID.randomUUID();
 
-            CreateTransactionRequestDTO updateRequest = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Test",
+            UpdateTransactionRequestDTO updateRequest = new UpdateTransactionRequestDTO("Test",
                     5000,
                     "JPY",
                     "2024-01-15T18:30:00+09:00",
                     testPayer.getUuid(),
-                    new CreateTransactionRequestDTO.Loan(List.of(
-                            new CreateTransactionRequestDTO.Loan.Obligation(5000, testBorrower1.getUuid())
-                    )),
-                    null
-            );
+                    new UpdateTransactionRequestDTO.Loan(List.of(
+                            new UpdateTransactionRequestDTO.Loan.Obligation(5000, testBorrower1.getUuid())
+                    )));
 
             // When & Then: Should throw EntityNotFoundException
             assertThatThrownBy(() ->

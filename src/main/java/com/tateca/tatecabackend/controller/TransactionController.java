@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.controller;
 
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
@@ -573,7 +574,6 @@ public class TransactionController {
 
             **Important notes:**
             - Only LOAN transactions can be updated
-            - REPAYMENT transactions are immutable
             - Currency can be changed (e.g., from JPY to USD)
             - All existing obligations will be replaced with new ones
             """
@@ -585,21 +585,11 @@ public class TransactionController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Validation error - Invalid request parameters",
+            description = "Validation error - Invalid request parameters or attempting to update REPAYMENT transaction",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
-                    @ExampleObject(
-                        name = "Transaction type is null",
-                        description = "When transaction_type is null",
-                        value = """
-                            {
-                              "status": 400,
-                              "message": "transactionType: Transaction type is required"
-                            }
-                            """
-                    ),
                     @ExampleObject(
                         name = "Title is blank or null",
                         description = "When title is null, empty string, or only whitespace",
@@ -661,12 +651,12 @@ public class TransactionController {
                             """
                     ),
                     @ExampleObject(
-                        name = "LOAN without loan details",
-                        description = "When transaction_type is LOAN but loan field is null",
+                        name = "Loan details are null",
+                        description = "When loan field is null",
                         value = """
                             {
                               "status": 400,
-                              "message": "LOAN transaction must have loan details"
+                              "message": "loan: Loan details are required"
                             }
                             """
                     ),
@@ -785,12 +775,11 @@ public class TransactionController {
     public ResponseEntity<CreateTransactionResponseDTO> updateTransaction(
             @PathVariable("groupId") UUID groupId,
             @PathVariable("transactionId") UUID transactionId,
-            @Valid @RequestBody CreateTransactionRequestDTO request
+            @Valid @RequestBody UpdateTransactionRequestDTO request
     ) {
-        logger.info("Updating transaction: transactionId={}, groupId={}, type={}, amount={}, currency={}",
+        logger.info("Updating transaction: transactionId={}, groupId={}, amount={}, currency={}",
                 PiiMaskingUtil.maskUuid(transactionId),
                 PiiMaskingUtil.maskUuid(groupId),
-                request.transactionType(),
                 request.amount(),
                 request.currencyCode());
 
