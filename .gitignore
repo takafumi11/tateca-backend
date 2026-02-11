@@ -67,5 +67,8 @@ workers/
 logs/
 *.log
 
+### Backup files ###
+*.bak
+
 ### API Specs (auto-generated in CI/CD) ###
 api-specs/
