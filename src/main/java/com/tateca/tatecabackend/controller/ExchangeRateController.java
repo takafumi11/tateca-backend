@@ -21,6 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
+/**
+ * REST controller for exchange rate operations.
+ *
+ * <p>Provides public API endpoints for querying currency exchange rates.
+ * All endpoints require Firebase JWT authentication.
+ */
 @RestController
 @RequestMapping(value = "/exchange-rate", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
@@ -28,8 +34,17 @@ import java.time.LocalDate;
 public class ExchangeRateController {
     private final ExchangeRateService service;
 
+    /**
+     * Get exchange rates for a specific date.
+     *
+     * <p>Returns all active exchange rates for the specified date.
+     * If no rates are found, returns an empty array (not 404).
+     *
+     * @param date The date to query (ISO 8601 format: YYYY-MM-DD)
+     * @return Exchange rates for the specified date
+     */
     @GetMapping("/{date}")
-    @Operation(summary = "Get exchange rates for a specific date", description = "Retrieve exchange rates for a specific date in ISO 8601 format (YYYY-MM-DD)")
+    @Operation(summary = "Get exchange rates for a specific date", description = "Retrieve exchange rates for a specific date in ISO 8601 format (YYYY-MM-DD). Returns empty array if no rates found for the date.")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -48,7 +63,9 @@ public class ExchangeRateController {
                         value = """
                             {
                               "status": 400,
-                              "message": "Invalid date format: expected ISO 8601 date (YYYY-MM-DD)"
+                              "error": "Bad Request",
+                              "message": "Invalid format for parameter 'date': expected ISO 8601 date (YYYY-MM-DD)",
+                              "path": "/exchange-rate/2024-13-45"
                             }
                             """
                     ),
@@ -58,7 +75,9 @@ public class ExchangeRateController {
                         value = """
                             {
                               "status": 400,
-                              "message": "Failed to convert value of type 'java.lang.String' to required type 'java.time.LocalDate'"
+                              "error": "Bad Request",
+                              "message": "Invalid format for parameter 'date': expected ISO 8601 date (YYYY-MM-DD)",
+                              "path": "/exchange-rate/not-a-date"
                             }
                             """
                     )
@@ -75,23 +94,9 @@ public class ExchangeRateController {
                     value = """
                         {
                           "status": 401,
-                          "message": "Unauthorized"
-                        }
-                        """
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Exchange rates not found for the specified date",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class),
-                examples = @ExampleObject(
-                    value = """
-                        {
-                          "status": 404,
-                          "message": "Exchange rates not found for date"
+                          "error": "Unauthorized",
+                          "message": "Unauthorized",
+                          "path": "/exchange-rate/2024-01-15"
                         }
                         """
                 )
@@ -107,7 +112,9 @@ public class ExchangeRateController {
                     value = """
                         {
                           "status": 500,
-                          "message": "Database connection error"
+                          "error": "Internal Server Error",
+                          "message": "Database error occurred",
+                          "path": "/exchange-rate/2024-01-15"
                         }
                         """
                 )
