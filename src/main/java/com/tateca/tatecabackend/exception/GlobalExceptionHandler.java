@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.exception;
 
 import com.tateca.tatecabackend.exception.domain.AuthenticationException;
 import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
-import com.tateca.tatecabackend.exception.domain.DatabaseOperationException;
 import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.exception.domain.ExternalServiceException;
@@ -55,32 +54,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, status);
     }
 
-    @ExceptionHandler(DatabaseOperationException.class)
-    public ResponseEntity<ErrorResponse> handleDatabaseOperationException(HttpServletRequest request, DatabaseOperationException ex) {
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        // 5xx = server error = ERROR
-        logger.error("[{}] DatabaseOperationException at {} {}: {}",
-            ex.getErrorCode(), request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(getRequestTimestamp(request))
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .requestId(getRequestId(request))
-                .errorCode(ex.getErrorCode())
-                .build();
-
-        return new ResponseEntity<>(errorResponse, status);
-    }
-
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDataAccessException(HttpServletRequest request, DataAccessException ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         // 5xx = server error = ERROR
-        // Note: This handler catches uncaught DataAccessExceptions as a safety net.
-        // Services should convert DataAccessException to DatabaseOperationException.
         logger.error("Uncaught DataAccessException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()

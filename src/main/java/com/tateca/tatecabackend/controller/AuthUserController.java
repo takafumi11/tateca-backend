@@ -54,7 +54,10 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 404,
-                                              "message": "User not found"
+                                              "error": "Not Found",
+                                              "message": "Auth user not found",
+                                              "error_code": "AUTH_USER.NOT_FOUND",
+                                              "path": "/auth/users/test-uid-123"
                                             }
                                             """
                             )
@@ -70,7 +73,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 400,
-                                              "message": "Invalid UID format"
+                                              "error": "Bad Request",
+                                              "message": "Validation failed",
+                                              "path": "/auth/users/test-uid-123"
                                             }
                                             """
                             )
@@ -107,7 +112,9 @@ public class AuthUserController {
                                             value = """
                                                     {
                                                       "status": 400,
-                                                      "message": "email: Email is required and cannot be blank"
+                                                      "error": "Bad Request",
+                                                      "message": "email: Email is required and cannot be blank",
+                                                      "path": "/auth/users"
                                                     }
                                                     """
                                     ),
@@ -117,7 +124,9 @@ public class AuthUserController {
                                             value = """
                                                     {
                                                       "status": 400,
-                                                      "message": "email: Email must not exceed 255 characters"
+                                                      "error": "Bad Request",
+                                                      "message": "email: Email must not exceed 255 characters",
+                                                      "path": "/auth/users"
                                                     }
                                                     """
                                     ),
@@ -127,7 +136,9 @@ public class AuthUserController {
                                             value = """
                                                     {
                                                       "status": 400,
-                                                      "message": "Invalid request body format. Please check the data types and structure."
+                                                      "error": "Bad Request",
+                                                      "message": "Invalid request body format. Please check the data types and structure.",
+                                                      "path": "/auth/users"
                                                     }
                                                     """
                                     )
@@ -144,7 +155,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 401,
-                                              "message": "Unauthorized"
+                                              "error": "Unauthorized",
+                                              "message": "Unauthorized",
+                                              "path": "/auth/users"
                                             }
                                             """
                             )
@@ -152,7 +165,7 @@ public class AuthUserController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "Conflict - User already exists",
+                    description = "Conflict - Email already exists",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class),
@@ -160,7 +173,10 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 409,
-                                              "message": "Email already exists"
+                                              "error": "Conflict",
+                                              "message": "Email already exists",
+                                              "error_code": "AUTH_USER.EMAIL_DUPLICATE",
+                                              "path": "/auth/users"
                                             }
                                             """
                             )
@@ -176,7 +192,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 415,
-                                              "message": "Unsupported Media Type. Content-Type must be application/json"
+                                              "error": "Unsupported Media Type",
+                                              "message": "Unsupported Media Type. Content-Type must be application/json",
+                                              "path": "/auth/users"
                                             }
                                             """
                             )
@@ -192,7 +210,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 500,
-                                              "message": "Database error"
+                                              "error": "Internal Server Error",
+                                              "message": "Database error",
+                                              "path": "/auth/users"
                                             }
                                             """
                             )
@@ -223,7 +243,10 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 404,
-                                              "message": "User not found"
+                                              "error": "Not Found",
+                                              "message": "Auth user not found",
+                                              "error_code": "AUTH_USER.NOT_FOUND",
+                                              "path": "/auth/users/test-uid-123"
                                             }
                                             """
                             )
@@ -239,7 +262,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 400,
-                                              "message": "Invalid UID format"
+                                              "error": "Bad Request",
+                                              "message": "Validation failed",
+                                              "path": "/auth/users/test-uid-123"
                                             }
                                             """
                             )
@@ -276,7 +301,9 @@ public class AuthUserController {
                                             value = """
                                                     {
                                                       "status": 400,
-                                                      "message": "appReviewStatus: App review status is required"
+                                                      "error": "Bad Request",
+                                                      "message": "appReviewStatus: App review status is required",
+                                                      "path": "/auth/users/review-preferences"
                                                     }
                                                     """
                                     ),
@@ -286,7 +313,9 @@ public class AuthUserController {
                                             value = """
                                                     {
                                                       "status": 400,
-                                                      "message": "Invalid value for app_review_status: must be PENDING, COMPLETED, or PERMANENTLY_DECLINED"
+                                                      "error": "Bad Request",
+                                                      "message": "Invalid value for app_review_status: must be PENDING, COMPLETED, or PERMANENTLY_DECLINED",
+                                                      "path": "/auth/users/review-preferences"
                                                     }
                                                     """
                                     ),
@@ -296,7 +325,9 @@ public class AuthUserController {
                                             value = """
                                                     {
                                                       "status": 400,
-                                                      "message": "Invalid request body format. Please check the data types and structure."
+                                                      "error": "Bad Request",
+                                                      "message": "Invalid request body format. Please check the data types and structure.",
+                                                      "path": "/auth/users/review-preferences"
                                                     }
                                                     """
                                     )
@@ -313,7 +344,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 401,
-                                              "message": "Unauthorized"
+                                              "error": "Unauthorized",
+                                              "message": "Unauthorized",
+                                              "path": "/auth/users/review-preferences"
                                             }
                                             """
                             )
@@ -329,7 +362,10 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 404,
-                                              "message": "User not found"
+                                              "error": "Not Found",
+                                              "message": "Auth user not found",
+                                              "error_code": "AUTH_USER.NOT_FOUND",
+                                              "path": "/auth/users/review-preferences"
                                             }
                                             """
                             )
@@ -345,7 +381,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 415,
-                                              "message": "Unsupported Media Type. Content-Type must be application/json"
+                                              "error": "Unsupported Media Type",
+                                              "message": "Unsupported Media Type. Content-Type must be application/json",
+                                              "path": "/auth/users/review-preferences"
                                             }
                                             """
                             )
@@ -361,7 +399,9 @@ public class AuthUserController {
                                     value = """
                                             {
                                               "status": 500,
-                                              "message": "Database error"
+                                              "error": "Internal Server Error",
+                                              "message": "Database error",
+                                              "path": "/auth/users/review-preferences"
                                             }
                                             """
                             )

@@ -28,11 +28,16 @@ public enum ErrorCode {
      */
     USER_NOT_FOUND("USER.NOT_FOUND", "User not found"),
 
-    // ==================== Database Errors ====================
+    // ==================== Auth User Errors ====================
     /**
-     * Generic database operation failure
+     * Auth user entity not found in database
      */
-    DATABASE_OPERATION_ERROR("DATABASE.OPERATION_ERROR", "Database operation failed");
+    AUTH_USER_NOT_FOUND("AUTH_USER.NOT_FOUND", "Auth user not found"),
+
+    /**
+     * Email address already exists in the system
+     */
+    AUTH_USER_EMAIL_DUPLICATE("AUTH_USER.EMAIL_DUPLICATE", "Email already exists");
 
     private final String code;
     private final String defaultMessage;
