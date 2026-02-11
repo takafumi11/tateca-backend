@@ -51,7 +51,9 @@ public class UserController {
                         value = """
                             {
                               "status": 400,
-                              "message": "name: User name is required and cannot be blank"
+                              "error": "Bad Request",
+                              "message": "name: User name is required and cannot be blank",
+                              "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                             }
                             """
                     ),
@@ -61,7 +63,9 @@ public class UserController {
                         value = """
                             {
                               "status": 400,
-                              "message": "name: User name must be between 1 and 50 characters"
+                              "error": "Bad Request",
+                              "message": "name: User name must be between 1 and 50 characters",
+                              "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                             }
                             """
                     ),
@@ -71,7 +75,9 @@ public class UserController {
                         value = """
                             {
                               "status": 400,
-                              "message": "Invalid format for parameter 'userId': expected UUID"
+                              "error": "Bad Request",
+                              "message": "Invalid format for parameter 'userId': expected UUID",
+                              "path": "/users/invalid-uuid"
                             }
                             """
                     ),
@@ -81,7 +87,9 @@ public class UserController {
                         value = """
                             {
                               "status": 400,
-                              "message": "Invalid request body format. Please check the data types and structure."
+                              "error": "Bad Request",
+                              "message": "Invalid request body format. Please check the data types and structure.",
+                              "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                             }
                             """
                     )
@@ -98,7 +106,9 @@ public class UserController {
                     value = """
                         {
                           "status": 401,
-                          "message": "Unauthorized"
+                          "error": "Unauthorized",
+                          "message": "Unauthorized",
+                          "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                         }
                         """
                 )
@@ -114,7 +124,10 @@ public class UserController {
                     value = """
                         {
                           "status": 404,
-                          "message": "User not found"
+                          "error": "Not Found",
+                          "message": "User not found",
+                          "error_code": "USER.NOT_FOUND",
+                          "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                         }
                         """
                 )
@@ -130,7 +143,9 @@ public class UserController {
                     value = """
                         {
                           "status": 415,
-                          "message": "Unsupported Media Type. Content-Type must be application/json"
+                          "error": "Unsupported Media Type",
+                          "message": "Unsupported Media Type. Content-Type must be application/json",
+                          "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                         }
                         """
                 )
@@ -138,7 +153,7 @@ public class UserController {
         ),
         @ApiResponse(
             responseCode = "500",
-            description = "Internal Server Error",
+            description = "Internal Server Error - Database operation failure",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class),
@@ -146,7 +161,10 @@ public class UserController {
                     value = """
                         {
                           "status": 500,
-                          "message": "An unexpected error occurred"
+                          "error": "Internal Server Error",
+                          "message": "Database operation failed",
+                          "error_code": "DATABASE.OPERATION_ERROR",
+                          "path": "/users/123e4567-e89b-12d3-a456-426614174000"
                         }
                         """
                 )
