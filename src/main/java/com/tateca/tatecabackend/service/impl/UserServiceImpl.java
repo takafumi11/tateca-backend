@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO updateUserName(UUID userId, UpdateUserNameRequestDTO request) {
+    public UserResponseDTO updateUserName(UUID userId, UpdateUserNameRequestDTO request) throws EntityNotFoundException, DatabaseOperationException {
         logger.info("Updating user name: userId={}", PiiMaskingUtil.maskUuid(userId));
 
         UserEntity user = repository.findById(userId)
