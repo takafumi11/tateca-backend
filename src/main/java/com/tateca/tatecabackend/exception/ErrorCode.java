@@ -28,6 +28,21 @@ public enum ErrorCode {
      */
     USER_NOT_FOUND("USER.NOT_FOUND", "User not found"),
 
+    /**
+     * User is not in the specified group
+     */
+    USER_NOT_IN_GROUP("USER.NOT_IN_GROUP", "User is not in this group"),
+
+    /**
+     * User is not a member of the group (authorization)
+     */
+    USER_NOT_GROUP_MEMBER("USER.NOT_GROUP_MEMBER", "Only group members can add members"),
+
+    /**
+     * User has exceeded maximum group count limit
+     */
+    USER_MAX_GROUP_COUNT_EXCEEDED("USER.MAX_GROUP_COUNT_EXCEEDED", "User can't join more than 10 groups"),
+
     // ==================== Auth User Errors ====================
     /**
      * Auth user entity not found in database
@@ -37,7 +52,28 @@ public enum ErrorCode {
     /**
      * Email address already exists in the system
      */
-    AUTH_USER_EMAIL_DUPLICATE("AUTH_USER.EMAIL_DUPLICATE", "Email already exists");
+    AUTH_USER_EMAIL_DUPLICATE("AUTH_USER.EMAIL_DUPLICATE", "Email already exists"),
+
+    // ==================== Group Errors ====================
+    /**
+     * Group entity not found in database
+     */
+    GROUP_NOT_FOUND("GROUP.NOT_FOUND", "Group not found"),
+
+    /**
+     * User has already joined the specified group
+     */
+    GROUP_ALREADY_JOINED("GROUP.ALREADY_JOINED", "You have already joined this group"),
+
+    /**
+     * Group has reached maximum size limit
+     */
+    GROUP_MAX_SIZE_REACHED("GROUP.MAX_SIZE_REACHED", "Group has reached maximum size of 10 members"),
+
+    /**
+     * Invalid or expired join token provided
+     */
+    GROUP_INVALID_JOIN_TOKEN("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token");
 
     private final String code;
     private final String defaultMessage;
