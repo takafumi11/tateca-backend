@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_ID_ATTRIBUTE;
 import static com.tateca.tatecabackend.constants.AttributeConstants.REQUEST_TIME_ATTRIBUTE;
-import jakarta.validation.ConstraintViolation;
+
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDataAccessException(HttpServletRequest request, DataAccessException ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         // 5xx = server error = ERROR
-        logger.error("DataAccessException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+        logger.error("Uncaught DataAccessException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(getRequestTimestamp(request))
@@ -228,7 +228,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(HttpServletRequest request, EntityNotFoundException ex) {
         HttpStatus status = HttpStatus.NOT_FOUND;
-        logger.warn("EntityNotFoundException at {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        logger.warn("[{}] EntityNotFoundException at {} {}: {}",
+            ex.getErrorCode(), request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(getRequestTimestamp(request))

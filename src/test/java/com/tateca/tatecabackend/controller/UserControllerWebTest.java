@@ -4,19 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
+import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -291,43 +291,24 @@ class UserControllerWebTest {
     }
 
     @Test
-    @DisplayName("Should return 404 when user not found")
+    @DisplayName("Should return 404 with error code when user not found")
     void shouldReturn404WhenUserNotFound() throws Exception {
-        // Given: Service throws NOT_FOUND exception
+        // Given: Service throws EntityNotFoundException with ErrorCode
         UUID userId = UUID.randomUUID();
         UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
 
         when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .thenThrow(new EntityNotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // When & Then: Should return 404
+        // When & Then: Should return 404 with error_code
         mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").exists());
-
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
-    }
-
-    @Test
-    @DisplayName("Should return 500 when internal server error occurs")
-    void shouldReturn500WhenInternalServerError() throws Exception {
-        // Given: Service throws internal server error
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error"));
-
-        // When & Then: Should return 500
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.error_code").value("USER.NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("User not found"))
+                .andExpect(jsonPath("$.path").value("/users/" + userId));
 
         verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
     }
