@@ -72,3 +72,6 @@ logs/
 
 ### API Specs (auto-generated in CI/CD) ###
 api-specs/
+openapi.json
+openapi.yaml
+tateca-api.postman_collection.json
