@@ -26,15 +26,21 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for ExchangeRateService.
+ *
+ * <p>Tests focus on service layer business logic and repository interaction.
+ * Database access is mocked to isolate service behavior.
+ */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("ExchangeRateQueryService Unit Tests")
+@DisplayName("ExchangeRateService Unit Tests")
 class ExchangeRateServiceUnitTest {
 
     @Mock
     private ExchangeRateRepository exchangeRateRepository;
 
     @InjectMocks
-    private ExchangeRateServiceImpl exchangeRateQueryService;
+    private ExchangeRateServiceImpl exchangeRateService;
 
     // ===== Tests for getExchangeRate() =====
 
@@ -50,7 +56,7 @@ class ExchangeRateServiceUnitTest {
         when(exchangeRateRepository.findAllActiveByDate(testDate)).thenReturn(entities);
 
         // When: Getting exchange rate
-        ExchangeRateResponseDTO result = exchangeRateQueryService.getExchangeRate(testDate);
+        ExchangeRateResponseDTO result = exchangeRateService.getExchangeRate(testDate);
 
         // Then: Should call repository with correct date
         verify(exchangeRateRepository, times(1)).findAllActiveByDate(testDate);
@@ -69,7 +75,7 @@ class ExchangeRateServiceUnitTest {
         when(exchangeRateRepository.findAllActiveByDate(testDate)).thenReturn(Collections.emptyList());
 
         // When: Getting exchange rate
-        ExchangeRateResponseDTO result = exchangeRateQueryService.getExchangeRate(testDate);
+        ExchangeRateResponseDTO result = exchangeRateService.getExchangeRate(testDate);
 
         // Then: Should return DTO with empty list
         assertThat(result).isNotNull();
@@ -88,7 +94,7 @@ class ExchangeRateServiceUnitTest {
                 .thenThrow(new DataAccessException("Database connection error") {});
 
         // When & Then: Should propagate exception without modification
-        assertThatThrownBy(() -> exchangeRateQueryService.getExchangeRate(testDate))
+        assertThatThrownBy(() -> exchangeRateService.getExchangeRate(testDate))
                 .isInstanceOf(DataAccessException.class)
                 .hasMessageContaining("Database connection error");
 
