@@ -1,7 +1,7 @@
 package com.tateca.tatecabackend.config;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -13,11 +13,10 @@ import org.springframework.context.annotation.Configuration;
  *   <li>Special account handling</li>
  * </ul>
  *
- * <p>Configuration is loaded from application.properties with prefix "tateca.business"
+ * <p>Configuration is loaded from application.properties with prefix "business"
  */
+@Getter
 @Configuration
-@ConfigurationProperties(prefix = "tateca.business")
-@Data
 public class BusinessRuleConfig {
 
     /**
@@ -35,5 +34,11 @@ public class BusinessRuleConfig {
      * <p>Default: dev-unlimited-uid (for local development)
      * <p>Production: Set via environment variable UNLIMITED_GROUP_UID
      */
-    private String unlimitedGroupUid;
+    private final String unlimitedGroupUid;
+
+    public BusinessRuleConfig(
+            @Value("${business.unlimited-group-uid:dev-unlimited-uid}") String unlimitedGroupUid
+    ) {
+        this.unlimitedGroupUid = unlimitedGroupUid;
+    }
 }
