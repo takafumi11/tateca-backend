@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.service.impl;
 
+import com.tateca.tatecabackend.config.BusinessRuleConfig;
 import com.tateca.tatecabackend.constants.BusinessConstants;
 import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.request.AddMemberRequestDTO;
@@ -11,6 +12,7 @@ import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.entity.UserGroupEntity;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.exception.domain.ForbiddenException;
@@ -42,13 +44,14 @@ public class GroupServiceImpl implements GroupService {
     private final AuthUserRepository authUserRepository;
     private final UserGroupRepository userGroupRepository;
     private final TransactionRepository transactionRepository;
+    private final BusinessRuleConfig businessRuleConfig;
 
     @Override
     @Transactional(readOnly = true)
     public GroupResponseDTO getGroupInfo(UUID groupId) {
         List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
         if (userGroups.isEmpty()) {
-            throw new EntityNotFoundException("Group Not Found with: " + groupId);
+            throw new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
         }
 
         List<UserEntity> users = userGroups.stream().map(UserGroupEntity::getUser).collect(Collectors.toList());
@@ -66,7 +69,7 @@ public class GroupServiceImpl implements GroupService {
         GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> {
                     logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
-                    return new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+                    return new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
                 });
         String oldName = group.getName();
         group.setName(name);
@@ -113,7 +116,7 @@ public class GroupServiceImpl implements GroupService {
         AuthUserEntity authUser = authUserRepository.findById(uid)
                 .orElseThrow(() -> {
                     logger.warn("Auth user not found: uid={}", PiiMaskingUtil.maskUid(uid));
-                    return new EntityNotFoundException("AUTH_USER.NOT_FOUND", "Auth user not found");
+                    return new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND);
                 });
 
         List<UserEntity> userEntityList = new ArrayList<>();
@@ -167,7 +170,7 @@ public class GroupServiceImpl implements GroupService {
         GroupEntity groupEntity = groupRepository.findById(groupId)
                 .orElseThrow(() -> {
                     logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
-                    return new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+                    return new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
                 });
 
         // Check if user has already joined this group.
@@ -181,7 +184,7 @@ public class GroupServiceImpl implements GroupService {
         if (exists) {
             logger.warn("User already joined this group: userId={}, groupId={}",
                     PiiMaskingUtil.maskUid(uid), PiiMaskingUtil.maskUuid(groupId));
-            throw new BusinessRuleViolationException("You have already joined this group");
+            throw new BusinessRuleViolationException(ErrorCode.GROUP_ALREADY_JOINED);
         }
 
         // validation to check if exceeds max group count(=how many users are linked with auth_user)
@@ -192,19 +195,19 @@ public class GroupServiceImpl implements GroupService {
                     PiiMaskingUtil.maskUid(uid),
                     PiiMaskingUtil.maskUuid(groupId),
                     PiiMaskingUtil.maskToken(request.joinToken().toString()));
-            throw new ForbiddenException("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token");
+            throw new ForbiddenException(ErrorCode.GROUP_INVALID_JOIN_TOKEN);
         }
 
         // Update users.auth_user_uid to link authUser and user
         UserEntity userEntity = userRepository.findById(request.userUuid())
                 .orElseThrow(() -> {
                     logger.warn("User not found: userUuid={}", PiiMaskingUtil.maskUuid(request.userUuid()));
-                    return new EntityNotFoundException("USER.NOT_FOUND", "User not found");
+                    return new EntityNotFoundException(ErrorCode.USER_NOT_FOUND);
                 });
         AuthUserEntity authUserEntity = authUserRepository.findById(uid)
                 .orElseThrow(() -> {
                     logger.warn("Auth user not found: uid={}", PiiMaskingUtil.maskUid(uid));
-                    return new EntityNotFoundException("AUTH_USER.NOT_FOUND", "Auth user not found");
+                    return new EntityNotFoundException(ErrorCode.AUTH_USER_NOT_FOUND);
                 });
         userEntity.setAuthUser(authUserEntity);
         userRepository.save(userEntity);
@@ -232,18 +235,18 @@ public class GroupServiceImpl implements GroupService {
         GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> {
                     logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
-                    return new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+                    return new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
                 });
 
         // Verify user is in the group (using composite primary key for efficiency)
         userGroupRepository.findByUserUuidAndGroupUuid(userUuid, groupId)
-                .orElseThrow(() -> new EntityNotFoundException("User is not in this group"));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_IN_GROUP));
 
         // Get user entity
         UserEntity userEntity = userRepository.findById(userUuid)
                 .orElseThrow(() -> {
                     logger.warn("User not found: userUuid={}", PiiMaskingUtil.maskUuid(userUuid));
-                    return new EntityNotFoundException("USER.NOT_FOUND", "User not found");
+                    return new EntityNotFoundException(ErrorCode.USER_NOT_FOUND);
                 });
 
         // Set auth_user to null (leave group)
@@ -270,7 +273,7 @@ public class GroupServiceImpl implements GroupService {
 
         if (userGroupEntityList.isEmpty()) {
             logger.warn("Group not found or has no members: groupId={}", PiiMaskingUtil.maskUuid(groupId));
-            throw new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found");
+            throw new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
         }
 
         // Verify requester is a group member (authorization check)
@@ -284,7 +287,7 @@ public class GroupServiceImpl implements GroupService {
             logger.warn("User is not a member of this group: uid={}, groupId={}",
                     PiiMaskingUtil.maskUid(uid),
                     PiiMaskingUtil.maskUuid(groupId));
-            throw new ForbiddenException("USER.NOT_GROUP_MEMBER", "Only group members can add members");
+            throw new ForbiddenException(ErrorCode.USER_NOT_GROUP_MEMBER);
         }
 
         // Check if group has reached maximum size
@@ -294,7 +297,7 @@ public class GroupServiceImpl implements GroupService {
                     PiiMaskingUtil.maskUuid(groupId),
                     currentMemberCount,
                     BusinessConstants.MAX_GROUP_SIZE);
-            throw new BusinessRuleViolationException("Group has reached maximum size of " + BusinessConstants.MAX_GROUP_SIZE + " members");
+            throw new BusinessRuleViolationException(ErrorCode.GROUP_MAX_SIZE_REACHED);
         }
 
         // Create new user entity for the member
@@ -331,8 +334,15 @@ public class GroupServiceImpl implements GroupService {
 
     private void validateMaxGroupCount(String uid) {
         List<UserEntity> userEntityList = userRepository.findByAuthUserUid(uid);
-        if (!uid.equals("v6CGVApOmVM4VWTijmRTg8m01Kj1") && userEntityList.size() >= 9) {
-            throw new BusinessRuleViolationException("User can't join more than 10 groups");
+
+        // Check if user has unlimited group privilege
+        String unlimitedUid = businessRuleConfig.getUnlimitedGroupUid();
+        boolean isUnlimitedUser = unlimitedUid != null
+                && !unlimitedUid.isEmpty()
+                && uid.equals(unlimitedUid);
+
+        if (!isUnlimitedUser && userEntityList.size() >= BusinessConstants.MAX_GROUP_PARTICIPANTS) {
+            throw new BusinessRuleViolationException(ErrorCode.USER_MAX_GROUP_COUNT_EXCEEDED);
         }
     }
 }

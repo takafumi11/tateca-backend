@@ -31,7 +31,6 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("GroupService Integration Tests")
 class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -76,17 +75,15 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     // ========================================
-    // getGroupInfo Tests (4 nested classes)
+    // getGroupInfo Tests
     // ========================================
 
     @Nested
-    @DisplayName("Given group exists with users")
-    class WhenGroupExistsWithUsers {
+    class GetGroupInfo {
 
         @Test
-        @DisplayName("Then should return complete group information")
-        void thenShouldReturnCompleteGroupInformation() {
-            // Given: Group with users
+        void givenGroupExistsWithUsers_whenGettingGroupInfo_thenShouldReturnCompleteGroupInformation() {
+            // Given
             UserEntity user1 = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity user2 = TestFixtures.Users.userWithoutAuthUser("User 2");
             userRepository.save(user1);
@@ -99,10 +96,10 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             flushAndClear();
 
-            // When: Getting group info
+            // When
             GroupResponseDTO result = groupService.getGroupInfo(testGroupId);
 
-            // Then: Should return complete group information
+            // Then
             assertThat(result).isNotNull();
             assertThat(result.groupInfo()).isNotNull();
             assertThat(result.groupInfo().uuid()).isEqualTo(testGroupId.toString());
@@ -111,9 +108,8 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should include users with and without auth user")
-        void thenShouldIncludeUsersWithAndWithoutAuthUser() {
-            // Given: Group with mixed users
+        void givenGroupWithMixedUsers_whenGettingGroupInfo_thenShouldIncludeUsersWithAndWithoutAuthUser() {
+            // Given
             UserEntity userWithAuth = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity userWithoutAuth = TestFixtures.Users.userWithoutAuthUser("Participant");
             userRepository.save(userWithAuth);
@@ -124,72 +120,53 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             flushAndClear();
 
-            // When: Getting group info
+            // When
             GroupResponseDTO result = groupService.getGroupInfo(testGroupId);
 
-            // Then: Should include both types of users
+            // Then
             assertThat(result.users()).hasSize(2);
         }
 
         @Test
-        @DisplayName("Then should count transactions correctly")
-        void thenShouldCountTransactionsCorrectly() {
-            // Given: Group with user (transactions count will be 0 from transactionAccessor)
+        void givenGroupWithUser_whenGettingGroupInfo_thenShouldCountTransactionsCorrectly() {
+            // Given
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
             userGroupRepository.save(TestFixtures.UserGroups.create(user, testGroup));
 
             flushAndClear();
 
-            // When: Getting group info
+            // When
             GroupResponseDTO result = groupService.getGroupInfo(testGroupId);
 
-            // Then: Transaction count should be 0
+            // Then
             assertThat(result.transactionCount()).isEqualTo(0L);
         }
-    }
-
-    @Nested
-    @DisplayName("Given group exists but has no users")
-    class WhenGroupExistsButHasNoUsers {
 
         @Test
-        @DisplayName("Then should throw not found exception when no users in group")
-        void thenShouldThrowNotFoundExceptionWhenNoUsersInGroup() {
+        void givenGroupWithNoUsers_whenGettingGroupInfo_thenShouldThrowNotFoundException() {
             // Given: Group with no users (already set up in setUp())
 
-            // When & Then: Should throw exception
+            // When & Then
             assertThatThrownBy(() -> groupService.getGroupInfo(testGroupId))
                     .isInstanceOf(EntityNotFoundException.class)
-                    .hasMessageContaining("Group Not Found");
+                    .hasMessageContaining("Group not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given group does not exist")
-    class WhenGroupDoesNotExist {
 
         @Test
-        @DisplayName("Then should throw not found exception when group not found")
-        void thenShouldThrowNotFoundExceptionWhenGroupNotFound() {
-            // Given: Non-existent group ID
+        void givenGroupDoesNotExist_whenGettingGroupInfo_thenShouldThrowNotFoundException() {
+            // Given
             UUID nonExistentGroupId = UUID.randomUUID();
 
-            // When & Then: Should throw exception
+            // When & Then
             assertThatThrownBy(() -> groupService.getGroupInfo(nonExistentGroupId))
                     .isInstanceOf(EntityNotFoundException.class)
-                    .hasMessageContaining("Group Not Found");
+                    .hasMessageContaining("Group not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given multiple users in group")
-    class WhenMultipleUsersInGroup {
 
         @Test
-        @DisplayName("Then should handle large number of users")
-        void thenShouldHandleLargeNumberOfUsers() {
-            // Given: Group with 20 users
+        void givenGroupWith20Users_whenGettingGroupInfo_thenShouldHandleLargeNumberOfUsers() {
+            // Given
             List<UserEntity> users = IntStream.range(0, 20)
                     .mapToObj(i -> TestFixtures.Users.userWithoutAuthUser("User " + i))
                     .collect(Collectors.toList());
@@ -202,26 +179,24 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             flushAndClear();
 
-            // When: Getting group info
+            // When
             GroupResponseDTO result = groupService.getGroupInfo(testGroupId);
 
-            // Then: Should return all 20 users
+            // Then
             assertThat(result.users()).hasSize(20);
         }
     }
 
     // ========================================
-    // updateGroupName Tests (3 nested classes)
+    // updateGroupName Tests
     // ========================================
 
     @Nested
-    @DisplayName("Given group exists")
-    class WhenGroupExistsForUpdate {
+    class UpdateGroupName {
 
         @Test
-        @DisplayName("Then should update groupName and persist to database")
-        void thenShouldUpdateNameAndPersistToDatabase() {
-            // Given: Group with users
+        void givenGroupExists_whenUpdatingGroupName_thenShouldUpdateAndPersistToDatabase() {
+            // Given
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
             userGroupRepository.save(TestFixtures.UserGroups.create(user, testGroup));
@@ -229,14 +204,13 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             String newName = "Updated Group Name";
 
-            // When: Updating group groupName
+            // When
             GroupResponseDTO result = groupService.updateGroupName(testGroupId, newName);
 
-            // Then: Should return updated info
+            // Then
             assertThat(result).isNotNull();
             assertThat(result.groupInfo().name()).isEqualTo(newName);
 
-            // And: Changes should be persisted in database
             flushAndClear();
             Optional<GroupEntity> updatedGroup = groupRepository.findById(testGroupId);
             assertThat(updatedGroup).isPresent();
@@ -244,9 +218,8 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should update updatedAt timestamp")
-        void thenShouldUpdateUpdatedAtTimestamp() {
-            // Given: Group with users
+        void givenGroupExists_whenUpdatingGroupName_thenShouldUpdateUpdatedAtTimestamp() {
+            // Given
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
             userGroupRepository.save(TestFixtures.UserGroups.create(user, testGroup));
@@ -255,54 +228,49 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             GroupEntity originalGroup = groupRepository.findById(testGroupId).orElseThrow();
             java.time.Instant originalUpdatedAt = originalGroup.getUpdatedAt();
 
-            // Sleep briefly to ensure timestamp difference
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
 
-            // When: Updating group groupName
+            // When
             groupService.updateGroupName(testGroupId, "New Name");
             flushAndClear();
 
-            // Then: updatedAt should be updated
+            // Then
             GroupEntity updatedGroup = groupRepository.findById(testGroupId).orElseThrow();
             assertThat(updatedGroup.getUpdatedAt()).isAfterOrEqualTo(originalUpdatedAt);
         }
 
         @Test
-        @DisplayName("Then should preserve other group fields")
-        void thenShouldPreserveOtherGroupFields() {
-            // Given: Group with users
+        void givenGroupExists_whenUpdatingGroupName_thenShouldPreserveOtherGroupFields() {
+            // Given
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
             userGroupRepository.save(TestFixtures.UserGroups.create(user, testGroup));
             flushAndClear();
 
-            // Reload group from database to get persisted timestamps
             GroupEntity originalGroup = groupRepository.findById(testGroupId).orElseThrow();
             UUID originalJoinToken = originalGroup.getJoinToken();
             UUID originalUuid = originalGroup.getUuid();
             java.time.Instant originalCreatedAt = originalGroup.getCreatedAt();
 
-            // When: Updating group groupName
+            // When
             groupService.updateGroupName(testGroupId, "New Name");
             flushAndClear();
 
-            // Then: Other fields should be preserved
+            // Then
             GroupEntity updatedGroup = groupRepository.findById(testGroupId).orElseThrow();
             assertThat(updatedGroup.getJoinToken()).isEqualTo(originalJoinToken);
             assertThat(updatedGroup.getUuid()).isEqualTo(originalUuid);
-            // MySQL truncates microseconds, so compare truncated to seconds
             assertThat(updatedGroup.getCreatedAt().truncatedTo(java.time.temporal.ChronoUnit.SECONDS))
                     .isEqualTo(originalCreatedAt.truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
         }
 
         @Test
-        @DisplayName("Then should handle special characters in groupName")
-        void thenShouldHandleSpecialCharactersInName() {
-            // Given: Group with users
+        void givenGroupExists_whenUpdatingWithSpecialCharacters_thenShouldHandleSpecialCharactersInName() {
+            // Given
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
             userGroupRepository.save(TestFixtures.UserGroups.create(user, testGroup));
@@ -310,10 +278,10 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             String specialName = "Test 😊 田中 €$";
 
-            // When: Updating with special characters
+            // When
             GroupResponseDTO result = groupService.updateGroupName(testGroupId, specialName);
 
-            // Then: Should preserve special characters
+            // Then
             assertThat(result.groupInfo().name()).isEqualTo(specialName);
 
             flushAndClear();
@@ -322,15 +290,14 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should handle multiple sequential updates")
-        void thenShouldHandleMultipleSequentialUpdates() {
-            // Given: Group with users
+        void givenGroupExists_whenUpdatingMultipleTimes_thenShouldHandleMultipleSequentialUpdates() {
+            // Given
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
             userGroupRepository.save(TestFixtures.UserGroups.create(user, testGroup));
             flushAndClear();
 
-            // When: Multiple updates
+            // When
             groupService.updateGroupName(testGroupId, "Name 1");
             flushAndClear();
             groupService.updateGroupName(testGroupId, "Name 2");
@@ -338,38 +305,26 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             GroupResponseDTO result = groupService.updateGroupName(testGroupId, "Name 3");
             flushAndClear();
 
-            // Then: Should have final groupName
+            // Then
             assertThat(result.groupInfo().name()).isEqualTo("Name 3");
             GroupEntity finalGroup = groupRepository.findById(testGroupId).orElseThrow();
             assertThat(finalGroup.getName()).isEqualTo("Name 3");
         }
-    }
-
-    @Nested
-    @DisplayName("Given group does not exist for update")
-    class WhenGroupDoesNotExistForUpdate {
 
         @Test
-        @DisplayName("Then should throw not found exception when group not found")
-        void thenShouldThrowNotFoundExceptionWhenGroupNotFound() {
-            // Given: Non-existent group ID
+        void givenGroupDoesNotExist_whenUpdatingGroupName_thenShouldThrowNotFoundException() {
+            // Given
             UUID nonExistentGroupId = UUID.randomUUID();
 
-            // When & Then: Should throw exception
+            // When & Then
             assertThatThrownBy(() -> groupService.updateGroupName(nonExistentGroupId, "New Name"))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Group not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given group has users and transactions for update")
-    class WhenGroupHasUsersAndTransactionsForUpdate {
 
         @Test
-        @DisplayName("Then should return complete info after update")
-        void thenShouldReturnCompleteInfoAfterUpdate() {
-            // Given: Group with multiple users
+        void givenGroupWithMultipleUsers_whenUpdatingGroupName_thenShouldReturnCompleteInfoAfterUpdate() {
+            // Given
             UserEntity user1 = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity user2 = TestFixtures.Users.userWithoutAuthUser("User 2");
             UserEntity user3 = TestFixtures.Users.userWithoutAuthUser("User 3");
@@ -382,10 +337,10 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             ));
             flushAndClear();
 
-            // When: Updating group groupName
+            // When
             GroupResponseDTO result = groupService.updateGroupName(testGroupId, "Updated Name");
 
-            // Then: Should return all users
+            // Then
             assertThat(result.users()).hasSize(3);
             assertThat(result.groupInfo().name()).isEqualTo("Updated Name");
         }
@@ -396,12 +351,10 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
-    @DisplayName("Given user belongs to multiple groups")
-    class WhenUserBelongsToMultipleGroups {
+    class GetGroupList {
 
         @Test
-        @DisplayName("Then should return all groups user belongs to")
-        void thenShouldReturnAllGroupsUserBelongsTo() {
+        void givenUserBelongsToMultipleGroups_whenGettingGroupList_thenShouldReturnAllGroups() {
             // Given: User in 5 groups
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
@@ -412,7 +365,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                         groupRepository.save(group);
                         return group;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
             groups.forEach(group -> {
                 userGroupRepository.save(TestFixtures.UserGroups.create(user, group));
@@ -428,8 +381,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should handle user in multiple groups with different roles")
-        void thenShouldHandleUserInMultipleGroupsWithDifferentRoles() {
+        void givenUserInMultipleGroupsWithDifferentRoles_whenGettingGroupList_thenShouldReturnAllGroups() {
             // Given: User as host in 2 groups and participant in 2 others
             UserEntity hostUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(hostUser);
@@ -462,8 +414,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should not return groups user left already")
-        void thenShouldNotReturnGroupsUserLeftAlready() {
+        void givenUserLeftSomeGroups_whenGettingGroupList_thenShouldNotReturnLeftGroups() {
             // Given: User in 3 groups, but left 1 (authUser nullified)
             UserEntity activeUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity leftUser = TestFixtures.Users.userWithoutAuthUser("Left User");
@@ -489,15 +440,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: Should return only active groups (2)
             assertThat(result.groupList()).hasSize(2);
         }
-    }
-
-    @Nested
-    @DisplayName("Given user belongs to no groups")
-    class WhenUserBelongsToNoGroups {
 
         @Test
-        @DisplayName("Then should return empty list when user has no groups")
-        void thenShouldReturnEmptyListWhenUserHasNoGroups() {
+        void givenUserBelongsToNoGroups_whenGettingGroupList_thenShouldReturnEmptyList() {
             // Given: User exists but has no group memberships
             // (testAuthUser already exists from setUp)
 
@@ -507,15 +452,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: Should return empty list
             assertThat(result.groupList()).isEmpty();
         }
-    }
-
-    @Nested
-    @DisplayName("Given user does not exist")
-    class WhenUserDoesNotExist {
 
         @Test
-        @DisplayName("Then should return empty list for non-existent user")
-        void thenShouldReturnEmptyListForNonExistentUser() {
+        void givenUserDoesNotExist_whenGettingGroupList_thenShouldReturnEmptyList() {
             // Given: Non-existent UID
             String nonExistentUid = "non-existent-uid-" + System.currentTimeMillis();
 
@@ -528,16 +467,14 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     // ========================================
-    // createGroup Tests (6 nested classes)
+    // createGroup Tests
     // ========================================
 
     @Nested
-    @DisplayName("Given valid request with host and participants")
-    class WhenValidRequestWithHostAndParticipants {
+    class CreateGroup {
 
         @Test
-        @DisplayName("Then should create group with all entities persisted")
-        void thenShouldCreateGroupWithAllEntitiesPersisted() {
+        void givenValidRequestWithHostAndParticipants_whenCreatingGroup_thenShouldPersistAllEntities() {
             // Given: Valid request with 3 participants
             com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO request =
                     new com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO(
@@ -569,8 +506,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should generate unique join token")
-        void thenShouldGenerateUniqueJoinToken() {
+        void givenValidRequest_whenCreatingGroup_thenShouldGenerateUniqueJoinToken() {
             // Given: Valid request
             com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO request =
                     new com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO(
@@ -596,8 +532,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should set createdAt and updatedAt timestamps")
-        void thenShouldSetCreatedAtAndUpdatedAtTimestamps() {
+        void givenValidRequest_whenCreatingGroup_thenShouldSetTimestamps() {
             // Given: Valid request
             com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO request =
                     new com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO(
@@ -627,8 +562,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should link only host to auth user")
-        void thenShouldLinkOnlyHostToAuthUser() {
+        void givenRequestWithHostAndParticipants_whenCreatingGroup_thenShouldLinkOnlyHostToAuthUser() {
             // Given: Request with host and participants
             com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO request =
                     new com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO(
@@ -647,7 +581,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
             List<UserEntity> users = userGroups.stream()
                     .map(UserGroupEntity::getUser)
-                    .collect(Collectors.toList());
+                    .toList();
 
             // Host (first user) should have authUser
             long usersWithAuthUser = users.stream()
@@ -661,15 +595,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .count();
             assertThat(usersWithoutAuthUser).isEqualTo(2);
         }
-    }
-
-    @Nested
-    @DisplayName("Given valid request with minimum participants")
-    class WhenValidRequestWithMinimumParticipants {
 
         @Test
-        @DisplayName("Then should create group with host and one participant")
-        void thenShouldCreateGroupWithHostAndOneParticipant() {
+        void givenValidRequestWithMinimumParticipants_whenCreatingGroup_thenShouldCreateGroupWithTwoUsers() {
             // Given: Request with minimum 1 participant
             com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO request =
                     new com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO(
@@ -694,15 +622,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .count();
             assertThat(usersWithAuthUser).isEqualTo(1);
         }
-    }
-
-    @Nested
-    @DisplayName("Given user at max group limit")
-    class WhenUserAtMaxGroupLimit {
 
         @Test
-        @DisplayName("Then should throw conflict exception when at limit")
-        void thenShouldThrowConflictExceptionWhenAtLimit() {
+        void givenUserAtMaxGroupLimit_whenCreatingGroup_thenShouldThrowConflictException() {
             // Given: User already in 9 groups (one UserEntity per group with authUser)
             IntStream.range(0, 9).forEach(i -> {
                 GroupEntity group = TestFixtures.Groups.withName("Existing Group " + i);
@@ -730,8 +652,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should not count left groups toward limit")
-        void thenShouldNotCountLeftGroupsTowardLimit() {
+        void givenUserLeftSomeGroups_whenCreatingGroup_thenShouldNotCountLeftGroupsTowardLimit() {
             // Given: User in 9 groups, but left 2 (authUser nullified)
             UserEntity activeUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity leftUser1 = TestFixtures.Users.userWithoutAuthUser("Left User 1");
@@ -769,17 +690,11 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.groupInfo().name()).isEqualTo("8th Active Group");
         }
-    }
-
-    @Nested
-    @DisplayName("Given special UID user")
-    class WhenSpecialUidUser {
 
         @Test
-        @DisplayName("Then should allow special UID to exceed limit")
-        void thenShouldAllowSpecialUidToExceedLimit() {
+        void givenSpecialUidUser_whenCreatingGroup_thenShouldAllowExceedingLimit() {
             // Given: Special UID with 12 existing groups
-            String specialUid = "v6CGVApOmVM4VWTijmRTg8m01Kj1";
+            String specialUid = "dev-unlimited-uid";
             AuthUserEntity specialAuthUser = AuthUserEntity.builder()
                     .uid(specialUid)
                     .name("Special User")
@@ -812,15 +727,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.groupInfo().name()).isEqualTo("13th Group");
         }
-    }
-
-    @Nested
-    @DisplayName("Given auth user does not exist")
-    class WhenAuthUserDoesNotExist {
 
         @Test
-        @DisplayName("Then should throw not found exception when auth user not found")
-        void thenShouldThrowNotFoundExceptionWhenAuthUserNotFound() {
+        void givenAuthUserDoesNotExist_whenCreatingGroup_thenShouldThrowNotFoundException() {
             // Given: Non-existent auth user UID
             String nonExistentUid = "non-existent-auth-user-" + System.currentTimeMillis();
 
@@ -835,15 +744,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThatThrownBy(() -> groupService.createGroup(nonExistentUid, request))
                     .hasMessageContaining("Auth user not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given transaction boundaries")
-    class WhenTransactionBoundaries {
 
         @Test
-        @DisplayName("Then should commit all entities atomically")
-        void thenShouldCommitAllEntitiesAtomically() {
+        void givenValidRequest_whenCreatingGroup_thenShouldCommitAllEntitiesAtomically() {
             // Given: Valid request with participants
             com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO request =
                     new com.tateca.tatecabackend.dto.request.CreateGroupRequestDTO(
@@ -875,16 +778,14 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     // ========================================
-    // joinGroupInvited Tests (7 nested classes)
+    // joinGroupInvited Tests
     // ========================================
 
     @Nested
-    @DisplayName("Given valid join token and user not in group")
-    class WhenValidJoinTokenAndUserNotInGroup {
+    class JoinGroupInvited {
 
         @Test
-        @DisplayName("Then should join group successfully and persist")
-        void thenShouldJoinGroupSuccessfullyAndPersist() {
+        void givenValidJoinTokenAndUserNotInGroup_whenJoiningGroup_thenShouldJoinSuccessfully() {
             // Given: Group with existing users
             UserEntity existingUser = TestFixtures.Users.userWithoutAuthUser("Existing User");
             userRepository.save(existingUser);
@@ -917,8 +818,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should link user to auth user correctly")
-        void thenShouldLinkUserToAuthUserCorrectly() {
+        void givenValidJoinToken_whenJoiningGroup_thenShouldLinkUserToAuthUser() {
             // Given: Group and user without authUser
             UserEntity existingUser = TestFixtures.Users.userWithoutAuthUser("Existing User");
             userRepository.save(existingUser);
@@ -946,15 +846,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(updatedUser.getAuthUser()).isNotNull();
             assertThat(updatedUser.getAuthUser().getUid()).isEqualTo(TEST_UID);
         }
-    }
-
-    @Nested
-    @DisplayName("Given invalid join token")
-    class WhenInvalidJoinToken {
 
         @Test
-        @DisplayName("Then should throw forbidden exception with invalid token")
-        void thenShouldThrowForbiddenExceptionWithInvalidToken() {
+        void givenInvalidJoinToken_whenJoiningGroup_thenShouldThrowForbiddenException() {
             // Given: Invalid join token
             UserEntity existingUser = TestFixtures.Users.userWithoutAuthUser("Existing User");
             UserEntity joiningUser = TestFixtures.Users.userWithoutAuthUser("Joining User");
@@ -979,15 +873,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             UserEntity unchangedUser = userRepository.findById(joiningUser.getUuid()).orElseThrow();
             assertThat(unchangedUser.getAuthUser()).isNull();
         }
-    }
-
-    @Nested
-    @DisplayName("Given user already in group")
-    class WhenUserAlreadyInGroup {
 
         @Test
-        @DisplayName("Then should throw conflict exception when already joined")
-        void thenShouldThrowConflictExceptionWhenAlreadyJoined() {
+        void givenUserAlreadyInGroup_whenJoiningGroup_thenShouldThrowConflictException() {
             // Given: User already in group
             UserEntity existingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(existingUser);
@@ -1008,8 +896,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should detect duplicate by auth user ID")
-        void thenShouldDetectDuplicateByAuthUserId() {
+        void givenDifferentUserEntityWithSameAuthUser_whenJoiningGroup_thenShouldDetectDuplicate() {
             // Given: Different user entity but same authUser UID
             UserEntity existingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity anotherUser = TestFixtures.Users.userWithoutAuthUser("Another User");
@@ -1029,15 +916,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(BusinessRuleViolationException.class)
                     .hasMessageContaining("You have already joined this group");
         }
-    }
-
-    @Nested
-    @DisplayName("Given user at max group limit for join")
-    class WhenUserAtMaxGroupLimitForJoin {
 
         @Test
-        @DisplayName("Then should throw conflict exception when at limit")
-        void thenShouldThrowConflictExceptionWhenAtLimit() {
+        void givenUserAtMaxGroupLimit_whenJoiningGroup_thenShouldThrowConflictException() {
             // Given: User already in 9 groups (one UserEntity per group with authUser)
             IntStream.range(0, 9).forEach(i -> {
                 GroupEntity group = TestFixtures.Groups.withName("Existing Group " + i);
@@ -1068,17 +949,11 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(BusinessRuleViolationException.class)
                     .hasMessageContaining("User can't join more than 10 groups");
         }
-    }
-
-    @Nested
-    @DisplayName("Given special UID user for join")
-    class WhenSpecialUidUserForJoin {
 
         @Test
-        @DisplayName("Then should allow special UID to join beyond limit")
-        void thenShouldAllowSpecialUidToJoinBeyondLimit() {
+        void givenSpecialUidUser_whenJoiningGroup_thenShouldAllowExceedingLimit() {
             // Given: Special UID with 12 existing groups
-            String specialUid = "v6CGVApOmVM4VWTijmRTg8m01Kj1";
+            String specialUid = "dev-unlimited-uid";
             AuthUserEntity specialAuthUser = AuthUserEntity.builder()
                     .uid(specialUid)
                     .name("Special User")
@@ -1116,15 +991,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.groupInfo().uuid()).isEqualTo(testGroupId.toString());
         }
-    }
-
-    @Nested
-    @DisplayName("Given user or auth user does not exist for join")
-    class WhenUserOrAuthUserDoesNotExistForJoin {
 
         @Test
-        @DisplayName("Then should throw not found exception when user not found")
-        void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
+        void givenUserDoesNotExist_whenJoiningGroup_thenShouldThrowNotFoundException() {
             // Given: Non-existent user UUID
             UserEntity existingUser = TestFixtures.Users.userWithoutAuthUser("Existing User");
             userRepository.save(existingUser);
@@ -1145,8 +1014,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should throw not found exception when auth user not found")
-        void thenShouldThrowNotFoundExceptionWhenAuthUserNotFound() {
+        void givenAuthUserDoesNotExist_whenJoiningGroup_thenShouldThrowNotFoundException() {
             // Given: Non-existent auth user UID
             UserEntity existingUser = TestFixtures.Users.userWithoutAuthUser("Existing User");
             UserEntity joiningUser = TestFixtures.Users.userWithoutAuthUser("Joining User");
@@ -1166,15 +1034,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThatThrownBy(() -> groupService.joinGroupInvited(request, testGroupId, nonExistentUid))
                     .hasMessageContaining("Auth user not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given group does not exist for join")
-    class WhenGroupDoesNotExistForJoin {
 
         @Test
-        @DisplayName("Then should throw not found exception when group not found")
-        void thenShouldThrowNotFoundExceptionWhenGroupNotFound() {
+        void givenGroupDoesNotExist_whenJoiningGroup_thenShouldThrowNotFoundException() {
             // Given: Non-existent group ID
             UUID nonExistentGroupId = UUID.randomUUID();
             UserEntity joiningUser = TestFixtures.Users.userWithoutAuthUser("Joining User");
@@ -1196,16 +1058,14 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     // ========================================
-    // leaveGroup Tests (4 nested classes)
+    // leaveGroup Tests
     // ========================================
 
     @Nested
-    @DisplayName("Given user is in group")
-    class WhenUserIsInGroup {
+    class LeaveGroup {
 
         @Test
-        @DisplayName("Then should leave group successfully and persist")
-        void thenShouldLeaveGroupSuccessfullyAndPersist() {
+        void givenUserIsInGroup_whenLeavingGroup_thenShouldLeaveSuccessfully() {
             // Given: User in group
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
@@ -1228,8 +1088,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should preserve user entity after leaving")
-        void thenShouldPreserveUserEntityAfterLeaving() {
+        void givenUserIsInGroup_whenLeavingGroup_thenShouldPreserveUserEntity() {
             // Given: User in group
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
@@ -1255,8 +1114,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should allow rejoin after leaving")
-        void thenShouldAllowRejoinAfterLeaving() {
+        void givenUserLeftGroup_whenRejoiningSameGroup_thenShouldAllowRejoin() {
             // Given: User leaves group
             UserEntity user = TestFixtures.Users.userWithoutAuthUser("User");
             userRepository.save(user);
@@ -1289,15 +1147,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             UserEntity rejoinedUser = userRepository.findById(userUuid).orElseThrow();
             assertThat(rejoinedUser.getAuthUser()).isNotNull();
         }
-    }
-
-    @Nested
-    @DisplayName("Given user not in group for leave")
-    class WhenUserNotInGroupForLeave {
 
         @Test
-        @DisplayName("Then should throw not found exception when user not in group")
-        void thenShouldThrowNotFoundExceptionWhenUserNotInGroup() {
+        void givenUserNotInGroup_whenLeavingGroup_thenShouldThrowNotFoundException() {
             // Given: User exists but not in the group
             UserEntity user = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(user);
@@ -1310,15 +1162,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("User is not in this group");
         }
-    }
-
-    @Nested
-    @DisplayName("Given group does not exist for leave")
-    class WhenGroupDoesNotExistForLeave {
 
         @Test
-        @DisplayName("Then should throw not found exception when group not found")
-        void thenShouldThrowNotFoundExceptionWhenGroupNotFound() {
+        void givenGroupDoesNotExist_whenLeavingGroup_thenShouldThrowNotFoundException() {
             // Given: Non-existent group ID
             UUID nonExistentGroupId = UUID.randomUUID();
             UUID userUuid = UUID.randomUUID();
@@ -1328,15 +1174,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Group not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given user does not exist for leave")
-    class WhenUserDoesNotExistForLeave {
 
         @Test
-        @DisplayName("Then should throw not found exception when user not found")
-        void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
+        void givenUserDoesNotExist_whenLeavingGroup_thenShouldThrowNotFoundException() {
             // Given: Non-existent user UUID
             UUID nonExistentUserUuid = UUID.randomUUID();
 
@@ -1347,16 +1187,14 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     // ========================================
-    // addMember Tests (5 nested classes)
+    // addMember Tests
     // ========================================
 
     @Nested
-    @DisplayName("Given valid request from group member")
-    class WhenValidRequestFromGroupMember {
+    class AddMember {
 
         @Test
-        @DisplayName("Then should add member successfully and persist")
-        void thenShouldAddMemberSuccessfullyAndPersist() {
+        void givenValidRequestFromGroupMember_whenAddingMember_thenShouldAddSuccessfully() {
             // Given: User in group
             UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(requestingUser);
@@ -1388,8 +1226,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should allow adding members with duplicate names")
-        void thenShouldAllowAddingMembersWithDuplicateNames() {
+        void givenMemberWithDuplicateName_whenAddingMember_thenShouldAllowDuplicateNames() {
             // Given: Group with existing member named "Alice"
             UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity existingMember = TestFixtures.Users.userWithoutAuthUser("Alice");
@@ -1419,8 +1256,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should increment member count correctly")
-        void thenShouldIncrementMemberCountCorrectly() {
+        void givenGroupWithExistingMembers_whenAddingMember_thenShouldIncrementMemberCount() {
             // Given: Group with 3 existing members
             UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity member1 = TestFixtures.Users.userWithoutAuthUser("Member 1");
@@ -1442,15 +1278,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             // Then: Member count should be 4
             assertThat(result.users()).hasSize(4);
         }
-    }
-
-    @Nested
-    @DisplayName("Given user is not a group member")
-    class WhenUserIsNotGroupMember {
 
         @Test
-        @DisplayName("Then should throw forbidden exception")
-        void thenShouldThrowForbiddenException() {
+        void givenUserIsNotGroupMember_whenAddingMember_thenShouldThrowForbiddenException() {
             // Given: User exists but not in the group
             UserEntity nonMember = TestFixtures.Users.userWithAuthUser(testAuthUser);
             UserEntity existingMember = TestFixtures.Users.userWithoutAuthUser("Existing Member");
@@ -1466,15 +1296,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(ForbiddenException.class)
                     .hasMessageContaining("Only group members can add members");
         }
-    }
-
-    @Nested
-    @DisplayName("Given group has reached maximum size")
-    class WhenGroupHasReachedMaximumSize {
 
         @Test
-        @DisplayName("Then should throw conflict exception when at limit")
-        void thenShouldThrowConflictExceptionWhenAtLimit() {
+        void givenGroupHasReachedMaximumSize_whenAddingMember_thenShouldThrowConflictException() {
             // Given: Group with 10 members (maximum)
             UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(requestingUser);
@@ -1498,8 +1322,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Then should allow adding when under limit")
-        void thenShouldAllowAddingWhenUnderLimit() {
+        void givenGroupUnderMaximumSize_whenAddingMember_thenShouldAllowAdding() {
             // Given: Group with 9 members (one under maximum)
             UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(requestingUser);
@@ -1523,15 +1346,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(result).isNotNull();
             assertThat(result.users()).hasSize(10);
         }
-    }
-
-    @Nested
-    @DisplayName("Given group does not exist for addMember")
-    class WhenGroupDoesNotExistForAddMember {
 
         @Test
-        @DisplayName("Then should throw not found exception when group not found")
-        void thenShouldThrowNotFoundExceptionWhenGroupNotFound() {
+        void givenGroupDoesNotExist_whenAddingMember_thenShouldThrowNotFoundException() {
             // Given: Non-existent group ID
             UUID nonExistentGroupId = UUID.randomUUID();
 
@@ -1543,15 +1360,9 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Group not found");
         }
-    }
-
-    @Nested
-    @DisplayName("Given transaction boundaries for addMember")
-    class WhenTransactionBoundariesForAddMember {
 
         @Test
-        @DisplayName("Then should commit all entities atomically")
-        void thenShouldCommitAllEntitiesAtomically() {
+        void givenValidRequest_whenAddingMember_thenShouldCommitAllEntitiesAtomically() {
             // Given: User in group
             UserEntity requestingUser = TestFixtures.Users.userWithAuthUser(testAuthUser);
             userRepository.save(requestingUser);
