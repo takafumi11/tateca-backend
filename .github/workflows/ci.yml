@@ -194,10 +194,7 @@ jobs:
             ${changelog || '_No changes detected_'}
 
             ---
-            Files updated in this PR:
-            - \`openapi.yaml\`
-            - \`openapi.json\`
-            - \`tateca-api.postman_collection.json\``;
+            _Note: OpenAPI specifications are auto-generated and not committed to the repository._`;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -230,20 +227,6 @@ jobs:
         run: |
           npm install -g openapi-to-postmanv2
           openapi2postmanv2 -s openapi.yaml -o tateca-api.postman_collection.json -p
-
-      - name: Commit and push OpenAPI specifications
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add openapi.yaml openapi.json tateca-api.postman_collection.json
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: Update OpenAPI specifications and Postman collection"
-            git push origin HEAD:${{ github.head_ref || github.ref_name }}
-          fi
 
   docker-build:
     name: Build Docker Image
