@@ -19,6 +19,12 @@ get:
         application/json:
           schema:
             $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
     "404":
       description: User not found
       content:
@@ -45,6 +51,12 @@ delete:
       description: User deleted successfully
     "400":
       description: Validation error - Invalid UID format
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing authentication token
       content:
         application/json:
           schema:
