@@ -158,7 +158,6 @@ docker-compose up -d    # Start MySQL
 - **Memory**: 256MB heap (Xms/Xmx)
 - **GC**: G1GC with string deduplication
 - **JVM**: Tiered compilation, lazy initialization, JMX disabled
-- **Target Response Time**: < 500ms for 95th percentile
 
 ### Compatibility
 - **Java**: 25 (toolchain enforced)

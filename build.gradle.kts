@@ -34,9 +34,6 @@ dependencies {
     // Resilience
     implementation(libs.resilience4j.spring.boot3)
 
-    // Documentation
-    implementation(libs.springdoc.openapi.starter.webmvc.ui)
-
     // Observability
     implementation(libs.bundles.observability)
 

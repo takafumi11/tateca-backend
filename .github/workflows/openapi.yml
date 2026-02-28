@@ -1,0 +1,252 @@
+name: OpenAPI Spec
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, reopened, synchronize, closed]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi/**'
+      - 'package.json'
+      - 'redocly.yaml'
+      - 'scripts/**'
+      - '.github/workflows/openapi.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi/**'
+      - 'package.json'
+      - 'redocly.yaml'
+      - 'scripts/**'
+      - '.github/workflows/openapi.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------------
+  # Lint: PR open/sync および push to main で実行
+  # ----------------------------------------------------------------
+  lint:
+    name: Lint OpenAPI Spec
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint OpenAPI specification
+        run: npm run lint
+
+      - name: Comment lint result on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '## ✅ OpenAPI Spec Lint Passed',
+              '',
+              `Preview will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-preview/pr-${{ github.event.pull_request.number }}/`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('OpenAPI Spec Lint')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  # ----------------------------------------------------------------
+  # Build: lint が通ったあとに HTML + バンドル spec を生成
+  # ----------------------------------------------------------------
+  build:
+    name: Build Docs
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.event.action != 'closed'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Redoc HTML (with Mermaid injection)
+        run: npm run build
+
+      - name: Bundle spec (YAML + JSON)
+        run: npm run bundle
+
+      - name: Prepare pages output
+        run: |
+          mkdir -p out/downloads
+          cp site/index.html out/index.html
+          cp dist/openapi-bundled.yaml out/downloads/openapi.yaml
+          cp dist/openapi-bundled.json out/downloads/openapi.json
+          cat > out/downloads.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Tateca API - Downloads</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; background: #f5f5f5; }
+              header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 40px; border-radius: 10px; margin-bottom: 40px; }
+              h1 { margin: 0 0 8px; font-size: 2em; }
+              .sub { opacity: .9; }
+              .nav { margin-bottom: 24px; }
+              .nav a { color: #667eea; text-decoration: none; margin-right: 20px; font-weight: 500; }
+              .card { background: white; padding: 28px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+              h2 { color: #333; margin-top: 0; }
+              .btn { display: inline-block; background: #667eea; color: white; padding: 10px 22px; text-decoration: none; border-radius: 5px; margin: 8px 8px 8px 0; }
+              .btn:hover { background: #5568d3; }
+              pre { background: #f4f4f4; padding: 14px; border-radius: 5px; overflow-x: auto; font-size: .9em; }
+            </style>
+          </head>
+          <body>
+            <header>
+              <h1>Tateca API</h1>
+              <p class="sub">Downloads &amp; Resources</p>
+            </header>
+            <div class="nav">
+              <a href="index.html">← API Documentation</a>
+              <a href="https://github.com/tateca/tateca-backend">GitHub</a>
+            </div>
+            <div class="card">
+              <h2>📥 OpenAPI Specification</h2>
+              <p>OpenAPI 3.1 specification in your preferred format.</p>
+              <a href="downloads/openapi.yaml" class="btn" download>Download YAML</a>
+              <a href="downloads/openapi.json" class="btn" download>Download JSON</a>
+            </div>
+            <div class="card">
+              <h2>🛠️ Generate Client SDKs</h2>
+              <pre><code>npx @openapitools/openapi-generator-cli generate \
+            -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
+            -g typescript-axios \
+            -o ./generated/tateca-client</code></pre>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload pages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-${{ github.run_id }}
+          path: out/
+          retention-days: 1
+
+  # ----------------------------------------------------------------
+  # PR Preview: PR ブランチを pr-preview/pr-{number}/ にデプロイ
+  # ----------------------------------------------------------------
+  deploy-preview:
+    name: Deploy PR Preview
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-${{ github.run_id }}
+          path: out/
+
+      - name: Deploy PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: out/
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: deploy
+
+  # ----------------------------------------------------------------
+  # Cleanup: PR クローズ時にプレビューを削除
+  # ----------------------------------------------------------------
+  cleanup-preview:
+    name: Cleanup PR Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: .
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: remove
+
+  # ----------------------------------------------------------------
+  # Production Deploy: main へのマージ後に本番 Pages へデプロイ
+  # ----------------------------------------------------------------
+  deploy-production:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-${{ github.run_id }}
+          path: out/
+
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: out/
+          branch: gh-pages
+          clean: true
+          clean-exclude: pr-preview/

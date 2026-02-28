@@ -67,7 +67,7 @@ Tateca is a group expense management system that simplifies tracking and settlin
 
 3. **Shift-Left Quality**: All validation happens during pull request phase before merge. Tests, static analysis, API validation, and documentation generation must pass before code reaches production.
 
-4. **Immutable Financial Records**: Once created, financial transactions cannot be deleted or modified (except LOAN transactions which can be updated). This ensures data integrity and auditability.
+4. **Auditable Financial Records**: Financial transactions can be created, updated (LOAN transactions), and deleted. All operations are logged to ensure traceability and auditability.
 
 5. **Security by Default**: Firebase authentication for user endpoints, API key authentication for system endpoints, constant-time comparison for sensitive operations, and PII masking in all logs.
 

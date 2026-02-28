@@ -229,17 +229,5 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
 
-        @Test
-        @DisplayName("Should allow access to /v3/api-docs without authentication")
-        void shouldAllowAccessToApiDocs() {
-            // When
-            ResponseEntity<String> response = restTemplate.getForEntity(
-                    "/v3/api-docs",
-                    String.class
-            );
-
-            // Then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        }
     }
 }

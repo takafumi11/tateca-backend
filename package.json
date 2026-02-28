@@ -1,0 +1,13 @@
+{
+  "name": "tateca-backend-docs",
+  "private": true,
+  "scripts": {
+    "lint": "redocly lint openapi.yaml",
+    "build": "redocly build-docs openapi.yaml --output site/index.html && node scripts/inject-mermaid.js site/index.html",
+    "bundle": "redocly bundle openapi.yaml --output dist/openapi-bundled.yaml && redocly bundle openapi.yaml --output dist/openapi-bundled.json",
+    "preview": "redocly preview-docs openapi.yaml"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.25.0"
+  }
+}

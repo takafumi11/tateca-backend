@@ -1,0 +1,32 @@
+get:
+  tags:
+    - Transactions
+  summary: Get settlement information for a group in JPY
+  operationId: getTransactionSettlement
+  parameters:
+    - $ref: "../components/parameters/groupIdPath.yaml"
+  responses:
+    "200":
+      description: Settlement information retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/TransactionSettlementResponse.yaml"
+    "400":
+      description: Validation error - Invalid UUID format
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing Firebase JWT token
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "404":
+      description: Group not found
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"

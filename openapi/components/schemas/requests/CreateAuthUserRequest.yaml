@@ -1,0 +1,10 @@
+type: object
+description: Request to create a new authenticated user
+required:
+  - email
+properties:
+  email:
+    type: string
+    description: User's email address
+    maxLength: 255
+    example: john@example.com
