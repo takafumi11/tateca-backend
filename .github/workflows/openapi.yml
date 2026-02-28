@@ -51,7 +51,7 @@ jobs:
   # PR Preview: ビルド → {safe-branch-name}/ にデプロイ
   # ----------------------------------------------------------------
   deploy-preview:
-    name: Deploy PR Preview
+    name: Deploy Preview Pages
     runs-on: ubuntu-latest
     needs: lint
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -233,7 +233,7 @@ jobs:
   # Production Deploy: main へのマージ後に本番 Pages へデプロイ
   # ----------------------------------------------------------------
   deploy-production:
-    name: Deploy to GitHub Pages
+    name: Deploy Production Pages
     runs-on: ubuntu-latest
     needs: lint
     if: >-
