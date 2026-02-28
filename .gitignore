@@ -47,6 +47,8 @@ out/
 
 .claude/
 
+.spec-workflow/
+
 ### markdown files
 jdk24-springboot354-upgrade-guide.md
 D1移行完全ガイド.md,
