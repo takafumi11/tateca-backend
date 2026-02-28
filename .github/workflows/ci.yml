@@ -40,7 +40,7 @@ jobs:
           path: |
             build/reports/jacoco/
             build/reports/tests/
-          retention-days: 30
+          retention-days: 7
 
   docker-build-push:
     name: Build & Push Docker Image
