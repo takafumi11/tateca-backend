@@ -12,9 +12,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect Changed Paths
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+
   test:
     name: Run Tests & Coverage
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
 
     steps:
       - name: Checkout code
@@ -45,6 +61,8 @@ jobs:
   docker-build:
     name: Build Docker Image
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.src == 'true'
 
     steps:
       - name: Checkout code
