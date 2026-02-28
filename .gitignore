@@ -47,7 +47,9 @@ out/
 
 .claude/
 
-.spec-workflow/
+.spec-workflow/*
+!.spec-workflow/steering/
+!.spec-workflow/steering/**
 
 ### markdown files
 jdk24-springboot354-upgrade-guide.md
