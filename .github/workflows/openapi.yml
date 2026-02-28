@@ -2,7 +2,6 @@ name: OpenAPI Spec
 
 on:
   pull_request:
-    branches: [ main ]
     types: [opened, reopened, synchronize, closed]
     paths:
       - 'openapi.yaml'
@@ -20,6 +19,7 @@ on:
       - 'redocly.yaml'
       - 'scripts/**'
       - '.github/workflows/openapi.yml'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,9 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
 
-    permissions:
-      pull-requests: write
-
     steps:
       - uses: actions/checkout@v4
 
@@ -50,43 +47,6 @@ jobs:
 
       - name: Lint OpenAPI specification
         run: npm run lint
-
-      - name: Comment lint result on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const body = [
-              '## ✅ OpenAPI Spec Lint Passed',
-              '',
-              `Preview will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-preview/pr-${{ github.event.pull_request.number }}/`,
-            ].join('\n');
-
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-
-            const existing = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes('OpenAPI Spec Lint')
-            );
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
 
   # ----------------------------------------------------------------
   # Build: lint が通ったあとに HTML + バンドル spec を生成
@@ -159,9 +119,9 @@ jobs:
             <div class="card">
               <h2>🛠️ Generate Client SDKs</h2>
               <pre><code>npx @openapitools/openapi-generator-cli generate \
-            -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
-            -g typescript-axios \
-            -o ./generated/tateca-client</code></pre>
+          -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
+          -g typescript-axios \
+          -o ./generated/tateca-client</code></pre>
             </div>
           </body>
           </html>
@@ -175,7 +135,7 @@ jobs:
           retention-days: 1
 
   # ----------------------------------------------------------------
-  # PR Preview: PR ブランチを pr-preview/pr-{number}/ にデプロイ
+  # PR Preview: PR ブランチを {safe-branch-name}/ にデプロイ
   # ----------------------------------------------------------------
   deploy-preview:
     name: Deploy PR Preview
@@ -195,13 +155,59 @@ jobs:
           name: docs-${{ github.run_id }}
           path: out/
 
+      - name: Compute safe branch name
+        id: branch
+        run: |
+          SAFE=$(echo "${{ github.head_ref }}" | tr '/' '-')
+          echo "safe=${SAFE}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy PR preview
-        uses: rossjrw/pr-preview-action@v1
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          source-dir: out/
-          preview-branch: gh-pages
-          umbrella-dir: pr-preview
-          action: deploy
+          folder: out/
+          branch: gh-pages
+          target-folder: ${{ steps.branch.outputs.safe }}
+          clean: true
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const safe = '${{ steps.branch.outputs.safe }}';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const url = `https://${owner}.github.io/${repo}/${safe}/`;
+            const body = [
+              '## ✅ OpenAPI Spec Preview Deployed',
+              '',
+              `Preview: ${url}`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('OpenAPI Spec Preview')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
 
   # ----------------------------------------------------------------
   # Cleanup: PR クローズ時にプレビューを削除
@@ -213,18 +219,26 @@ jobs:
 
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Remove PR preview
-        uses: rossjrw/pr-preview-action@v1
         with:
-          source-dir: .
-          preview-branch: gh-pages
-          umbrella-dir: pr-preview
-          action: remove
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Remove branch preview folder
+        run: |
+          SAFE=$(echo "${{ github.head_ref }}" | tr '/' '-')
+          if [ -d "$SAFE" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            rm -rf "$SAFE"
+            git add -A
+            git commit -m "chore: remove preview for ${SAFE}"
+            git push origin gh-pages
+          else
+            echo "Preview folder '${SAFE}' not found, nothing to clean up."
+          fi
 
   # ----------------------------------------------------------------
   # Production Deploy: main へのマージ後に本番 Pages へデプロイ
@@ -233,7 +247,7 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: write
@@ -251,5 +265,4 @@ jobs:
         with:
           folder: out/
           branch: gh-pages
-          clean: true
-          clean-exclude: pr-preview/
+          clean: false
