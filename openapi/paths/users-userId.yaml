@@ -1,0 +1,50 @@
+patch:
+  tags:
+    - Users
+  summary: Update user name
+  operationId: updateUserName
+  parameters:
+    - $ref: "../components/parameters/userIdPath.yaml"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../components/schemas/requests/UpdateUserNameRequest.yaml"
+  responses:
+    "200":
+      description: User name updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/UserResponse.yaml"
+    "400":
+      description: Validation error - Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing Firebase JWT token
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "404":
+      description: User not found
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "415":
+      description: Unsupported Media Type - Content-Type must be application/json
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "500":
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"

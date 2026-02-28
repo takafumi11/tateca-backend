@@ -1,0 +1,11 @@
+type: object
+description: Request to update user name
+required:
+  - user_name
+properties:
+  user_name:
+    type: string
+    description: User's display name
+    minLength: 1
+    maxLength: 50
+    example: John Doe

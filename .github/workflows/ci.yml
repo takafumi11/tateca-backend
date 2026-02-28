@@ -3,9 +3,9 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
+    types: [ opened, synchronize, reopened ]
     paths:
       - 'src/**'
-      - '.github/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -42,198 +42,14 @@ jobs:
             build/reports/tests/
           retention-days: 30
 
-  api-validation:
-    name: Validate & Generate API Docs
+  docker-build-push:
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    needs: test
 
     permissions:
-      contents: write
-      pull-requests: write
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: test
-          MYSQL_PASSWORD: test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-
-      - name: Switch to branch
-        if: github.event_name == 'pull_request'
-        run: git checkout ${{ github.head_ref }}
-
-      - name: Set up JDK 25
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Generate OpenAPI specification (PR branch)
-        run: |
-          echo "Starting Spring Boot application..."
-          ./gradlew bootRun > bootrun.log 2>&1 &
-          APP_PID=$!
-
-          echo "Waiting for application to be ready..."
-          for i in {1..40}; do
-            if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
-              echo "Application ready after $((i*3)) seconds"
-              break
-            fi
-            if [ $i -eq 40 ]; then
-              echo "ERROR: Application failed to start"
-              tail -50 bootrun.log
-              kill $APP_PID || true
-              exit 1
-            fi
-            sleep 3
-          done
-
-          echo "Generating OpenAPI specifications..."
-          curl -f http://localhost:8080/v3/api-docs.yaml -o openapi.yaml
-          curl -f http://localhost:8080/v3/api-docs -o openapi.json
-
-          kill $APP_PID || true
-          wait $APP_PID 2>/dev/null || true
-        env:
-          MYSQLHOST: localhost
-          MYSQLPORT: 3306
-          MYSQLDATABASE: testdb
-          MYSQLUSER: test
-          MYSQLPASSWORD: test
-          FIREBASE_PROJECT_ID: test-project
-          FIREBASE_SERVICE_ACCOUNT_KEY: mock-service-account-key
-          LAMBDA_API_KEY: test-api-key
-          EXCHANGE_RATE_API_KEY: test-api-key
-
-      - name: Check if OpenAPI spec exists in main
-        if: github.event_name == 'pull_request'
-        id: check_main
-        run: |
-          git fetch origin main
-          if git cat-file -e origin/main:openapi.yaml 2>/dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            git show origin/main:openapi.yaml > openapi-main.yaml
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-
-      - name: Install tools
-        run: |
-          npm install -g @stoplight/spectral-cli
-          go install github.com/oasdiff/oasdiff@latest
-
-      - name: Validate OpenAPI spec with Spectral
-        run: spectral lint openapi.yaml || true
-
-      - name: Detect breaking changes
-        if: github.event_name == 'pull_request'
-        id: breaking
-        run: |
-          if [ "${{ steps.check_main.outputs.exists }}" = "true" ]; then
-            echo "Comparing with main branch..."
-            $HOME/go/bin/oasdiff breaking openapi-main.yaml openapi.yaml --format text > breaking-changes.txt || true
-            $HOME/go/bin/oasdiff changelog openapi-main.yaml openapi.yaml --format markdown > changelog.md || true
-
-            if [ -s breaking-changes.txt ]; then
-              echo "has_breaking=true" >> $GITHUB_OUTPUT
-            else
-              echo "has_breaking=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "No existing OpenAPI spec in main branch - showing new spec"
-            echo "has_breaking=false" >> $GITHUB_OUTPUT
-            echo "## New OpenAPI Specification" > changelog.md
-            echo "" >> changelog.md
-            echo "This is the first OpenAPI specification for this API." >> changelog.md
-            echo "" >> changelog.md
-            echo "\`\`\`yaml" >> changelog.md
-            head -100 openapi.yaml >> changelog.md
-            echo "..." >> changelog.md
-            echo "\`\`\`" >> changelog.md
-            echo "" > breaking-changes.txt
-          fi
-
-      - name: Comment PR with API changes
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const breaking = fs.readFileSync('breaking-changes.txt', 'utf8');
-            const changelog = fs.readFileSync('changelog.md', 'utf8');
-
-            const hasBreaking = '${{ steps.breaking.outputs.has_breaking }}' === 'true';
-            const icon = hasBreaking ? '🚨' : '✅';
-            const status = hasBreaking ? '**BREAKING CHANGES DETECTED**' : 'No breaking changes';
-
-            const body = `## ${icon} OpenAPI Specification Changes
-
-            ### ${status}
-
-            ${breaking ? '#### Breaking Changes\n```\n' + breaking + '\n```\n' : ''}
-
-            #### Changelog
-            ${changelog || '_No changes detected_'}
-
-            ---
-            _Note: OpenAPI specifications are auto-generated and not committed to the repository._`;
-
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-
-            const botComment = comments.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes('OpenAPI Specification Changes')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body
-              });
-            }
-
-      - name: Generate Postman Collection
-        run: |
-          npm install -g openapi-to-postmanv2
-          openapi2postmanv2 -s openapi.yaml -o tateca-api.postman_collection.json -p
-
-  docker-build:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
@@ -241,6 +57,13 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata for Docker
         id: meta
@@ -250,63 +73,14 @@ jobs:
           tags: |
             type=ref,event=pr,prefix=pr-
             type=sha,prefix=sha-
-            type=raw,value=latest
 
-      - name: Build Docker image (no push)
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,dest=/tmp/image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-
-      - name: Upload Docker image artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image
-          path: /tmp/image.tar
-          retention-days: 1
-
-  docker-push:
-    name: Push Docker Image to GHCR
-    runs-on: ubuntu-latest
-    needs: [test, docker-build]
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Download Docker image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-          path: /tmp
-
-      - name: Load Docker image
-        run: |
-          docker load --input /tmp/image.tar
-          docker image ls -a
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push Docker image to GHCR
-        run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository }}"
-
-          echo "📤 Pushing all tags..."
-          docker image ls --format "{{.Repository}}:{{.Tag}}" | grep "^${IMAGE_NAME}:" | while read -r image; do
-            echo "Pushing ${image}"
-            docker push "${image}"
-          done
-
-          echo "✅ All images pushed successfully"

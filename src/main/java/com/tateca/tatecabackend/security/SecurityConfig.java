@@ -44,13 +44,6 @@ public class SecurityConfig {
                 // Public endpoints (no authentication required)
                 .requestMatchers(
                     "/error",
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs",
-                    "/v3/api-docs/**",
-                    "/v3/api-docs.*",
-                    "/swagger-resources/**",
-                    "/webjars/**",
                     "/actuator/health"
                 ).permitAll()
 

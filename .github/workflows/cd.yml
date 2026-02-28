@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'src/**'
-      - '.github/**'
+      - '.github/workflows/cd.yml'
   workflow_dispatch:
 
 concurrency:
@@ -13,9 +13,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  docker-build-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
   railway-redeploy:
     name: Redeploy to Railway
     runs-on: ubuntu-latest
+    needs: docker-build-push
 
     container:
       image: ghcr.io/railwayapp/cli:latest
@@ -26,175 +69,3 @@ jobs:
     steps:
       - name: Redeploy service
         run: railway redeploy --service=${{ secrets.RAILWAY_SERVICE_ID }} --yes
-
-  deploy-docs:
-    name: Deploy API Documentation to GitHub Pages
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Generate Redoc documentation
-        run: npx @redocly/cli build-docs openapi.yaml -o index.html
-
-      - name: Create downloads directory
-        run: |
-          mkdir -p downloads
-          cp openapi.json downloads/
-          cp openapi.yaml downloads/
-          cp tateca-api.postman_collection.json downloads/
-
-      - name: Create downloads page
-        run: |
-          cat > downloads.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Tateca API - Downloads</title>
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 40px 20px;
-                background-color: #f5f5f5;
-              }
-              header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 40px;
-                border-radius: 10px;
-                margin-bottom: 40px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-              }
-              h1 { margin: 0 0 10px 0; font-size: 2.5em; }
-              h2 { color: #333; margin-top: 40px; }
-              .subtitle { font-size: 1.2em; opacity: 0.9; }
-              .card {
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                margin-bottom: 20px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-              }
-              .download-btn {
-                display: inline-block;
-                background: #667eea;
-                color: white;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 5px;
-                margin: 10px 10px 10px 0;
-                transition: background 0.3s;
-              }
-              .download-btn:hover { background: #5568d3; }
-              .nav {
-                margin-bottom: 20px;
-              }
-              .nav a {
-                color: #667eea;
-                text-decoration: none;
-                margin-right: 20px;
-                font-weight: 500;
-              }
-              code {
-                background: #f4f4f4;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: 'Courier New', monospace;
-              }
-              pre {
-                background: #f4f4f4;
-                padding: 15px;
-                border-radius: 5px;
-                overflow-x: auto;
-              }
-            </style>
-          </head>
-          <body>
-            <header>
-              <h1>Tateca API Documentation</h1>
-              <p class="subtitle">Downloads & Resources</p>
-            </header>
-
-            <div class="nav">
-              <a href="index.html">← Back to API Documentation</a>
-              <a href="https://github.com/tateca/tateca-backend">GitHub Repository</a>
-            </div>
-
-            <div class="card">
-              <h2>📥 Download OpenAPI Specification</h2>
-              <p>Download the OpenAPI 3.0 specification for the Tateca API in your preferred format.</p>
-              <a href="downloads/openapi.json" class="download-btn" download>Download JSON</a>
-              <a href="downloads/openapi.yaml" class="download-btn" download>Download YAML</a>
-            </div>
-
-            <div class="card">
-              <h2>📮 Postman Collection</h2>
-              <p>Import this collection directly into Postman to start testing the API.</p>
-              <a href="downloads/tateca-api.postman_collection.json" class="download-btn" download>Download Postman Collection</a>
-
-              <h3>How to Import</h3>
-              <ol>
-                <li>Open Postman</li>
-                <li>Click "Import" in the top left</li>
-                <li>Drag and drop the downloaded JSON file</li>
-                <li>Configure your environment variables (server URL, auth token)</li>
-              </ol>
-            </div>
-
-            <div class="card">
-              <h2>🛠️ Generate Client SDKs</h2>
-              <p>Use the OpenAPI Generator to create client libraries in your preferred language.</p>
-
-              <h3>TypeScript/JavaScript</h3>
-              <pre><code>npx @openapitools/openapi-generator-cli generate \
-            -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
-            -g typescript-axios \
-            -o ./generated/tateca-client</code></pre>
-
-              <h3>Java</h3>
-              <pre><code>npx @openapitools/openapi-generator-cli generate \
-            -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
-            -g java \
-            -o ./generated/tateca-client</code></pre>
-
-              <h3>Python</h3>
-              <pre><code>npx @openapitools/openapi-generator-cli generate \
-            -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
-            -g python \
-            -o ./generated/tateca-client</code></pre>
-            </div>
-
-            <div class="card">
-              <h2>📚 Resources</h2>
-              <ul>
-                <li><a href="https://github.com/tateca/tateca-backend">GitHub Repository</a></li>
-                <li><a href="https://docs.tateca.net">Full Documentation</a></li>
-                <li><a href="https://swagger.io/tools/swagger-editor/">Swagger Editor</a> - View and edit OpenAPI specs</li>
-                <li><a href="https://openapi-generator.tech/">OpenAPI Generator</a> - Generate client SDKs</li>
-              </ul>
-            </div>
-          </body>
-          </html>
-          EOF
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4

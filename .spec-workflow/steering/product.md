@@ -38,7 +38,7 @@ Tateca is a group expense management system that simplifies tracking and settlin
 
 6. **Secure Authentication**: Firebase JWT authentication for user endpoints, API key authentication for internal endpoints (Lambda/EventBridge), and constant-time comparison to prevent timing attacks
 
-7. **RESTful API**: Well-documented OpenAPI specification with code-first approach, comprehensive validation and error handling, and interactive API documentation (Swagger UI + Redoc)
+7. **RESTful API**: Well-documented OpenAPI 3.1 specification with spec-first approach, comprehensive validation and error handling, and published API documentation (Redoc + downloadable YAML/JSON specs)
 
 ## Business Objectives
 
@@ -61,13 +61,13 @@ Tateca is a group expense management system that simplifies tracking and settlin
 
 ## Product Principles
 
-1. **Code-First API Documentation**: Source code is the single source of truth for API specification. OpenAPI spec is auto-generated at runtime from SpringDoc annotations, ensuring documentation and implementation are always in sync.
+1. **Spec-First API Documentation**: OpenAPI contract files (`openapi.yaml` + `openapi/**`) are the source of truth for API design, reviewed before and alongside implementation.
 
 2. **Build Once, Deploy Anywhere**: Docker image is built once during CI, tagged with semantic version from build.gradle.kts, and reused across all environments. No rebuilds in production deployment pipeline.
 
 3. **Shift-Left Quality**: All validation happens during pull request phase before merge. Tests, static analysis, API validation, and documentation generation must pass before code reaches production.
 
-4. **Immutable Financial Records**: Once created, financial transactions cannot be deleted or modified (except LOAN transactions which can be updated). This ensures data integrity and auditability.
+4. **Auditable Financial Records**: Financial transactions can be created, updated (LOAN transactions), and deleted. All operations are logged to ensure traceability and auditability.
 
 5. **Security by Default**: Firebase authentication for user endpoints, API key authentication for system endpoints, constant-time comparison for sensitive operations, and PII masking in all logs.
 
@@ -78,7 +78,7 @@ Tateca is a group expense management system that simplifies tracking and settlin
 ## Monitoring & Visibility
 
 - **Dashboard Type**: Web-based documentation and monitoring
-  - API Documentation: GitHub Pages (Swagger UI + Redoc)
+  - API Documentation: GitHub Pages (Redoc + OpenAPI YAML/JSON downloads)
   - Deployment Status: Railway dashboard
   - CI/CD Pipeline: GitHub Actions workflow visualizations
 

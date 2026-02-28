@@ -1,0 +1,34 @@
+get:
+  tags:
+    - Transactions
+  summary: Get transaction history for a group
+  description: Retrieve transaction history with optional count parameter (default 5)
+  operationId: getTransactionHistory
+  parameters:
+    - $ref: "../components/parameters/groupIdPath.yaml"
+    - $ref: "../components/parameters/countQuery.yaml"
+  responses:
+    "200":
+      description: Transaction history retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/TransactionHistoryResponse.yaml"
+    "400":
+      description: Validation error - Invalid UUID format
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing Firebase JWT token
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "404":
+      description: Group not found
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"

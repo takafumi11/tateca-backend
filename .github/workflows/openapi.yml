@@ -1,0 +1,327 @@
+name: OpenAPI Spec
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi/**'
+      - 'package.json'
+      - 'redocly.yaml'
+      - 'scripts/**'
+      - '.github/workflows/openapi.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi/**'
+      - 'package.json'
+      - 'redocly.yaml'
+      - 'scripts/**'
+      - '.github/workflows/openapi.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------------
+  # Lint: PR open/sync および push to main で実行
+  # ----------------------------------------------------------------
+  lint:
+    name: Lint OpenAPI Spec
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint OpenAPI specification
+        run: npm run lint
+
+  # ----------------------------------------------------------------
+  # PR Preview: ビルド → {safe-branch-name}/ にデプロイ
+  # ----------------------------------------------------------------
+  deploy-preview:
+    name: Deploy Preview Pages
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Redoc HTML (with Mermaid injection)
+        run: npm run build
+
+      - name: Bundle spec (YAML + JSON)
+        run: npm run bundle
+
+      - name: Prepare pages output
+        run: |
+          mkdir -p out/downloads
+          cp site/index.html out/index.html
+          cp dist/openapi-bundled.yaml out/downloads/openapi.yaml
+          cp dist/openapi-bundled.json out/downloads/openapi.json
+          cat > out/downloads.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Tateca API - Downloads</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; background: #f5f5f5; }
+              header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 40px; border-radius: 10px; margin-bottom: 40px; }
+              h1 { margin: 0 0 8px; font-size: 2em; }
+              .sub { opacity: .9; }
+              .nav { margin-bottom: 24px; }
+              .nav a { color: #667eea; text-decoration: none; margin-right: 20px; font-weight: 500; }
+              .card { background: white; padding: 28px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+              h2 { color: #333; margin-top: 0; }
+              .btn { display: inline-block; background: #667eea; color: white; padding: 10px 22px; text-decoration: none; border-radius: 5px; margin: 8px 8px 8px 0; }
+              .btn:hover { background: #5568d3; }
+              pre { background: #f4f4f4; padding: 14px; border-radius: 5px; overflow-x: auto; font-size: .9em; }
+            </style>
+          </head>
+          <body>
+            <header>
+              <h1>Tateca API</h1>
+              <p class="sub">Downloads &amp; Resources</p>
+            </header>
+            <div class="nav">
+              <a href="index.html">← API Documentation</a>
+              <a href="https://github.com/tateca/tateca-backend">GitHub</a>
+            </div>
+            <div class="card">
+              <h2>📥 OpenAPI Specification</h2>
+              <p>OpenAPI 3.1 specification in your preferred format.</p>
+              <a href="downloads/openapi.yaml" class="btn" download>Download YAML</a>
+              <a href="downloads/openapi.json" class="btn" download>Download JSON</a>
+            </div>
+            <div class="card">
+              <h2>🛠️ Generate Client SDKs</h2>
+              <pre><code>npx @openapitools/openapi-generator-cli generate \
+          -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
+          -g typescript-axios \
+          -o ./generated/tateca-client</code></pre>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Compute safe branch name
+        id: branch
+        run: |
+          SAFE=$(echo "${{ github.head_ref }}" | tr '/' '-')
+          echo "safe=${SAFE}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy PR preview
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: out/
+          branch: gh-pages
+          target-folder: ${{ steps.branch.outputs.safe }}
+          clean: true
+
+      - name: Write deployment summary
+        run: |
+          SAFE="${{ steps.branch.outputs.safe }}"
+          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${SAFE}/"
+          echo "## 🚀 Preview Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${URL}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const safe = '${{ steps.branch.outputs.safe }}';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const url = `https://${owner}.github.io/${repo}/${safe}/`;
+            const body = [
+              '## ✅ OpenAPI Spec Preview Deployed',
+              '',
+              `Preview: ${url}`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('OpenAPI Spec Preview')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  # ----------------------------------------------------------------
+  # Cleanup: PR クローズ時にプレビューを削除
+  # ----------------------------------------------------------------
+  cleanup-preview:
+    name: Cleanup PR Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove branch preview folder
+        run: |
+          SAFE=$(echo "${{ github.head_ref }}" | tr '/' '-')
+
+          # gh-pages ブランチが存在しない場合はスキップ
+          if ! git ls-remote --heads origin gh-pages | grep -q .; then
+            echo "gh-pages branch does not exist, nothing to clean up."
+            exit 0
+          fi
+
+          git fetch origin gh-pages
+          git checkout gh-pages
+
+          if [ -d "$SAFE" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            rm -rf "$SAFE"
+            git add -A
+            git commit -m "chore: remove preview for ${SAFE}"
+            git push origin gh-pages
+          else
+            echo "Preview folder '${SAFE}' not found, nothing to clean up."
+          fi
+
+  # ----------------------------------------------------------------
+  # Production Deploy: main へのマージ後に本番 Pages へデプロイ
+  # ----------------------------------------------------------------
+  deploy-production:
+    name: Deploy Production Pages
+    runs-on: ubuntu-latest
+    needs: lint
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Redoc HTML (with Mermaid injection)
+        run: npm run build
+
+      - name: Bundle spec (YAML + JSON)
+        run: npm run bundle
+
+      - name: Prepare pages output
+        run: |
+          mkdir -p out/downloads
+          cp site/index.html out/index.html
+          cp dist/openapi-bundled.yaml out/downloads/openapi.yaml
+          cp dist/openapi-bundled.json out/downloads/openapi.json
+          cat > out/downloads.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Tateca API - Downloads</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; background: #f5f5f5; }
+              header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 40px; border-radius: 10px; margin-bottom: 40px; }
+              h1 { margin: 0 0 8px; font-size: 2em; }
+              .sub { opacity: .9; }
+              .nav { margin-bottom: 24px; }
+              .nav a { color: #667eea; text-decoration: none; margin-right: 20px; font-weight: 500; }
+              .card { background: white; padding: 28px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+              h2 { color: #333; margin-top: 0; }
+              .btn { display: inline-block; background: #667eea; color: white; padding: 10px 22px; text-decoration: none; border-radius: 5px; margin: 8px 8px 8px 0; }
+              .btn:hover { background: #5568d3; }
+              pre { background: #f4f4f4; padding: 14px; border-radius: 5px; overflow-x: auto; font-size: .9em; }
+            </style>
+          </head>
+          <body>
+            <header>
+              <h1>Tateca API</h1>
+              <p class="sub">Downloads &amp; Resources</p>
+            </header>
+            <div class="nav">
+              <a href="index.html">← API Documentation</a>
+              <a href="https://github.com/tateca/tateca-backend">GitHub</a>
+            </div>
+            <div class="card">
+              <h2>📥 OpenAPI Specification</h2>
+              <p>OpenAPI 3.1 specification in your preferred format.</p>
+              <a href="downloads/openapi.yaml" class="btn" download>Download YAML</a>
+              <a href="downloads/openapi.json" class="btn" download>Download JSON</a>
+            </div>
+            <div class="card">
+              <h2>🛠️ Generate Client SDKs</h2>
+              <pre><code>npx @openapitools/openapi-generator-cli generate \
+          -i https://tateca.github.io/tateca-backend/downloads/openapi.json \
+          -g typescript-axios \
+          -o ./generated/tateca-client</code></pre>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: out/
+          branch: gh-pages
+          clean: false
+
+      - name: Write deployment summary
+        run: |
+          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "## 🚀 Production Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${URL}" >> $GITHUB_STEP_SUMMARY

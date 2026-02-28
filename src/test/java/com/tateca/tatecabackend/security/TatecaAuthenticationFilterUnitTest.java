@@ -251,31 +251,6 @@ class TatecaAuthenticationFilterUnitTest {
             assertThat(shouldFilter).isFalse();
         }
 
-        @Test
-        @DisplayName("Should bypass authentication for /swagger-ui")
-        void shouldBypassAuthenticationForSwaggerUi() throws Exception {
-            // Given
-            when(request.getRequestURI()).thenReturn("/swagger-ui/index.html");
-
-            // When
-            boolean shouldFilter = !filter.shouldNotFilter(request);
-
-            // Then
-            assertThat(shouldFilter).isFalse();
-        }
-
-        @Test
-        @DisplayName("Should bypass authentication for /v3/api-docs")
-        void shouldBypassAuthenticationForApiDocs() throws Exception {
-            // Given
-            when(request.getRequestURI()).thenReturn("/v3/api-docs");
-
-            // When
-            boolean shouldFilter = !filter.shouldNotFilter(request);
-
-            // Then
-            assertThat(shouldFilter).isFalse();
-        }
     }
 
     @Nested

@@ -1,0 +1,44 @@
+post:
+  tags:
+    - Transactions
+  summary: Create a new transaction
+  operationId: createTransaction
+  parameters:
+    - $ref: "../components/parameters/groupIdPath.yaml"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../components/schemas/requests/CreateTransactionRequest.yaml"
+  responses:
+    "201":
+      description: Transaction created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/TransactionResponse.yaml"
+    "400":
+      description: Validation error - Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing Firebase JWT token
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "404":
+      description: Group not found
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+    "415":
+      description: Unsupported Media Type - Content-Type must be application/json
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
