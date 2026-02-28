@@ -23,7 +23,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # ----------------------------------------------------------------
@@ -40,9 +40,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Lint OpenAPI specification
         run: npm run lint
@@ -66,9 +67,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Redoc HTML (with Mermaid injection)
         run: npm run build
@@ -249,9 +251,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Redoc HTML (with Mermaid injection)
         run: npm run build
@@ -322,6 +325,7 @@ jobs:
       - name: Write deployment summary
         run: |
           URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "Deployed: ${URL}"
           echo "## 🚀 Production Deployed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** ${URL}" >> $GITHUB_STEP_SUMMARY
