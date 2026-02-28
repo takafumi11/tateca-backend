@@ -28,9 +28,9 @@ RESTful API service for group expense management with multi-currency support, Fi
 - **Custom TatecaAuthenticationFilter**: Path-based auth routing
 
 **API & Documentation:**
-- **SpringDoc OpenAPI 2.8.1**: Code-first spec generation
-- **Swagger UI**: Interactive documentation
-- **Redoc**: Static documentation (CI/CD generated)
+- **OpenAPI 3.1 (Spec-First)**: Contract managed under `openapi.yaml` + `openapi/**`
+- **Redocly CLI**: Linting, bundling, and static docs generation
+- **Redoc (GitHub Pages)**: Published API documentation and spec downloads
 
 **Observability:**
 - **Logstash Logback Encoder 7.4**: JSON logging for Better Stack
@@ -173,7 +173,7 @@ docker-compose up -d    # Start MySQL
 - **SQL Injection**: Parameterized JPA queries
 
 ### Standards
-- **OpenAPI 3.0**: API specification
+- **OpenAPI 3.1**: API specification
 - **ISO 4217**: Currency codes
 - **ISO 8601**: Date/time with timezone
 - **JWT**: RS256 Firebase tokens
@@ -181,7 +181,7 @@ docker-compose up -d    # Start MySQL
 ## Technical Decisions
 
 1. **Java 25**: Modern features (virtual threads, pattern matching), future-proof
-2. **Code-First API**: Docs always in sync with code, eliminates manual maintenance
+2. **Spec-First API**: OpenAPI contract is the source of truth before implementation
 3. **Image-Based Deployment**: Zero Railway build costs, faster deploys, pre-tested artifacts
 4. **Gradle Version Catalog**: Centralized dependencies, type-safe, Dependabot compatible
 5. **Gradual Quality**: Enable checks without blocking, measure before enforce
