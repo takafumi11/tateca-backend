@@ -30,8 +30,8 @@ public class UserServiceImpl implements UserService {
         UserEntity user = repository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // Update name (validated as required by controller)
-        user.setName(request.name());
+        // Update name: strip leading/trailing whitespace before persisting
+        user.setName(request.name().strip());
 
         UserResponseDTO response = UserResponseDTO.from(repository.save(user));
         logger.info("User name updated successfully: userId={}", PiiMaskingUtil.maskUuid(userId));

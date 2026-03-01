@@ -3,6 +3,7 @@ package com.tateca.tatecabackend.security;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,6 +20,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,12 +54,14 @@ class TatecaAuthenticationFilterUnitTest {
     private static final String TEST_PROJECT_ID = "test-project-id";
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         // Configure environment mock to return empty active profiles (not dev mode)
         // Use lenient() to avoid UnnecessaryStubbingException in tests that don't call this method
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{});
+        // Provide a writer for tests that trigger error responses
+        lenient().when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
 
-        filter = new TatecaAuthenticationFilter(environment);
+        filter = new TatecaAuthenticationFilter(environment, new ObjectMapper());
         ReflectionTestUtils.setField(filter, "lambdaApiKey", TEST_API_KEY);
         ReflectionTestUtils.setField(filter, "firebaseProjectId", TEST_PROJECT_ID);
 
@@ -85,7 +90,7 @@ class TatecaAuthenticationFilterUnitTest {
                 auth instanceof ApiKeyAuthentication &&
                 ((ApiKeyAuthentication) auth).getUid().equals("system-internal")
             ));
-            verify(response, never()).sendError(anyInt(), anyString());
+            verify(response, never()).setStatus(anyInt());
         }
 
         @Test
@@ -99,7 +104,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(401, "Invalid API Key");
+            verify(response).setStatus(401);
             verify(filterChain, never()).doFilter(request, response);
         }
 
@@ -114,7 +119,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(401, "Invalid API Key");
+            verify(response).setStatus(401);
             verify(filterChain, never()).doFilter(request, response);
         }
 
@@ -129,7 +134,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(401, "Invalid API Key");
+            verify(response).setStatus(401);
             verify(filterChain, never()).doFilter(request, response);
         }
     }
@@ -149,7 +154,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(401, "Authentication required");
+            verify(response).setStatus(401);
             verify(filterChain, never()).doFilter(request, response);
         }
 
@@ -164,7 +169,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(401, "Invalid authentication credentials");
+            verify(response).setStatus(401);
             verify(filterChain, never()).doFilter(request, response);
         }
 
@@ -198,7 +203,7 @@ class TatecaAuthenticationFilterUnitTest {
                 // Then
                 verify(filterChain).doFilter(request, response);
                 verify(securityContext).setAuthentication(any(FirebaseAuthentication.class));
-                verify(response, never()).sendError(anyInt(), anyString());
+                verify(response, never()).setStatus(anyInt());
             }
         }
     }
@@ -284,7 +289,7 @@ class TatecaAuthenticationFilterUnitTest {
             filter.doFilterInternal(request, response, filterChain);
 
             // Then
-            verify(response).sendError(401, "Invalid API Key");
+            verify(response).setStatus(401);
             // SecurityContextHolder.clearContext() is still called in finally block
         }
     }

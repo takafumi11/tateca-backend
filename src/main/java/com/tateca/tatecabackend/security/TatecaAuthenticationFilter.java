@@ -1,10 +1,12 @@
 package com.tateca.tatecabackend.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.tateca.tatecabackend.constants.ApiConstants;
+import com.tateca.tatecabackend.exception.ErrorResponse;
 import com.tateca.tatecabackend.exception.domain.AuthenticationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,12 +18,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,6 +42,7 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
     private static final String X_API_KEY_HEADER = "X-API-Key";
 
     private final Environment environment;
+    private final ObjectMapper objectMapper;
 
     @Value("${firebase.project.id}")
     private String firebaseProjectId;
@@ -76,13 +81,14 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (ApiKeyAuthenticationException e) {
             logAuthenticationFailure("API Key", path, e.getMessage());
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid API Key");
+            writeJsonErrorResponse(response, HttpStatus.UNAUTHORIZED, "AUTH.INVALID_TOKEN", "Invalid API Key", path);
         } catch (FirebaseAuthException e) {
             logAuthenticationFailure("Firebase", path, e.getMessage());
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid Firebase authentication token");
+            writeJsonErrorResponse(response, HttpStatus.UNAUTHORIZED, "AUTH.INVALID_TOKEN", "Invalid Firebase authentication token", path);
         } catch (AuthenticationException e) {
             logAuthenticationFailure("Authentication", path, e.getMessage());
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+            String errorCode = e.getErrorCode() != null ? e.getErrorCode() : "AUTH.INVALID_TOKEN";
+            writeJsonErrorResponse(response, HttpStatus.UNAUTHORIZED, errorCode, e.getMessage(), path);
         } catch (IllegalArgumentException e) {
             logAuthenticationFailure("Bad Request", path, e.getMessage());
             response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -167,6 +173,23 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isDevProfile() {
         return Arrays.asList(environment.getActiveProfiles()).contains("dev");
+    }
+
+    private void writeJsonErrorResponse(HttpServletResponse response, HttpStatus status, String errorCode, String message, String path) throws IOException {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now().toString())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(message)
+                .path(path)
+                .errorCode(errorCode)
+                .build();
+
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.getWriter().flush();
     }
 
     private void logAuthenticationFailure(String method, String path, String reason) {

@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final Environment environment;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -69,6 +71,6 @@ public class SecurityConfig {
 
     @Bean
     public TatecaAuthenticationFilter tatecaAuthenticationFilter() {
-        return new TatecaAuthenticationFilter(environment);
+        return new TatecaAuthenticationFilter(environment, objectMapper);
     }
 }

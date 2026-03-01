@@ -21,9 +21,6 @@ patch:
             $ref: "../components/schemas/responses/UserResponse.yaml"
     "400":
       description: Validation error - Invalid request parameters or malformed JSON
-      x-error-codes:
-        - VALIDATION.FAILED
-        - REQUEST.MALFORMED_JSON
       content:
         application/json:
           schema:
@@ -35,10 +32,6 @@ patch:
               $ref: "../components/examples/errors/REQUEST_MALFORMED_JSON.yaml"
     "401":
       description: Unauthorized - Invalid or missing Firebase JWT token
-      x-error-codes:
-        - AUTH.MISSING_CREDENTIALS
-        - AUTH.INVALID_FORMAT
-        - AUTH.INVALID_TOKEN
       content:
         application/json:
           schema:
@@ -52,8 +45,6 @@ patch:
               $ref: "../components/examples/errors/AUTH_INVALID_TOKEN.yaml"
     "404":
       description: "User not found (error_code: USER.NOT_FOUND)"
-      x-error-codes:
-        - USER.NOT_FOUND
       content:
         application/json:
           schema:
@@ -63,8 +54,6 @@ patch:
               $ref: "../components/examples/errors/USER_NOT_FOUND.yaml"
     "415":
       description: Unsupported Media Type - Content-Type must be application/json
-      x-error-codes:
-        - REQUEST.UNSUPPORTED_MEDIA_TYPE
       content:
         application/json:
           schema:
@@ -74,8 +63,6 @@ patch:
               $ref: "../components/examples/errors/REQUEST_UNSUPPORTED_MEDIA_TYPE.yaml"
     "500":
       description: Internal Server Error
-      x-error-codes:
-        - SYSTEM.INTERNAL_ERROR
       content:
         application/json:
           schema:

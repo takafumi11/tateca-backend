@@ -174,6 +174,23 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void givenUserExists_whenUpdatingWithLeadingAndTrailingWhitespace_thenShouldStripAndPersist() {
+        // Given
+        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("  Trimmed Name  ");
+
+        // When
+        UserResponseDTO result = userService.updateUserName(testUserId, request);
+
+        // Then
+        assertThat(result.userName()).isEqualTo("Trimmed Name");
+
+        flushAndClear();
+        UserEntity updatedUser = userRepository.findById(testUserId)
+                .orElseThrow(() -> new AssertionError("User should exist"));
+        assertThat(updatedUser.getName()).isEqualTo("Trimmed Name");
+    }
+
+    @Test
     void givenUserDoesNotExist_whenUpdatingName_thenShouldThrowNotFoundException() {
         // Given
         UUID nonExistentUserId = UUID.randomUUID();

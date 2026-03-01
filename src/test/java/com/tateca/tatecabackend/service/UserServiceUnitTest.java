@@ -128,6 +128,21 @@ class UserServiceUnitTest {
             assertThat(testUser.getName()).isEqualTo("Updated Name");
             verify(repository).save(testUser);
         }
+
+        @Test
+        void shouldStripLeadingAndTrailingWhitespaceBeforeSaving() {
+            // Given
+            UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("  Padded Name  ");
+            when(repository.findById(testUserId)).thenReturn(Optional.of(testUser));
+            when(repository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            userService.updateUserName(testUserId, request);
+
+            // Then
+            assertThat(testUser.getName()).isEqualTo("Padded Name");
+            verify(repository).save(testUser);
+        }
     }
 
     @Nested

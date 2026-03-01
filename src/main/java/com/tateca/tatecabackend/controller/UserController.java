@@ -19,11 +19,11 @@ import java.util.UUID;
 @RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService service;
+private final UserService service;
 
     @PatchMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponseDTO> updateUserName(
-            @PathVariable("userId") UUID userId,
+            @PathVariable UUID userId,
             @Valid @RequestBody UpdateUserNameRequestDTO nameRequestDTO
             ) {
         UserResponseDTO responseDTO = service.updateUserName(userId, nameRequestDTO);
