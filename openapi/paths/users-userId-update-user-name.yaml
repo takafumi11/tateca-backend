@@ -1,0 +1,85 @@
+patch:
+  tags:
+    - Users
+  summary: Update user name
+  description: Updates the display name of the user identified by userId. Leading and trailing whitespace is normalized before persistence, and updating with the same normalized value is treated as idempotent success.
+  operationId: updateUserName
+  parameters:
+    - $ref: "../components/parameters/userIdPath.yaml"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../components/schemas/requests/UpdateUserNameRequest.yaml"
+  responses:
+    "200":
+      description: User name updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/UserResponse.yaml"
+    "400":
+      description: Validation error - Invalid request parameters or malformed JSON
+      x-error-codes:
+        - VALIDATION.FAILED
+        - REQUEST.MALFORMED_JSON
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+          examples:
+            validationFailed:
+              $ref: "../components/examples/errors/VALIDATION_FAILED.yaml"
+            malformedJson:
+              $ref: "../components/examples/errors/REQUEST_MALFORMED_JSON.yaml"
+    "401":
+      description: Unauthorized - Invalid or missing Firebase JWT token
+      x-error-codes:
+        - AUTH.MISSING_CREDENTIALS
+        - AUTH.INVALID_FORMAT
+        - AUTH.INVALID_TOKEN
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+          examples:
+            missingCredentials:
+              $ref: "../components/examples/errors/AUTH_MISSING_CREDENTIALS.yaml"
+            invalidFormat:
+              $ref: "../components/examples/errors/AUTH_INVALID_FORMAT.yaml"
+            invalidToken:
+              $ref: "../components/examples/errors/AUTH_INVALID_TOKEN.yaml"
+    "404":
+      description: "User not found (error_code: USER.NOT_FOUND)"
+      x-error-codes:
+        - USER.NOT_FOUND
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+          examples:
+            userNotFound:
+              $ref: "../components/examples/errors/USER_NOT_FOUND.yaml"
+    "415":
+      description: Unsupported Media Type - Content-Type must be application/json
+      x-error-codes:
+        - REQUEST.UNSUPPORTED_MEDIA_TYPE
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+          examples:
+            unsupportedMediaType:
+              $ref: "../components/examples/errors/REQUEST_UNSUPPORTED_MEDIA_TYPE.yaml"
+    "500":
+      description: Internal Server Error
+      x-error-codes:
+        - SYSTEM.INTERNAL_ERROR
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+          examples:
+            internalError:
+              $ref: "../components/examples/errors/SYSTEM_INTERNAL_ERROR.yaml"

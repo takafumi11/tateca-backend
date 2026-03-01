@@ -5,7 +5,6 @@ required:
 properties:
   user_name:
     type: string
-    description: User's display name
-    minLength: 1
-    maxLength: 50
+    description: User display name. Validation is evaluated on the normalized value (leading/trailing whitespace is trimmed before validation and persistence; normalized value must be non-blank and 1..50 characters).
+    pattern: '^\s*\S(?:.{0,48}\S)?\s*$'
     example: John Doe

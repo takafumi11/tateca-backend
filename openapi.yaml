@@ -40,7 +40,7 @@ paths:
   /internal/exchange-rates:
     $ref: "./openapi/paths/internal-exchange-rates.yaml"
   /users/{userId}:
-    $ref: "./openapi/paths/users-userId.yaml"
+    $ref: "./openapi/paths/users-userId-update-user-name.yaml"
 components:
   securitySchemes:
     BearerAuth:
