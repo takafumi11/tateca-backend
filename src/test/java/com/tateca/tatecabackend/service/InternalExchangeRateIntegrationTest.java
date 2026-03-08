@@ -25,7 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("ExchangeRate Internal API Integration Tests - Write Operations")
+@DisplayName("InternalExchangeRateService Integration Tests — Infrastructure behavior")
 @Transactional
 class InternalExchangeRateIntegrationTest extends AbstractIntegrationTest {
 

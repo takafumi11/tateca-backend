@@ -19,7 +19,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("ExchangeRateQueryService Integration Tests")
+@DisplayName("ExchangeRateService Integration Tests — Infrastructure behavior")
 @Transactional
 class ExchangeRateServiceIntegrationTest extends AbstractIntegrationTest {
 

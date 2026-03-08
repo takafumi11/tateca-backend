@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("ExchangeRateInternalService Unit Tests")
+@DisplayName("InternalExchangeRateServiceImpl — Domain Logic")
 class InternalExchangeRateServiceUnitTest {
 
     @Mock

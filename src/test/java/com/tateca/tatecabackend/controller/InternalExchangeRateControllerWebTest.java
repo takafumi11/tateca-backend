@@ -14,7 +14,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,8 +44,8 @@ class InternalExchangeRateControllerWebTest {
         mockMvc.perform(post(ENDPOINT))
                 .andExpect(status().isNoContent());
 
-        // Then: Service should be called once
-        verify(exchangeRateService, times(1)).fetchAndStoreLatestExchangeRate();
+        // Then: Service should be called
+        verify(exchangeRateService).fetchAndStoreLatestExchangeRate();
     }
 
     @Test
@@ -63,21 +62,6 @@ class InternalExchangeRateControllerWebTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.message").exists());
 
-        // And: Service should be called
-        verify(exchangeRateService, times(1)).fetchAndStoreLatestExchangeRate();
-    }
-
-    @Test
-    @DisplayName("Should update latest exchange rates without parameters")
-    void shouldUpdateLatestExchangeRatesWithoutParameters() throws Exception {
-        // Given: Service successfully fetches and stores latest rates (for today and tomorrow)
-        when(exchangeRateService.fetchAndStoreLatestExchangeRate()).thenReturn(6);
-
-        // When: Calling endpoint
-        mockMvc.perform(post(ENDPOINT))
-                .andExpect(status().isNoContent());
-
-        // Then: Service should fetch latest rates (no date parameter)
-        verify(exchangeRateService, times(1)).fetchAndStoreLatestExchangeRate();
+        verify(exchangeRateService).fetchAndStoreLatestExchangeRate();
     }
 }
