@@ -119,6 +119,26 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{groupId}/members/{userUuid}")
+    public ResponseEntity<Void> removeMember(
+            @PathVariable("groupId") UUID groupId,
+            @PathVariable("userUuid") UUID userUuid,
+            @UId String uid
+    ) {
+        logger.info("Removing member from group: groupId={}, userUuid={}, uid={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUuid(userUuid),
+                PiiMaskingUtil.maskUid(uid));
+
+        service.removeMember(groupId, userUuid, uid);
+
+        logger.info("Member removed successfully: groupId={}, userUuid={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUuid(userUuid));
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupResponseDTO> addMember(
             @PathVariable("groupId") UUID groupId,

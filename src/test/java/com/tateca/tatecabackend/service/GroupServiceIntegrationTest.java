@@ -2,7 +2,6 @@ package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.AbstractIntegrationTest;
 import com.tateca.tatecabackend.dto.request.AddMemberRequestDTO;
-import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.GroupEntity;
@@ -14,13 +13,14 @@ import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Transactional
 class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -1386,6 +1387,99 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
             userGroups.forEach(ug -> {
                 assertThat(userRepository.findById(ug.getUserUuid())).isPresent();
             });
+        }
+    }
+
+    // ========================================
+    // removeMember Tests (Persistence behavior)
+    // ========================================
+
+    @Nested
+    class RemoveMember {
+
+        @Test
+        void givenUnjoinedMember_whenRemoving_thenShouldDeleteFromBothUsersAndUserGroupsTables() {
+            // Given
+            UserEntity requester = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            UserEntity unjoinedMember = TestFixtures.Users.userWithoutAuthUser("Unjoined Member");
+            userRepository.saveAll(List.of(requester, unjoinedMember));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(requester, testGroup),
+                    TestFixtures.UserGroups.create(unjoinedMember, testGroup)
+            ));
+            flushAndClear();
+
+            UUID unjoinedMemberUuid = unjoinedMember.getUuid();
+
+            // When
+            groupService.removeMember(testGroupId, unjoinedMemberUuid, TEST_UID);
+            flushAndClear();
+
+            // Then: user_groups record should be removed
+            List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
+            assertThat(userGroups).hasSize(1);
+            assertThat(userGroups.get(0).getUserUuid()).isEqualTo(requester.getUuid());
+
+            // And: users record should be removed
+            Optional<UserEntity> deletedUser = userRepository.findById(unjoinedMemberUuid);
+            assertThat(deletedUser).isEmpty();
+        }
+
+        @Test
+        void givenUnjoinedMember_whenRemoving_thenOtherMembersShouldNotBeAffected() {
+            // Given
+            UserEntity requester = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            UserEntity unjoinedTarget = TestFixtures.Users.userWithoutAuthUser("Target");
+            UserEntity otherUnjoinedMember = TestFixtures.Users.userWithoutAuthUser("Other Unjoined");
+            userRepository.saveAll(List.of(requester, unjoinedTarget, otherUnjoinedMember));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(requester, testGroup),
+                    TestFixtures.UserGroups.create(unjoinedTarget, testGroup),
+                    TestFixtures.UserGroups.create(otherUnjoinedMember, testGroup)
+            ));
+            flushAndClear();
+
+            // When
+            groupService.removeMember(testGroupId, unjoinedTarget.getUuid(), TEST_UID);
+            flushAndClear();
+
+            // Then: other members should remain intact
+            List<UserGroupEntity> remaining = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
+            assertThat(remaining).hasSize(2);
+
+            List<UUID> remainingUserUuids = remaining.stream()
+                    .map(UserGroupEntity::getUserUuid)
+                    .toList();
+            assertThat(remainingUserUuids).containsExactlyInAnyOrder(
+                    requester.getUuid(), otherUnjoinedMember.getUuid()
+            );
+
+            // And: other user entities should remain
+            assertThat(userRepository.findById(requester.getUuid())).isPresent();
+            assertThat(userRepository.findById(otherUnjoinedMember.getUuid())).isPresent();
+        }
+
+        @Test
+        void givenLastUnjoinedMember_whenRemoving_thenOnlyAuthenticatedMembersShouldRemain() {
+            // Given
+            UserEntity requester = TestFixtures.Users.userWithAuthUser(testAuthUser);
+            UserEntity lastUnjoinedMember = TestFixtures.Users.userWithoutAuthUser("Last Unjoined");
+            userRepository.saveAll(List.of(requester, lastUnjoinedMember));
+            userGroupRepository.saveAll(List.of(
+                    TestFixtures.UserGroups.create(requester, testGroup),
+                    TestFixtures.UserGroups.create(lastUnjoinedMember, testGroup)
+            ));
+            flushAndClear();
+
+            // When
+            groupService.removeMember(testGroupId, lastUnjoinedMember.getUuid(), TEST_UID);
+            flushAndClear();
+
+            // Then: only the authenticated member should remain
+            List<UserGroupEntity> remaining = userGroupRepository.findByGroupUuidWithUserDetails(testGroupId);
+            assertThat(remaining).hasSize(1);
+            assertThat(remaining.get(0).getUser().getAuthUser()).isNotNull();
+            assertThat(remaining.get(0).getUser().getAuthUser().getUid()).isEqualTo(TEST_UID);
         }
     }
 }

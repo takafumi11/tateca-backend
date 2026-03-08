@@ -1,6 +1,7 @@
 package com.tateca.tatecabackend.repository;
 
 import com.tateca.tatecabackend.entity.TransactionObligationEntity;
+import com.tateca.tatecabackend.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,8 @@ import java.util.UUID;
 
 @Repository
 public interface ObligationRepository extends JpaRepository<TransactionObligationEntity, UUID> {
+
+    boolean existsByUser(UserEntity user);
     @Query("SELECT o FROM TransactionObligationEntity o WHERE o.transaction.uuid = :loanId")
     List<TransactionObligationEntity> findByTransactionId(UUID loanId);
 
