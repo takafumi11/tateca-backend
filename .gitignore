@@ -30,6 +30,9 @@ out/
 .run/
 !.run/TatecaBackendApplication.run.xml
 
+### macOS ###
+.DS_Store
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

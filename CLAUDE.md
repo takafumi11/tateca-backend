@@ -2,6 +2,16 @@
 
 Spring Boot 3.5.4 Java 21 application for group expense management with Firebase authentication.
 
+## Development Methodology
+
+This project follows **Specification-Driven Development (SDD)**.
+
+- Process guide: `docs/sdd-process.md`
+- Testing strategy: `docs/testing.md`
+- SDD skills: `.cursor/skills/sdd-*`
+- New features MUST follow the SDD process: Requirements + HLD → OpenAPI → Scenario Test (RED) → LLD (optional) → TDD Implementation (GREEN)
+- Existing APIs without documentation require partial or full Reverse SDD before modification (see `sdd-reverse` skill)
+
 ## Commands
 
 **Build & Test:**
@@ -116,9 +126,7 @@ PR (version update) → CI (Build & Tag version) → Merge → CD (Retag & Deplo
    - Comments on PR with version and image tags
 
 3. **API Validation & Generation** (`api-validation`)
-   - Builds and starts Spring Boot application with minimal environment
-   - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
-   - Validates spec with Spectral CLI
+   - Validates OpenAPI spec files from `openapi/` directory with Spectral CLI
    - Generates HTML documentation with Redocly
    - Uploads spec artifacts to GitHub Actions
    - Comments on PR with specification statistics
@@ -163,9 +171,7 @@ retag-release → [deploy-docs, railway-redeploy]
 2. **Deploy API Documentation** (`deploy-docs`)
    - **Duration:** ~2-3 minutes
    - **Depends on:** `retag-release`
-   - Uses `latest` image (points to version image)
-   - Starts application container with MySQL service
-   - Fetches OpenAPI spec from running container
+   - Uses OpenAPI spec files from `openapi/` directory
    - Generates Swagger UI for interactive testing
    - Generates Redoc for static documentation
    - Deploys to GitHub Pages
@@ -279,37 +285,49 @@ retag-release → [deploy-docs, railway-redeploy]
 
 ---
 
-### API Documentation (Code-First)
+### API Documentation
 
-**Philosophy:** Source code is the single source of truth for API specification
+**Philosophy:** OpenAPI spec files in `openapi/` directory are the single source of truth for API specification.
 
 **Implementation:**
-- SpringDoc annotations on controllers define API spec
-- OpenAPI spec auto-generated at runtime from `/v3/api-docs` endpoint
-- No manual YAML/JSON maintenance required
+- OpenAPI specs are maintained as YAML files in `openapi/` directory
+- Specs are written before implementation as part of the SDD workflow
+- Implementation must conform to the spec
+
+**Spec Structure:**
+```
+openapi/
+├── info.yaml                          ← API metadata
+├── paths/                             ← Endpoint definitions
+│   └── {feature-path}.yaml
+└── components/
+    ├── parameters/                    ← Shared path/query parameters
+    ├── schemas/
+    │   ├── requests/                  ← Request body schemas
+    │   ├── responses/                 ← Response body schemas
+    │   └── errors/                    ← Error response schemas
+    ├── examples/
+    │   └── errors/                    ← Error response examples
+    └── securitySchemes/               ← Authentication definitions
+```
 
 **Generation Process:**
 1. **PR (ci.yml):**
-   - Builds Spring Boot application from source
-   - Generates OpenAPI spec for validation and review
-   - Uploads spec as artifact
+   - Validates OpenAPI spec files with Spectral CLI
+   - Generates HTML documentation with Redocly
+   - Uploads spec artifacts to GitHub Actions
 
 2. **Main (cd.yml):**
-   - Uses pre-built Docker image (`latest` tag, points to version image)
-   - Starts application in container
-   - Fetches OpenAPI spec from running container
    - Generates and deploys documentation to GitHub Pages
 
 **Tools:**
-- SpringDoc OpenAPI: Annotation-based spec generation
 - Spectral: Linting and validation
 - Redocly: Static documentation site generation
 - Swagger UI: Interactive API testing interface
 
 **Benefits:**
-- ✅ Code and docs always in sync (impossible to be out of date)
-- ✅ Breaking changes caught automatically in PRs
-- ✅ Zero manual spec maintenance
+- ✅ Spec-first ensures API contract is agreed upon before implementation
+- ✅ Breaking changes caught automatically in PRs via Spectral validation
 - ✅ Interactive testing without Postman
 
 **Usage:**
@@ -389,7 +407,6 @@ JACOCO_VERIFICATION_ENABLED=true ./gradlew test
 - **WireMock**: 3.9.1 (was 2.35.0) - Maven artifact changed, Java packages unchanged
 - **Testcontainers**: 1.20.4 (was 1.19.3)
 - **REST Assured**: 5.5.0 (was 5.4.0)
-- **SpringDoc**: 2.8.1 (was 2.8.0)
 
 ### Gradual Improvement Strategy
 
@@ -562,18 +579,10 @@ class ExchangeRateContractTest extends AbstractContractTest {
 
 ## API Specification Management
 
-### Current Approach: Code-First
+OpenAPI specs in `openapi/` directory are the single source of truth for HTTP interface contracts.
+See the [Development Methodology](#development-methodology) section for the full SDD process.
 
-This project uses **Code-First** approach for API documentation:
-
-**Implementation:**
-- SpringDoc annotations on controllers define API specification
-- OpenAPI spec auto-generated at runtime from `/v3/api-docs` endpoint
-- CI/CD automatically generates and deploys documentation
-
-**Documentation:** See [CI/CD → API Documentation (Code-First)](#api-documentation-code-first) section above
-
-**Artifacts:**
+**Documentation:**
 - Live docs: https://tateca.github.io/tateca-backend
 - Swagger UI: Interactive API testing
 - Redoc: Static documentation
