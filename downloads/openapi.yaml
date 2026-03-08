@@ -1114,6 +1114,7 @@ components:
         email:
           type: string
           description: User's email address
+          minLength: 1
           maxLength: 255
           example: john@example.com
     UpdateAppReviewRequest:
