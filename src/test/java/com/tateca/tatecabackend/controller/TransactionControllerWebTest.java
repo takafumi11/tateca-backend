@@ -4,11 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.constants.BusinessConstants;
 import com.tateca.tatecabackend.dto.request.CreateTransactionRequestDTO;
+import com.tateca.tatecabackend.dto.request.UpdateTransactionRequestDTO;
 import com.tateca.tatecabackend.dto.response.CreateTransactionResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionHistoryResponseDTO;
 import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO;
+import com.tateca.tatecabackend.dto.response.TransactionSettlementResponseDTO.TransactionSettlement;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.dto.response.internal.ExchangeRateResponse;
+import com.tateca.tatecabackend.dto.response.internal.LoanResponse;
+import com.tateca.tatecabackend.dto.response.internal.ObligationResponse;
+import com.tateca.tatecabackend.dto.response.internal.RepaymentResponse;
+import com.tateca.tatecabackend.dto.response.internal.TransactionHistoryResponse;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.SymbolPosition;
@@ -41,6 +47,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,1131 +58,849 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("TransactionController Web Tests")
 class TransactionControllerWebTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
-    private TransactionService transactionService;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
+    @MockitoBean private TransactionService transactionService;
 
     private static final String BASE_ENDPOINT = "/groups/{groupId}/transactions";
+    private static final UUID STUB_GROUP_ID = UUID.randomUUID();
+    private static final UUID STUB_TRANSACTION_ID = UUID.randomUUID();
+    private static final UUID STUB_PAYER_ID = UUID.randomUUID();
+    private static final UUID STUB_OBLIGOR_ID = UUID.randomUUID();
+    private static final UUID STUB_RECIPIENT_ID = UUID.randomUUID();
 
-    // ========================================
-    // createTransaction Tests
-    // ========================================
+    private static final UserResponseDTO STUB_PAYER = new UserResponseDTO(
+            STUB_PAYER_ID.toString(), "Payer", null, "2024-01-01T09:00:00+09:00", "2024-01-01T09:00:00+09:00");
+    private static final UserResponseDTO STUB_OBLIGOR = new UserResponseDTO(
+            STUB_OBLIGOR_ID.toString(), "Obligor", null, "2024-01-01T09:00:00+09:00", "2024-01-01T09:00:00+09:00");
+    private static final UserResponseDTO STUB_RECIPIENT = new UserResponseDTO(
+            STUB_RECIPIENT_ID.toString(), "Recipient", null, "2024-01-01T09:00:00+09:00", "2024-01-01T09:00:00+09:00");
+    private static final ExchangeRateResponse STUB_EXCHANGE_RATE = new ExchangeRateResponse(
+            "JPY", "日本円", "Japanese Yen", "日本", "Japan", "¥", SymbolPosition.PREFIX, "1");
+
+    private static final CreateTransactionResponseDTO STUB_LOAN_RESPONSE = new CreateTransactionResponseDTO(
+            STUB_TRANSACTION_ID.toString(), TransactionType.LOAN, "Dinner", 5000L, STUB_PAYER,
+            STUB_EXCHANGE_RATE, "2024-01-15T18:30:00+09:00",
+            new LoanResponse(List.of(new ObligationResponse(STUB_OBLIGOR, 5000L))), null);
+
+    private static final CreateTransactionResponseDTO STUB_REPAYMENT_RESPONSE = new CreateTransactionResponseDTO(
+            STUB_TRANSACTION_ID.toString(), TransactionType.REPAYMENT, "Repay", 3000L, STUB_PAYER,
+            STUB_EXCHANGE_RATE, "2024-01-15T18:30:00+09:00",
+            null, new RepaymentResponse(STUB_RECIPIENT));
+
+    private CreateTransactionRequestDTO validLoanRequest() {
+        return new CreateTransactionRequestDTO(
+                TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                STUB_PAYER_ID,
+                new CreateTransactionRequestDTO.Loan(List.of(
+                        new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+    }
+
+    private CreateTransactionRequestDTO validRepaymentRequest() {
+        return new CreateTransactionRequestDTO(
+                TransactionType.REPAYMENT, "Repay", 3000, "JPY", "2024-01-15T18:30:00+09:00",
+                STUB_PAYER_ID, null,
+                new CreateTransactionRequestDTO.Repayment(STUB_RECIPIENT_ID));
+    }
+
+    private UpdateTransactionRequestDTO validUpdateRequest() {
+        return new UpdateTransactionRequestDTO(
+                "Updated", 8000, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                new UpdateTransactionRequestDTO.Loan(List.of(
+                        new UpdateTransactionRequestDTO.Loan.Obligation(8000, STUB_OBLIGOR_ID))));
+    }
+
+    // =========================================================================
+    // POST /groups/{groupId}/transactions — createTransaction
+    // =========================================================================
 
     @Nested
-    @DisplayName("POST /groups/{groupId}/transactions - Create Transaction")
-    class CreateTransactionTests {
-
-        @Test
-        @DisplayName("Should return 201 CREATED when valid LOAN transaction is created")
-        void shouldReturn201WhenValidLoanTransactionCreated() throws Exception {
-            // Given: Valid LOAN request
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower1 = UUID.randomUUID();
-            UUID borrower2 = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation1 =
-                    new CreateTransactionRequestDTO.Loan.Obligation(2500, borrower1);
-            CreateTransactionRequestDTO.Loan.Obligation obligation2 =
-                    new CreateTransactionRequestDTO.Loan.Obligation(2500, borrower2);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation1, obligation2));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner at restaurant",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 201
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isCreated());
-
-            verify(transactionService, times(1)).createTransaction(eq(groupId), any(CreateTransactionRequestDTO.class));
-        }
-
-        @Test
-        @DisplayName("Should return 201 CREATED when valid REPAYMENT transaction is created")
-        void shouldReturn201WhenValidRepaymentTransactionCreated() throws Exception {
-            // Given: Valid REPAYMENT request
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID recipientId = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Repayment repayment =
-                    new CreateTransactionRequestDTO.Repayment(recipientId);
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.REPAYMENT,
-                    "Repayment for dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    null,
-                    repayment
-            );
-
-            // When & Then: Should return 201
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isCreated());
-
-            verify(transactionService, times(1)).createTransaction(eq(groupId), any(CreateTransactionRequestDTO.class));
-        }
-
-        // ========================================
-        // Basic Field Validation Tests
-        // ========================================
-
-        @Test
-        @DisplayName("Should return 400 when transaction type is null")
-        void shouldReturn400WhenTransactionTypeIsNull() throws Exception {
-            // Given: Request with null transaction type
-            UUID groupId = UUID.randomUUID();
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":null,\"title\":\"Dinner\",\"amount\":5000,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + UUID.randomUUID() + "\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when title is blank")
-        void shouldReturn400WhenTitleIsBlank() throws Exception {
-            // Given: Request with blank title
-            UUID groupId = UUID.randomUUID();
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"LOAN\",\"title\":\"\",\"amount\":5000,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + UUID.randomUUID() + "\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when title exceeds 50 characters")
-        void shouldReturn400WhenTitleExceedsMaxLength() throws Exception {
-            // Given: Title with 51 characters
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "A".repeat(51),  // 51 characters
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when amount is null")
-        void shouldReturn400WhenAmountIsNull() throws Exception {
-            // Given: Request with null amount
-            UUID groupId = UUID.randomUUID();
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"LOAN\",\"title\":\"Dinner\",\"amount\":null,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + UUID.randomUUID() + "\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when amount is zero")
-        void shouldReturn400WhenAmountIsZero() throws Exception {
-            // Given: Request with zero amount
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    0,  // Invalid: must be positive
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when amount is negative")
-        void shouldReturn400WhenAmountIsNegative() throws Exception {
-            // Given: Request with negative amount
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    -1000,  // Invalid: must be positive
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when currency code is blank")
-        void shouldReturn400WhenCurrencyCodeIsBlank() throws Exception {
-            // Given: Request with blank currency code
-            UUID groupId = UUID.randomUUID();
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"LOAN\",\"title\":\"Dinner\",\"amount\":5000,\"currency_code\":\"\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + UUID.randomUUID() + "\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when currency code is lowercase")
-        void shouldReturn400WhenCurrencyCodeIsLowercase() throws Exception {
-            // Given: Request with lowercase currency code
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "jpy",  // Invalid: must be uppercase
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when currency code is not 3 characters")
-        void shouldReturn400WhenCurrencyCodeIsNotThreeCharacters() throws Exception {
-            // Given: Request with 2-character currency code
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JP",  // Invalid: must be 3 characters
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when date format is invalid (MM/DD/YYYY)")
-        void shouldReturn400WhenDateFormatIsInvalid() throws Exception {
-            // Given: Request with invalid date format
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "01/15/2024",  // Invalid: must be ISO 8601 with timezone
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when date has no timezone")
-        void shouldReturn400WhenDateHasNoTimezone() throws Exception {
-            // Given: Request with date missing timezone
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00",  // Invalid: missing timezone
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when date is date-only format")
-        void shouldReturn400WhenDateIsDateOnly() throws Exception {
-            // Given: Request with date-only format (no time)
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15",  // Invalid: must include time and timezone
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when payer ID is null")
-        void shouldReturn400WhenPayerIdIsNull() throws Exception {
-            // Given: Request with null payer ID
-            UUID groupId = UUID.randomUUID();
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"LOAN\",\"title\":\"Dinner\",\"amount\":5000,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":null}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        // ========================================
-        // Custom Validation Tests (@ValidTransactionDetails)
-        // ========================================
-
-        @Test
-        @DisplayName("Should return 400 when LOAN transaction has no loan details")
-        void shouldReturn400WhenLoanTransactionHasNoLoanDetails() throws Exception {
-            // Given: LOAN transaction without loan details
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    null,  // Invalid: loan details required for LOAN
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when LOAN transaction has repayment details")
-        void shouldReturn400WhenLoanTransactionHasRepaymentDetails() throws Exception {
-            // Given: LOAN transaction with both loan and repayment details
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-            UUID recipientId = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-            CreateTransactionRequestDTO.Repayment repayment =
-                    new CreateTransactionRequestDTO.Repayment(recipientId);
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    repayment  // Invalid: repayment should not be provided for LOAN
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when REPAYMENT transaction has no repayment details")
-        void shouldReturn400WhenRepaymentTransactionHasNoRepaymentDetails() throws Exception {
-            // Given: REPAYMENT transaction without repayment details
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.REPAYMENT,
-                    "Repayment",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    null,
-                    null  // Invalid: repayment details required for REPAYMENT
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when REPAYMENT transaction has loan details")
-        void shouldReturn400WhenRepaymentTransactionHasLoanDetails() throws Exception {
-            // Given: REPAYMENT transaction with both loan and repayment details
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-            UUID recipientId = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-            CreateTransactionRequestDTO.Repayment repayment =
-                    new CreateTransactionRequestDTO.Repayment(recipientId);
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.REPAYMENT,
-                    "Repayment",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,  // Invalid: loan should not be provided for REPAYMENT
-                    repayment
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        // ========================================
-        // Nested Object Validation Tests
-        // ========================================
-
-        @Test
-        @DisplayName("Should return 400 when obligations list is empty")
-        void shouldReturn400WhenObligationsListIsEmpty() throws Exception {
-            // Given: LOAN transaction with empty obligations list
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of());  // Invalid: empty obligations
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when obligations list exceeds maximum size")
-        void shouldReturn400WhenObligationsListExceedsMaxSize() throws Exception {
-            // Given: LOAN transaction with 10 obligations (exceeds max of 9)
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            List<CreateTransactionRequestDTO.Loan.Obligation> obligations = new ArrayList<>();
-            for (int i = 0; i < BusinessConstants.MAX_TRANSACTION_OBLIGATIONS + 1; i++) {
-                obligations.add(new CreateTransactionRequestDTO.Loan.Obligation(1000, UUID.randomUUID()));
+    @DisplayName("POST /groups/{groupId}/transactions — createTransaction")
+    class CreateTransaction {
+
+        @Nested
+        @DisplayName("201 Created")
+        class Status201 {
+
+            @Test
+            @DisplayName("Should return 201 with LOAN TransactionResponse schema")
+            void shouldReturn201WithLoanResponseSchema() throws Exception {
+                when(transactionService.createTransaction(eq(STUB_GROUP_ID), any())).thenReturn(STUB_LOAN_RESPONSE);
+
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validLoanRequest())))
+                        .andExpect(status().isCreated())
+                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(jsonPath("$.transaction_id").value(STUB_TRANSACTION_ID.toString()))
+                        .andExpect(jsonPath("$.transaction_type").value("LOAN"))
+                        .andExpect(jsonPath("$.title").value("Dinner"))
+                        .andExpect(jsonPath("$.amount").value(5000))
+                        .andExpect(jsonPath("$.payer.uuid").value(STUB_PAYER_ID.toString()))
+                        .andExpect(jsonPath("$.exchange_rate.currency_code").value("JPY"))
+                        .andExpect(jsonPath("$.date_str").value("2024-01-15T18:30:00+09:00"))
+                        .andExpect(jsonPath("$.loan.obligations").isArray())
+                        .andExpect(jsonPath("$.loan.obligations[0].user.uuid").value(STUB_OBLIGOR_ID.toString()))
+                        .andExpect(jsonPath("$.loan.obligations[0].amount").value(5000));
+
+                verify(transactionService, times(1)).createTransaction(eq(STUB_GROUP_ID), any());
             }
 
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(obligations);
+            @Test
+            @DisplayName("Should return 201 with REPAYMENT TransactionResponse schema")
+            void shouldReturn201WithRepaymentResponseSchema() throws Exception {
+                when(transactionService.createTransaction(eq(STUB_GROUP_ID), any())).thenReturn(STUB_REPAYMENT_RESPONSE);
 
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    9000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validRepaymentRequest())))
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.transaction_type").value("REPAYMENT"))
+                        .andExpect(jsonPath("$.repayment.recipient.uuid").value(STUB_RECIPIENT_ID.toString()));
 
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
+                verify(transactionService, times(1)).createTransaction(eq(STUB_GROUP_ID), any());
+            }
         }
 
-        @Test
-        @DisplayName("Should return 400 when obligation amount is null")
-        void shouldReturn400WhenObligationAmountIsNull() throws Exception {
-            // Given: LOAN transaction with null obligation amount
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
+        @Nested
+        @DisplayName("400 Bad Request — Validation errors")
+        class Status400 {
 
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"LOAN\",\"title\":\"Dinner\",\"amount\":5000,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + payerId + "\",\"loan\":{\"obligations\":[{\"amount\":null,\"user_uuid\":\"" + borrower + "\"}]}}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
+            @Test
+            @DisplayName("Should return 400 when transaction_type is null")
+            void shouldReturn400WhenTransactionTypeIsNull() throws Exception {
+                String json = """
+                        {"transaction_type":null,"title":"X","amount":1,"currency_code":"JPY",
+                         "date_str":"2024-01-15T18:30:00+09:00","payer_id":"%s"}""".formatted(STUB_PAYER_ID);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON).content(json))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
 
-            verify(transactionService, never()).createTransaction(any(), any());
+            @Test
+            @DisplayName("Should return 400 when title is blank")
+            void shouldReturn400WhenTitleIsBlank() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "", 5000, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when title exceeds 50 characters")
+            void shouldReturn400WhenTitleExceedsMaxLength() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "A".repeat(51), 5000, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when amount is null")
+            void shouldReturn400WhenAmountIsNull() throws Exception {
+                String json = """
+                        {"transaction_type":"LOAN","title":"X","amount":null,"currency_code":"JPY",
+                         "date_str":"2024-01-15T18:30:00+09:00","payer_id":"%s"}""".formatted(STUB_PAYER_ID);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON).content(json))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when amount is zero")
+            void shouldReturn400WhenAmountIsZero() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 0, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when amount is negative")
+            void shouldReturn400WhenAmountIsNegative() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", -1, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when currency_code is blank")
+            void shouldReturn400WhenCurrencyCodeIsBlank() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when currency_code pattern is invalid")
+            void shouldReturn400WhenCurrencyCodePatternInvalid() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "jpy", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when date_str is blank")
+            void shouldReturn400WhenDateIsBlank() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when date_str has no timezone")
+            void shouldReturn400WhenDateHasNoTimezone() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00", STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when payer_id is null")
+            void shouldReturn400WhenPayerIdIsNull() throws Exception {
+                String json = """
+                        {"transaction_type":"LOAN","title":"X","amount":1,"currency_code":"JPY",
+                         "date_str":"2024-01-15T18:30:00+09:00","payer_id":null}""";
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON).content(json))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when LOAN has no loan details")
+            void shouldReturn400WhenLoanHasNoLoanDetails() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID, null, null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when LOAN has repayment details")
+            void shouldReturn400WhenLoanHasRepaymentDetails() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))),
+                        new CreateTransactionRequestDTO.Repayment(STUB_RECIPIENT_ID));
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when REPAYMENT has no repayment details")
+            void shouldReturn400WhenRepaymentHasNoRepaymentDetails() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.REPAYMENT, "Repay", 3000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID, null, null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when REPAYMENT has loan details")
+            void shouldReturn400WhenRepaymentHasLoanDetails() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.REPAYMENT, "Repay", 3000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(3000, STUB_OBLIGOR_ID))),
+                        new CreateTransactionRequestDTO.Repayment(STUB_RECIPIENT_ID));
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when obligations list is empty")
+            void shouldReturn400WhenObligationsIsEmpty() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID, new CreateTransactionRequestDTO.Loan(List.of()), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when obligations exceeds max size")
+            void shouldReturn400WhenObligationsExceedsMax() throws Exception {
+                List<CreateTransactionRequestDTO.Loan.Obligation> obligations = new ArrayList<>();
+                for (int i = 0; i < BusinessConstants.MAX_TRANSACTION_OBLIGATIONS + 1; i++) {
+                    obligations.add(new CreateTransactionRequestDTO.Loan.Obligation(100, UUID.randomUUID()));
+                }
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID, new CreateTransactionRequestDTO.Loan(obligations), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when obligation amount is zero")
+            void shouldReturn400WhenObligationAmountIsZero() throws Exception {
+                var req = new CreateTransactionRequestDTO(
+                        TransactionType.LOAN, "Dinner", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID,
+                        new CreateTransactionRequestDTO.Loan(List.of(
+                                new CreateTransactionRequestDTO.Loan.Obligation(0, STUB_OBLIGOR_ID))), null);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when obligation user_uuid is null")
+            void shouldReturn400WhenObligationUserUuidIsNull() throws Exception {
+                String json = """
+                        {"transaction_type":"LOAN","title":"X","amount":1,"currency_code":"JPY",
+                         "date_str":"2024-01-15T18:30:00+09:00","payer_id":"%s",
+                         "loan":{"obligations":[{"amount":1,"user_uuid":null}]}}""".formatted(STUB_PAYER_ID);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON).content(json))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when repayment recipient_id is null")
+            void shouldReturn400WhenRecipientIdIsNull() throws Exception {
+                String json = """
+                        {"transaction_type":"REPAYMENT","title":"X","amount":1,"currency_code":"JPY",
+                         "date_str":"2024-01-15T18:30:00+09:00","payer_id":"%s",
+                         "repayment":{"recipient_id":null}}""".formatted(STUB_PAYER_ID);
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON).content(json))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when groupId is invalid UUID")
+            void shouldReturn400WhenGroupIdIsInvalidUuid() throws Exception {
+                mockMvc.perform(post(BASE_ENDPOINT, "not-a-uuid")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validLoanRequest())))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when JSON is malformed")
+            void shouldReturn400WhenJsonIsMalformed() throws Exception {
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{invalid json"))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
         }
 
-        @Test
-        @DisplayName("Should return 400 when obligation amount is zero")
-        void shouldReturn400WhenObligationAmountIsZero() throws Exception {
-            // Given: LOAN transaction with zero obligation amount
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
+        @Nested
+        @DisplayName("404 Not Found")
+        class Status404 {
 
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(0, borrower);  // Invalid: must be positive
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
+            @Test
+            @DisplayName("Should return 404 when Service throws EntityNotFoundException")
+            void shouldReturn404WhenEntityNotFound() throws Exception {
+                when(transactionService.createTransaction(any(), any()))
+                        .thenThrow(new EntityNotFoundException("Not found"));
 
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validLoanRequest())))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.status").value(404));
 
-            // When & Then: Should return 400
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
+                verify(transactionService, times(1)).createTransaction(any(), any());
+            }
         }
 
-        @Test
-        @DisplayName("Should return 400 when obligation user UUID is null")
-        void shouldReturn400WhenObligationUserUuidIsNull() throws Exception {
-            // Given: LOAN transaction with null obligation user UUID
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"LOAN\",\"title\":\"Dinner\",\"amount\":5000,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + payerId + "\",\"loan\":{\"obligations\":[{\"amount\":2500,\"user_uuid\":null}]}}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when repayment recipient ID is null")
-        void shouldReturn400WhenRepaymentRecipientIdIsNull() throws Exception {
-            // Given: REPAYMENT transaction with null recipient ID
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"transaction_type\":\"REPAYMENT\",\"title\":\"Repayment\",\"amount\":5000,\"currency_code\":\"JPY\",\"date_str\":\"2024-01-15\",\"payer_id\":\"" + payerId + "\",\"repayment\":{\"recipient_id\":null}}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400));
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        // ========================================
-        // Media Type Validation Tests
-        // ========================================
-
-        @Test
-        @DisplayName("Should return 415 when Content-Type is missing")
-        void shouldReturn415WhenContentTypeIsMissing() throws Exception {
-            // Given: Valid LOAN transaction JSON but no Content-Type header
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnsupportedMediaType());
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 415 when Content-Type is not JSON")
-        void shouldReturn415WhenContentTypeIsNotJson() throws Exception {
-            // Given: Valid LOAN transaction JSON but wrong Content-Type
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.TEXT_PLAIN)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnsupportedMediaType());
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-
-        @Test
-        @DisplayName("Should return 415 when Content-Type is XML")
-        void shouldReturn415WhenContentTypeIsXml() throws Exception {
-            // Given: Valid LOAN transaction JSON but XML Content-Type
-            UUID groupId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-            UUID borrower = UUID.randomUUID();
-
-            CreateTransactionRequestDTO.Loan.Obligation obligation =
-                    new CreateTransactionRequestDTO.Loan.Obligation(5000, borrower);
-            CreateTransactionRequestDTO.Loan loan =
-                    new CreateTransactionRequestDTO.Loan(List.of(obligation));
-
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO(
-                    TransactionType.LOAN,
-                    "Dinner",
-                    5000,
-                    "JPY",
-                    "2024-01-15T18:30:00+09:00",
-                    payerId,
-                    loan,
-                    null
-            );
-
-            // When & Then: Should return 415 UNSUPPORTED_MEDIA_TYPE
-            mockMvc.perform(post(BASE_ENDPOINT, groupId)
-                            .contentType(MediaType.APPLICATION_XML)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnsupportedMediaType());
-
-            verify(transactionService, never()).createTransaction(any(), any());
-        }
-    }
-
-    // ========================================
-    // getTransactionHistory Tests
-    // ========================================
-
-    @Nested
-    @DisplayName("GET /groups/{groupId}/transactions/history - Get Transaction History")
-    class GetTransactionHistoryTests {
-
-        @Test
-        @DisplayName("Should return 200 OK with transaction history")
-        void shouldReturn200WithTransactionHistory() throws Exception {
-            // Given: Group has transactions
-            UUID groupId = UUID.randomUUID();
-            int count = 10;
-
-            TransactionHistoryResponseDTO expectedResponse =
-                    new TransactionHistoryResponseDTO(List.of());
-
-            when(transactionService.getTransactionHistory(anyInt(), eq(groupId)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should return 200
-            mockMvc.perform(get(BASE_ENDPOINT + "/history", groupId)
-                            .param("count", String.valueOf(count)))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.transactions_history").isArray());
-
-            verify(transactionService, times(1)).getTransactionHistory(anyInt(), eq(groupId));
-        }
-
-        @Test
-        @DisplayName("Should return 200 OK with default count when count parameter is not provided")
-        void shouldReturn200WithDefaultCount() throws Exception {
-            // Given: No count parameter provided
-            UUID groupId = UUID.randomUUID();
-
-            TransactionHistoryResponseDTO expectedResponse =
-                    new TransactionHistoryResponseDTO(List.of());
-
-            when(transactionService.getTransactionHistory(anyInt(), eq(groupId)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should return 200 with default count (5)
-            mockMvc.perform(get(BASE_ENDPOINT + "/history", groupId))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.transactions_history").isArray());
-
-            verify(transactionService, times(1)).getTransactionHistory(anyInt(), eq(groupId));
-        }
-
-        @Test
-        @DisplayName("Should return 400 when groupId is invalid UUID")
-        void shouldReturn400WhenInvalidUUID() throws Exception {
-            // Given: Invalid UUID
-            String invalidUUID = "not-a-uuid";
-
-            // When & Then: Should return 400
-            mockMvc.perform(get(BASE_ENDPOINT + "/history", invalidUUID)
-                            .param("count", "10"))
-                    .andExpect(status().isBadRequest());
-
-            verify(transactionService, never()).getTransactionHistory(anyInt(), any());
-        }
-    }
-
-    // ========================================
-    // getTransactionSettlement Tests
-    // ========================================
-
-    @Nested
-    @DisplayName("GET /groups/{groupId}/transactions/settlement - Get Transaction Settlement")
-    class GetTransactionSettlementTests {
-
-        @Test
-        @DisplayName("Should return 200 OK with settlement information")
-        void shouldReturn200WithSettlementInfo() throws Exception {
-            // Given: Group has settlements
-            UUID groupId = UUID.randomUUID();
-
-            TransactionSettlementResponseDTO expectedResponse =
-                    new TransactionSettlementResponseDTO(List.of());
-
-            when(transactionService.getSettlements(eq(groupId)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should return 200
-            mockMvc.perform(get(BASE_ENDPOINT + "/settlement", groupId))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.transactions_settlement").isArray());
-
-            verify(transactionService, times(1)).getSettlements(eq(groupId));
-        }
-
-        @Test
-        @DisplayName("Should return 404 when group not found")
-        void shouldReturn404WhenGroupNotFound() throws Exception {
-            // Given: Group does not exist
-            UUID groupId = UUID.randomUUID();
-
-            when(transactionService.getSettlements(eq(groupId)))
-                    .thenThrow(new EntityNotFoundException("Group not found"));
-
-            // When & Then: Should return 404
-            mockMvc.perform(get(BASE_ENDPOINT + "/settlement", groupId))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404));
-
-            verify(transactionService, times(1)).getSettlements(eq(groupId));
-        }
-
-        @Test
-        @DisplayName("Should return 400 when groupId is invalid UUID")
-        void shouldReturn400WhenInvalidUUID() throws Exception {
-            // Given: Invalid UUID
-            String invalidUUID = "not-a-uuid";
-
-            // When & Then: Should return 400
-            mockMvc.perform(get(BASE_ENDPOINT + "/settlement", invalidUUID))
-                    .andExpect(status().isBadRequest());
-
-            verify(transactionService, never()).getSettlements(any());
-        }
-    }
-
-    // ========================================
-    // getTransactionDetail Tests
-    // ========================================
-
-    @Nested
-    @DisplayName("GET /groups/{groupId}/transactions/{transactionId} - Get Transaction Detail")
-    class GetTransactionDetailTests {
-
-        @Test
-        @DisplayName("Should return 200 OK with transaction detail")
-        void shouldReturn200WithTransactionDetail() throws Exception {
-            // Given: Transaction exists
-            UUID groupId = UUID.randomUUID();
-            UUID transactionId = UUID.randomUUID();
-            UUID payerId = UUID.randomUUID();
-
-            UserResponseDTO payer = new UserResponseDTO(
-                    payerId.toString(),
-                    "Test Payer",
-                    null,
-                    "2024-01-01T09:00:00+09:00",
-                    "2024-01-01T09:00:00+09:00"
-            );
-
-            ExchangeRateResponse exchangeRate = new ExchangeRateResponse(
-                    "JPY",
-                    "日本円",
-                    "Japanese Yen",
-                    "日本",
-                    "Japan",
-                    "¥",
-                    SymbolPosition.PREFIX,
-                    "1.00"
-            );
-
-            CreateTransactionResponseDTO expectedResponse =
-                    new CreateTransactionResponseDTO(
-                            transactionId.toString(),
-                            TransactionType.LOAN,
-                            "Test Transaction",
-                            5000L,
-                            payer,
-                            exchangeRate,
-                            "2024-01-15T18:00:00+09:00",
-                            null,
-                            null
-                    );
-
-            when(transactionService.getTransactionDetail(eq(transactionId)))
-                    .thenReturn(expectedResponse);
-
-            // When & Then: Should return 200
-            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.transaction_id").value(transactionId.toString()));
-
-            verify(transactionService, times(1)).getTransactionDetail(eq(transactionId));
-        }
-
-        @Test
-        @DisplayName("Should return 404 when transaction not found")
-        void shouldReturn404WhenTransactionNotFound() throws Exception {
-            // Given: Transaction does not exist
-            UUID groupId = UUID.randomUUID();
-            UUID transactionId = UUID.randomUUID();
-
-            when(transactionService.getTransactionDetail(eq(transactionId)))
-                    .thenThrow(new EntityNotFoundException("Transaction not found"));
-
-            // When & Then: Should return 404
-            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404));
-
-            verify(transactionService, times(1)).getTransactionDetail(eq(transactionId));
-        }
-
-        @Test
-        @DisplayName("Should return 400 when groupId is invalid UUID")
-        void shouldReturn400WhenInvalidGroupIdUUID() throws Exception {
-            // Given: Invalid groupId UUID
-            String invalidGroupId = "not-a-uuid";
-            UUID transactionId = UUID.randomUUID();
-
-            // When & Then: Should return 400
-            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", invalidGroupId, transactionId))
-                    .andExpect(status().isBadRequest());
-
-            verify(transactionService, never()).getTransactionDetail(any());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when transactionId is invalid UUID")
-        void shouldReturn400WhenInvalidTransactionIdUUID() throws Exception {
-            // Given: Invalid transactionId UUID
-            UUID groupId = UUID.randomUUID();
-            String invalidTransactionId = "not-a-uuid";
-
-            // When & Then: Should return 400
-            mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", groupId, invalidTransactionId))
-                    .andExpect(status().isBadRequest());
-
-            verify(transactionService, never()).getTransactionDetail(any());
+        @Nested
+        @DisplayName("415 Unsupported Media Type")
+        class Status415 {
+
+            @Test
+            @DisplayName("Should return 415 when Content-Type is missing")
+            void shouldReturn415WhenContentTypeMissing() throws Exception {
+                mockMvc.perform(post(BASE_ENDPOINT, STUB_GROUP_ID)
+                                .content(objectMapper.writeValueAsString(validLoanRequest())))
+                        .andExpect(status().isUnsupportedMediaType());
+                verify(transactionService, never()).createTransaction(any(), any());
+            }
         }
     }
 
-    // ========================================
-    // deleteTransaction Tests
-    // ========================================
+    // =========================================================================
+    // GET /groups/{groupId}/transactions/{transactionId} — getTransactionDetail
+    // =========================================================================
 
     @Nested
-    @DisplayName("DELETE /groups/{groupId}/transactions/{transactionId} - Delete Transaction")
-    class DeleteTransactionTests {
+    @DisplayName("GET /groups/{groupId}/transactions/{transactionId} — getTransactionDetail")
+    class GetTransactionDetail {
 
-        @Test
-        @DisplayName("Should return 204 NO CONTENT when transaction is deleted")
-        void shouldReturn204WhenTransactionDeleted() throws Exception {
-            // Given: Transaction exists
-            UUID groupId = UUID.randomUUID();
-            UUID transactionId = UUID.randomUUID();
+        @Nested
+        @DisplayName("200 OK")
+        class Status200 {
 
-            doNothing().when(transactionService).deleteTransaction(eq(transactionId));
+            @Test
+            @DisplayName("Should return 200 with TransactionResponse schema")
+            void shouldReturn200WithTransactionResponseSchema() throws Exception {
+                when(transactionService.getTransactionDetail(eq(STUB_TRANSACTION_ID))).thenReturn(STUB_LOAN_RESPONSE);
 
-            // When & Then: Should return 204
-            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
-                    .andExpect(status().isNoContent());
+                mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(jsonPath("$.transaction_id").value(STUB_TRANSACTION_ID.toString()))
+                        .andExpect(jsonPath("$.transaction_type").value("LOAN"))
+                        .andExpect(jsonPath("$.title").value("Dinner"))
+                        .andExpect(jsonPath("$.amount").value(5000))
+                        .andExpect(jsonPath("$.payer.uuid").exists())
+                        .andExpect(jsonPath("$.exchange_rate.currency_code").value("JPY"))
+                        .andExpect(jsonPath("$.date_str").exists());
 
-            verify(transactionService, times(1)).deleteTransaction(eq(transactionId));
+                verify(transactionService, times(1)).getTransactionDetail(eq(STUB_TRANSACTION_ID));
+            }
         }
 
-        @Test
-        @DisplayName("Should return 404 when transaction not found")
-        void shouldReturn404WhenTransactionNotFound() throws Exception {
-            // Given: Transaction does not exist
-            UUID groupId = UUID.randomUUID();
-            UUID transactionId = UUID.randomUUID();
+        @Nested
+        @DisplayName("400 Bad Request")
+        class Status400 {
 
-            doThrow(new EntityNotFoundException("Transaction not found"))
-                    .when(transactionService).deleteTransaction(eq(transactionId));
+            @Test
+            @DisplayName("Should return 400 when groupId is invalid UUID")
+            void shouldReturn400WhenGroupIdInvalid() throws Exception {
+                mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", "not-a-uuid", STUB_TRANSACTION_ID))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).getTransactionDetail(any());
+            }
 
-            // When & Then: Should return 404
-            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", groupId, transactionId))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404));
-
-            verify(transactionService, times(1)).deleteTransaction(eq(transactionId));
+            @Test
+            @DisplayName("Should return 400 when transactionId is invalid UUID")
+            void shouldReturn400WhenTransactionIdInvalid() throws Exception {
+                mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, "not-a-uuid"))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).getTransactionDetail(any());
+            }
         }
 
-        @Test
-        @DisplayName("Should return 400 when groupId is invalid UUID")
-        void shouldReturn400WhenInvalidGroupIdUUID() throws Exception {
-            // Given: Invalid groupId UUID
-            String invalidGroupId = "not-a-uuid";
-            UUID transactionId = UUID.randomUUID();
+        @Nested
+        @DisplayName("404 Not Found")
+        class Status404 {
 
-            // When & Then: Should return 400
-            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", invalidGroupId, transactionId))
-                    .andExpect(status().isBadRequest());
+            @Test
+            @DisplayName("Should return 404 when transaction not found")
+            void shouldReturn404WhenTransactionNotFound() throws Exception {
+                when(transactionService.getTransactionDetail(eq(STUB_TRANSACTION_ID)))
+                        .thenThrow(new EntityNotFoundException("Transaction not found"));
 
-            verify(transactionService, never()).deleteTransaction(any());
+                mockMvc.perform(get(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.status").value(404));
+
+                verify(transactionService, times(1)).getTransactionDetail(eq(STUB_TRANSACTION_ID));
+            }
+        }
+    }
+
+    // =========================================================================
+    // PUT /groups/{groupId}/transactions/{transactionId} — updateTransaction
+    // =========================================================================
+
+    @Nested
+    @DisplayName("PUT /groups/{groupId}/transactions/{transactionId} — updateTransaction")
+    class UpdateTransaction {
+
+        @Nested
+        @DisplayName("200 OK")
+        class Status200 {
+
+            @Test
+            @DisplayName("Should return 200 with updated TransactionResponse schema")
+            void shouldReturn200WithUpdatedResponseSchema() throws Exception {
+                when(transactionService.updateTransaction(eq(STUB_TRANSACTION_ID), any())).thenReturn(STUB_LOAN_RESPONSE);
+
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(jsonPath("$.transaction_id").exists())
+                        .andExpect(jsonPath("$.transaction_type").value("LOAN"))
+                        .andExpect(jsonPath("$.title").exists())
+                        .andExpect(jsonPath("$.amount").exists())
+                        .andExpect(jsonPath("$.payer.uuid").exists())
+                        .andExpect(jsonPath("$.exchange_rate.currency_code").exists())
+                        .andExpect(jsonPath("$.loan.obligations").isArray());
+
+                verify(transactionService, times(1)).updateTransaction(eq(STUB_TRANSACTION_ID), any());
+            }
         }
 
-        @Test
-        @DisplayName("Should return 400 when transactionId is invalid UUID")
-        void shouldReturn400WhenInvalidTransactionIdUUID() throws Exception {
-            // Given: Invalid transactionId UUID
-            UUID groupId = UUID.randomUUID();
-            String invalidTransactionId = "not-a-uuid";
+        @Nested
+        @DisplayName("400 Bad Request — Validation errors")
+        class Status400 {
 
-            // When & Then: Should return 400
-            mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", groupId, invalidTransactionId))
-                    .andExpect(status().isBadRequest());
+            @Test
+            @DisplayName("Should return 400 when title is blank")
+            void shouldReturn400WhenTitleIsBlank() throws Exception {
+                var req = new UpdateTransactionRequestDTO("", 5000, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new UpdateTransactionRequestDTO.Loan(List.of(
+                                new UpdateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))));
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
 
-            verify(transactionService, never()).deleteTransaction(any());
+            @Test
+            @DisplayName("Should return 400 when amount is zero")
+            void shouldReturn400WhenAmountIsZero() throws Exception {
+                var req = new UpdateTransactionRequestDTO("X", 0, "JPY", "2024-01-15T18:30:00+09:00", STUB_PAYER_ID,
+                        new UpdateTransactionRequestDTO.Loan(List.of(
+                                new UpdateTransactionRequestDTO.Loan.Obligation(5000, STUB_OBLIGOR_ID))));
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when loan is null")
+            void shouldReturn400WhenLoanIsNull() throws Exception {
+                var req = new UpdateTransactionRequestDTO("X", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID, null);
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when obligations list is empty")
+            void shouldReturn400WhenObligationsIsEmpty() throws Exception {
+                var req = new UpdateTransactionRequestDTO("X", 5000, "JPY", "2024-01-15T18:30:00+09:00",
+                        STUB_PAYER_ID, new UpdateTransactionRequestDTO.Loan(List.of()));
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when groupId is invalid UUID")
+            void shouldReturn400WhenGroupIdInvalid() throws Exception {
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", "not-a-uuid", STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when transactionId is invalid UUID")
+            void shouldReturn400WhenTransactionIdInvalid() throws Exception {
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, "not-a-uuid")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when REPAYMENT update is attempted (IllegalArgumentException)")
+            void shouldReturn400WhenRepaymentUpdateAttempted() throws Exception {
+                when(transactionService.updateTransaction(any(), any()))
+                        .thenThrow(new IllegalArgumentException("Only LOAN transactions can be updated"));
+
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.status").value(400));
+
+                verify(transactionService, times(1)).updateTransaction(any(), any());
+            }
+        }
+
+        @Nested
+        @DisplayName("404 Not Found")
+        class Status404 {
+
+            @Test
+            @DisplayName("Should return 404 when transaction not found")
+            void shouldReturn404WhenTransactionNotFound() throws Exception {
+                when(transactionService.updateTransaction(any(), any()))
+                        .thenThrow(new EntityNotFoundException("Transaction not found"));
+
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.status").value(404));
+
+                verify(transactionService, times(1)).updateTransaction(any(), any());
+            }
+        }
+
+        @Nested
+        @DisplayName("415 Unsupported Media Type")
+        class Status415 {
+
+            @Test
+            @DisplayName("Should return 415 when Content-Type is missing")
+            void shouldReturn415WhenContentTypeMissing() throws Exception {
+                mockMvc.perform(put(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID)
+                                .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                        .andExpect(status().isUnsupportedMediaType());
+                verify(transactionService, never()).updateTransaction(any(), any());
+            }
+        }
+    }
+
+    // =========================================================================
+    // DELETE /groups/{groupId}/transactions/{transactionId} — deleteTransaction
+    // =========================================================================
+
+    @Nested
+    @DisplayName("DELETE /groups/{groupId}/transactions/{transactionId} — deleteTransaction")
+    class DeleteTransaction {
+
+        @Nested
+        @DisplayName("204 No Content")
+        class Status204 {
+
+            @Test
+            @DisplayName("Should return 204 when transaction is deleted")
+            void shouldReturn204WhenDeleted() throws Exception {
+                doNothing().when(transactionService).deleteTransaction(eq(STUB_TRANSACTION_ID));
+
+                mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID))
+                        .andExpect(status().isNoContent());
+
+                verify(transactionService, times(1)).deleteTransaction(eq(STUB_TRANSACTION_ID));
+            }
+        }
+
+        @Nested
+        @DisplayName("400 Bad Request")
+        class Status400 {
+
+            @Test
+            @DisplayName("Should return 400 when groupId is invalid UUID")
+            void shouldReturn400WhenGroupIdInvalid() throws Exception {
+                mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", "not-a-uuid", STUB_TRANSACTION_ID))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).deleteTransaction(any());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when transactionId is invalid UUID")
+            void shouldReturn400WhenTransactionIdInvalid() throws Exception {
+                mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, "not-a-uuid"))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).deleteTransaction(any());
+            }
+        }
+
+        @Nested
+        @DisplayName("404 Not Found")
+        class Status404 {
+
+            @Test
+            @DisplayName("Should return 404 when Service throws EntityNotFoundException")
+            void shouldReturn404WhenEntityNotFound() throws Exception {
+                doThrow(new EntityNotFoundException("Transaction not found"))
+                        .when(transactionService).deleteTransaction(eq(STUB_TRANSACTION_ID));
+
+                mockMvc.perform(delete(BASE_ENDPOINT + "/{transactionId}", STUB_GROUP_ID, STUB_TRANSACTION_ID))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.status").value(404));
+
+                verify(transactionService, times(1)).deleteTransaction(eq(STUB_TRANSACTION_ID));
+            }
+        }
+    }
+
+    // =========================================================================
+    // GET /groups/{groupId}/transactions/history — getTransactionHistory
+    // =========================================================================
+
+    @Nested
+    @DisplayName("GET /groups/{groupId}/transactions/history — getTransactionHistory")
+    class GetTransactionHistory {
+
+        @Nested
+        @DisplayName("200 OK")
+        class Status200 {
+
+            @Test
+            @DisplayName("Should return 200 with TransactionHistoryResponse schema")
+            void shouldReturn200WithHistorySchema() throws Exception {
+                var historyEntry = new TransactionHistoryResponse(
+                        STUB_TRANSACTION_ID.toString(), TransactionType.LOAN, "Dinner",
+                        5000, STUB_EXCHANGE_RATE, "2024-01-15T18:30:00+09:00");
+                var response = new TransactionHistoryResponseDTO(List.of(historyEntry));
+
+                when(transactionService.getTransactionHistory(anyInt(), eq(STUB_GROUP_ID))).thenReturn(response);
+
+                mockMvc.perform(get(BASE_ENDPOINT + "/history", STUB_GROUP_ID).param("count", "10"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(jsonPath("$.transactions_history").isArray())
+                        .andExpect(jsonPath("$.transactions_history[0].transaction_id").value(STUB_TRANSACTION_ID.toString()))
+                        .andExpect(jsonPath("$.transactions_history[0].transaction_type").value("LOAN"))
+                        .andExpect(jsonPath("$.transactions_history[0].title").value("Dinner"))
+                        .andExpect(jsonPath("$.transactions_history[0].amount").value(5000))
+                        .andExpect(jsonPath("$.transactions_history[0].exchange_rate.currency_code").value("JPY"))
+                        .andExpect(jsonPath("$.transactions_history[0].date").exists());
+
+                verify(transactionService, times(1)).getTransactionHistory(anyInt(), eq(STUB_GROUP_ID));
+            }
+
+            @Test
+            @DisplayName("Should use default count when not provided")
+            void shouldUseDefaultCount() throws Exception {
+                when(transactionService.getTransactionHistory(anyInt(), eq(STUB_GROUP_ID)))
+                        .thenReturn(new TransactionHistoryResponseDTO(List.of()));
+
+                mockMvc.perform(get(BASE_ENDPOINT + "/history", STUB_GROUP_ID))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.transactions_history").isArray());
+
+                verify(transactionService, times(1)).getTransactionHistory(eq(5), eq(STUB_GROUP_ID));
+            }
+        }
+
+        @Nested
+        @DisplayName("400 Bad Request")
+        class Status400 {
+
+            @Test
+            @DisplayName("Should return 400 when groupId is invalid UUID")
+            void shouldReturn400WhenGroupIdInvalid() throws Exception {
+                mockMvc.perform(get(BASE_ENDPOINT + "/history", "not-a-uuid"))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).getTransactionHistory(anyInt(), any());
+            }
+        }
+    }
+
+    // =========================================================================
+    // GET /groups/{groupId}/transactions/settlement — getTransactionSettlement
+    // =========================================================================
+
+    @Nested
+    @DisplayName("GET /groups/{groupId}/transactions/settlement — getTransactionSettlement")
+    class GetTransactionSettlement {
+
+        @Nested
+        @DisplayName("200 OK")
+        class Status200 {
+
+            @Test
+            @DisplayName("Should return 200 with TransactionSettlementResponse schema")
+            void shouldReturn200WithSettlementSchema() throws Exception {
+                var settlement = new TransactionSettlement(STUB_OBLIGOR, STUB_PAYER, 3000L);
+                var response = new TransactionSettlementResponseDTO(List.of(settlement));
+
+                when(transactionService.getSettlements(eq(STUB_GROUP_ID))).thenReturn(response);
+
+                mockMvc.perform(get(BASE_ENDPOINT + "/settlement", STUB_GROUP_ID))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(jsonPath("$.transactions_settlement").isArray())
+                        .andExpect(jsonPath("$.transactions_settlement[0].from.uuid").value(STUB_OBLIGOR_ID.toString()))
+                        .andExpect(jsonPath("$.transactions_settlement[0].to.uuid").value(STUB_PAYER_ID.toString()))
+                        .andExpect(jsonPath("$.transactions_settlement[0].amount").value(3000));
+
+                verify(transactionService, times(1)).getSettlements(eq(STUB_GROUP_ID));
+            }
+        }
+
+        @Nested
+        @DisplayName("400 Bad Request")
+        class Status400 {
+
+            @Test
+            @DisplayName("Should return 400 when groupId is invalid UUID")
+            void shouldReturn400WhenGroupIdInvalid() throws Exception {
+                mockMvc.perform(get(BASE_ENDPOINT + "/settlement", "not-a-uuid"))
+                        .andExpect(status().isBadRequest());
+                verify(transactionService, never()).getSettlements(any());
+            }
         }
     }
 }

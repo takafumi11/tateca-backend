@@ -15,7 +15,7 @@ properties:
     example: Dinner at restaurant
   amount:
     type: integer
-    description: Transaction amount in cents
+    description: Transaction amount in the smallest currency unit (e.g., yen for JPY, cents for USD)
     minimum: 1
     example: 5000
   currency_code:
@@ -41,9 +41,9 @@ properties:
     properties:
       obligations:
         type: array
-        description: List of loan obligations specifying who owes what amount (max 8)
+        description: List of loan obligations specifying who owes what amount (max 9)
         minItems: 1
-        maxItems: 8
+        maxItems: 9
         items:
           type: object
           required:
@@ -52,7 +52,7 @@ properties:
           properties:
             amount:
               type: integer
-              description: Amount owed in cents
+              description: Amount owed in the smallest currency unit
               minimum: 1
               example: 2500
             user_uuid:
