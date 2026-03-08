@@ -53,7 +53,6 @@ public class TatecaAuthenticationFilter extends OncePerRequestFilter {
     // Public endpoints that don't require authentication
     private static final List<String> PUBLIC_PATHS = Arrays.asList(
         "/error",
-        "/actuator/health",
         "/dev"
     );
 

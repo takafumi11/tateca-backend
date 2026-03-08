@@ -243,19 +243,6 @@ class TatecaAuthenticationFilterUnitTest {
             verify(request, never()).getHeader("X-API-Key");
         }
 
-        @Test
-        @DisplayName("Should bypass authentication for /actuator/health")
-        void shouldBypassAuthenticationForActuatorHealth() throws Exception {
-            // Given
-            when(request.getRequestURI()).thenReturn("/actuator/health");
-
-            // When
-            boolean shouldFilter = !filter.shouldNotFilter(request);
-
-            // Then
-            assertThat(shouldFilter).isFalse();
-        }
-
     }
 
     @Nested

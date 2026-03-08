@@ -45,8 +45,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints (no authentication required)
                 .requestMatchers(
-                    "/error",
-                    "/actuator/health"
+                    "/error"
                 ).permitAll()
 
                 // Dev endpoints (will be disabled in production via @Profile)

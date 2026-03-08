@@ -66,11 +66,10 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 
-    // Enable parallel execution for faster test runs
-    // - Test classes run in parallel (concurrent)
-    // - Test methods within a class run sequentially (same_thread)
-    // This strategy avoids mock state conflicts in WebMvcTest while still improving performance
-    // Integration tests using Testcontainers are additionally marked with @Execution(ExecutionMode.SAME_THREAD)
+    // Parallel execution: classes=concurrent, methods=same_thread
+    // In practice, only @WebMvcTest and Unit Tests benefit from parallelism.
+    // All AbstractIntegrationTest subclasses (Integration + Scenario tests)
+    // are @Isolated, so they run sequentially due to shared Testcontainers MySQL.
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
     systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
