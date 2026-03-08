@@ -6,5 +6,5 @@ properties:
   amount:
     type: integer
     format: int64
-    description: Amount owed in cents
+    description: Amount owed in the smallest currency unit
     example: 2500

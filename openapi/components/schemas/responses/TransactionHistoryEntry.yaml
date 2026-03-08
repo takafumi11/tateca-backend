@@ -14,7 +14,7 @@ properties:
     example: Dinner at restaurant
   amount:
     type: integer
-    description: Transaction amount in cents
+    description: Transaction amount in the smallest currency unit (e.g., yen for JPY, cents for USD)
     example: 5000
   exchange_rate:
     $ref: "./ExchangeRateItem.yaml"

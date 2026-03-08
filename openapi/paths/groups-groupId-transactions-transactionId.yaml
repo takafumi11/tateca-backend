@@ -2,6 +2,10 @@ get:
   tags:
     - Transactions
   summary: Get transaction details by ID
+  description: >
+    Returns full transaction details including type-specific information.
+    For LOAN transactions: includes payer, obligations list, exchange rate, and date.
+    For REPAYMENT transactions: includes payer, recipient, exchange rate, and date.
   operationId: getTransactionDetail
   parameters:
     - $ref: "../components/parameters/groupIdPath.yaml"
@@ -78,7 +82,7 @@ put:
           schema:
             $ref: "../components/schemas/errors/ErrorResponse.yaml"
     "404":
-      description: Transaction not found
+      description: Not Found - Transaction, payer, obligor, or exchange rate does not exist
       content:
         application/json:
           schema:
@@ -94,6 +98,10 @@ delete:
   tags:
     - Transactions
   summary: Delete a transaction
+  description: >
+    Deletes a transaction and all associated obligations.
+    Both LOAN and REPAYMENT transactions can be deleted.
+    Deletion is permanent and cannot be undone.
   operationId: deleteTransaction
   parameters:
     - $ref: "../components/parameters/groupIdPath.yaml"
@@ -109,12 +117,6 @@ delete:
             $ref: "../components/schemas/errors/ErrorResponse.yaml"
     "401":
       description: Unauthorized - Invalid or missing Firebase JWT token
-      content:
-        application/json:
-          schema:
-            $ref: "../components/schemas/errors/ErrorResponse.yaml"
-    "403":
-      description: Forbidden - User doesn't have permission to delete this transaction
       content:
         application/json:
           schema:
