@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -117,7 +117,7 @@ class UserControllerWebTest {
                     .andExpect(jsonPath("$.auth_user.last_app_review_dialog_shown_at").value(nullValue()))
                     .andExpect(jsonPath("$.auth_user.app_review_status").value("PENDING"));
 
-            verify(userService, times(1))
+            verify(userService)
                     .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
         }
 
@@ -137,7 +137,7 @@ class UserControllerWebTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.auth_user").value(nullValue()));
 
-            verify(userService, times(1))
+            verify(userService)
                     .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
         }
     }
@@ -277,7 +277,7 @@ class UserControllerWebTest {
                     .andExpect(jsonPath("$.path").value("/users/" + USER_ID))
                     .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(userService, times(1))
+            verify(userService)
                     .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
         }
     }
@@ -307,7 +307,7 @@ class UserControllerWebTest {
                     .andExpect(jsonPath("$.path").value("/users/" + USER_ID))
                     .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(userService, times(1))
+            verify(userService)
                     .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
         }
     }

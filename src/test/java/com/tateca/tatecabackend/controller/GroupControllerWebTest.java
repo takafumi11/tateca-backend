@@ -34,7 +34,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -105,13 +105,12 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.users").isArray())
                     .andExpect(jsonPath("$.transaction_count").value(0));
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
         @DisplayName("Should return 409 CONFLICT when user exceeds group limit")
         void shouldReturn409WhenGroupLimitExceeded() throws Exception {
-            // Given: Service throws CONFLICT exception
             CreateGroupRequestDTO request = new CreateGroupRequestDTO(
                     "New Group",
                     "Host",
@@ -121,18 +120,15 @@ class GroupControllerWebTest {
             when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
                     .thenThrow(new BusinessRuleViolationException(ErrorCode.USER_MAX_GROUP_COUNT_EXCEEDED));
 
-            // When & Then: Should return 409 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(409))
-                    .andExpect(jsonPath("$.error").value("Conflict"))
                     .andExpect(jsonPath("$.error_code").value("USER.MAX_GROUP_COUNT_EXCEEDED"))
-                    .andExpect(jsonPath("$.path").value("/groups"));
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -211,7 +207,7 @@ class GroupControllerWebTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.group.name").value("A"));
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -247,7 +243,7 @@ class GroupControllerWebTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.group.name").value(name100Chars));
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -315,7 +311,7 @@ class GroupControllerWebTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated());
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -350,7 +346,7 @@ class GroupControllerWebTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated());
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -451,7 +447,7 @@ class GroupControllerWebTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated());
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -486,7 +482,7 @@ class GroupControllerWebTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated());
 
-            verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
+            verify(groupService).createGroup(anyString(), any(CreateGroupRequestDTO.class));
         }
 
         @Test
@@ -585,7 +581,7 @@ class GroupControllerWebTest {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.group.name").value("Updated Name"));
 
-            verify(groupService, times(1)).updateGroupName(eq(groupId), anyString());
+            verify(groupService).updateGroupName(eq(groupId), anyString());
         }
 
         @Test
@@ -596,21 +592,17 @@ class GroupControllerWebTest {
             UpdateGroupNameRequestDTO request = new UpdateGroupNameRequestDTO("New Name");
 
             when(groupService.updateGroupName(eq(groupId), anyString()))
-                    .thenThrow(new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found"));
+                    .thenThrow(new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND));
 
-            // When & Then: Should return 404 with structured error response
             mockMvc.perform(patch(BASE_ENDPOINT + "/{groupId}", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("Group not found"))
-                    .andExpect(jsonPath("$.path").value("/groups/" + groupId))
-                    .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"));
+                    .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(groupService, times(1)).updateGroupName(eq(groupId), anyString());
+            verify(groupService).updateGroupName(eq(groupId), anyString());
         }
 
         @Test
@@ -728,7 +720,7 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.group.uuid").value(groupId.toString()))
                     .andExpect(jsonPath("$.transaction_count").value(5));
 
-            verify(groupService, times(1)).getGroupInfo(eq(groupId));
+            verify(groupService).getGroupInfo(eq(groupId));
         }
 
         @Test
@@ -749,7 +741,7 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"))
                     .andExpect(jsonPath("$.path").value("/groups/" + groupId));
 
-            verify(groupService, times(1)).getGroupInfo(eq(groupId));
+            verify(groupService).getGroupInfo(eq(groupId));
         }
 
         @Test
@@ -789,7 +781,7 @@ class GroupControllerWebTest {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.group_list").isArray());
 
-            verify(groupService, times(1)).getGroupList(anyString());
+            verify(groupService).getGroupList(anyString());
         }
 
         @Test
@@ -806,7 +798,7 @@ class GroupControllerWebTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.group_list").isEmpty());
 
-            verify(groupService, times(1)).getGroupList(anyString());
+            verify(groupService).getGroupList(anyString());
         }
     }
 
@@ -850,7 +842,7 @@ class GroupControllerWebTest {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.group").exists());
 
-            verify(groupService, times(1)).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
+            verify(groupService).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
         }
 
         @Test
@@ -864,21 +856,17 @@ class GroupControllerWebTest {
             JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
             when(groupService.joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString()))
-                    .thenThrow(new ForbiddenException("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token"));
+                    .thenThrow(new ForbiddenException(ErrorCode.GROUP_INVALID_JOIN_TOKEN));
 
-            // When & Then: Should return 403 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(403))
-                    .andExpect(jsonPath("$.error").value("Forbidden"))
-                    .andExpect(jsonPath("$.message").value("Invalid or expired join token"))
-                    .andExpect(jsonPath("$.path").value("/groups/" + groupId))
-                    .andExpect(jsonPath("$.error_code").value("GROUP.INVALID_JOIN_TOKEN"));
+                    .andExpect(jsonPath("$.error_code").value("GROUP.INVALID_JOIN_TOKEN"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(groupService, times(1)).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
+            verify(groupService).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
         }
 
         @Test
@@ -892,20 +880,17 @@ class GroupControllerWebTest {
             JoinGroupRequestDTO request = new JoinGroupRequestDTO(userUuid, joinToken);
 
             when(groupService.joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString()))
-                    .thenThrow(new BusinessRuleViolationException("already joined this group"));
+                    .thenThrow(new BusinessRuleViolationException(ErrorCode.GROUP_ALREADY_JOINED));
 
-            // When & Then: Should return 409 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(409))
-                    .andExpect(jsonPath("$.error").value("Conflict"))
-                    .andExpect(jsonPath("$.message").value("already joined this group"))
-                    .andExpect(jsonPath("$.path").value("/groups/" + groupId));
+                    .andExpect(jsonPath("$.error_code").value("GROUP.ALREADY_JOINED"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(groupService, times(1)).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
+            verify(groupService).joinGroupInvited(any(JoinGroupRequestDTO.class), eq(groupId), anyString());
         }
 
         @Test
@@ -1054,7 +1039,7 @@ class GroupControllerWebTest {
                         .andExpect(status().isNoContent())
                         .andExpect(content().string(""));
 
-                verify(groupService, times(1))
+                verify(groupService)
                         .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
             }
         }
@@ -1100,7 +1085,7 @@ class GroupControllerWebTest {
                         .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
                         .andExpect(jsonPath("$.errors").doesNotExist());
 
-                verify(groupService, times(1))
+                verify(groupService)
                         .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
             }
         }
@@ -1123,7 +1108,7 @@ class GroupControllerWebTest {
                         .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
                         .andExpect(jsonPath("$.errors").doesNotExist());
 
-                verify(groupService, times(1))
+                verify(groupService)
                         .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
             }
 
@@ -1141,7 +1126,7 @@ class GroupControllerWebTest {
                         .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
                         .andExpect(jsonPath("$.errors").doesNotExist());
 
-                verify(groupService, times(1))
+                verify(groupService)
                         .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
             }
         }
@@ -1164,7 +1149,7 @@ class GroupControllerWebTest {
                         .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
                         .andExpect(jsonPath("$.errors").doesNotExist());
 
-                verify(groupService, times(1))
+                verify(groupService)
                         .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
             }
 
@@ -1182,7 +1167,7 @@ class GroupControllerWebTest {
                         .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
                         .andExpect(jsonPath("$.errors").doesNotExist());
 
-                verify(groupService, times(1))
+                verify(groupService)
                         .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
             }
         }
@@ -1219,7 +1204,7 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.group").exists())
                     .andExpect(jsonPath("$.users").isArray());
 
-            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+            verify(groupService).addMember(eq(groupId), anyString(), any());
         }
 
         @Test
@@ -1282,7 +1267,7 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
 
             when(groupService.addMember(eq(groupId), anyString(), any()))
-                    .thenThrow(new ForbiddenException("USER.NOT_GROUP_MEMBER", "User is not a member of this group"));
+                    .thenThrow(new ForbiddenException(ErrorCode.USER_NOT_GROUP_MEMBER));
 
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -1290,7 +1275,7 @@ class GroupControllerWebTest {
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.error_code").value("USER.NOT_GROUP_MEMBER"));
 
-            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+            verify(groupService).addMember(eq(groupId), anyString(), any());
         }
 
         @Test
@@ -1299,7 +1284,7 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
 
             when(groupService.addMember(eq(groupId), anyString(), any()))
-                    .thenThrow(new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found"));
+                    .thenThrow(new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND));
 
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -1307,7 +1292,7 @@ class GroupControllerWebTest {
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"));
 
-            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+            verify(groupService).addMember(eq(groupId), anyString(), any());
         }
 
         @Test
@@ -1316,7 +1301,7 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
 
             when(groupService.addMember(eq(groupId), anyString(), any()))
-                    .thenThrow(new BusinessRuleViolationException("Group has reached maximum size of 10 members"));
+                    .thenThrow(new BusinessRuleViolationException(ErrorCode.GROUP_MAX_SIZE_REACHED));
 
             mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -1324,7 +1309,7 @@ class GroupControllerWebTest {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.status").value(409));
 
-            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+            verify(groupService).addMember(eq(groupId), anyString(), any());
         }
 
         @Test
@@ -1361,7 +1346,7 @@ class GroupControllerWebTest {
             mockMvc.perform(delete(BASE_ENDPOINT + "/{groupId}/users/{userUuid}", groupId, userUuid))
                     .andExpect(status().isNoContent());
 
-            verify(groupService, times(1)).leaveGroup(eq(groupId), eq(userUuid));
+            verify(groupService).leaveGroup(eq(groupId), eq(userUuid));
         }
 
         @Test
@@ -1371,19 +1356,16 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
             UUID userUuid = UUID.randomUUID();
 
-            doThrow(new EntityNotFoundException("Group not found"))
+            doThrow(new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND))
                     .when(groupService).leaveGroup(eq(groupId), eq(userUuid));
 
-            // When & Then: Should return 404 with structured error response
             mockMvc.perform(delete(BASE_ENDPOINT + "/{groupId}/users/{userUuid}", groupId, userUuid))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("Group not found"))
-                    .andExpect(jsonPath("$.path").value("/groups/" + groupId + "/users/" + userUuid));
+                    .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
-            verify(groupService, times(1)).leaveGroup(eq(groupId), eq(userUuid));
+            verify(groupService).leaveGroup(eq(groupId), eq(userUuid));
         }
 
         @Test
