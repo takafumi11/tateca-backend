@@ -9,6 +9,6 @@ value:
   request_id: 550e8400-e29b-41d4-a716-446655440000
   error_code: VALIDATION.FAILED
   errors:
-    - field: name
+    - field: user_name
       message: User name must be between 1 and 50 characters
       rejected_value: ""

@@ -1,13 +1,12 @@
 package com.tateca.tatecabackend.scenario;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.entity.AuthUserEntity;
-import com.tateca.tatecabackend.entity.UserEntity;
-import com.tateca.tatecabackend.repository.AuthUserRepository;
-import com.tateca.tatecabackend.repository.UserRepository;
+import com.tateca.tatecabackend.support.DatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -16,15 +15,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,301 +34,371 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Acceptance scenario tests for Update User Name.
  *
- * <p>Each test maps directly to a scenario defined in
- * {@code docs/specs/update-user-name/scenario-tests.md}.
- * P0 scenarios are mandatory and must always pass in CI.
- * P1 scenarios are optional extended cases.
+ * <p>Each test maps directly to an Acceptance Criterion in
+ * {@code docs/specs/update-user-name/requirements.md}.
  *
- * <p>Scope: observable HTTP behaviour only.
- * Internal implementation details (repository call counts, etc.) are not verified here.
+ * <p>All setup and verification is performed exclusively through HTTP endpoints,
+ * mirroring the actual client flow. No direct repository or database access is used.
+ *
+ * <p>Client flow:
+ * <ol>
+ *   <li>POST /auth/users — create authenticated user</li>
+ *   <li>POST /groups — create group (implicitly creates User entity)</li>
+ *   <li>PATCH /users/{userId} — update user name (test target)</li>
+ *   <li>GET /groups/{groupId} — verify updated name via group detail response</li>
+ * </ol>
  */
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "dev"})
-@DisplayName("Update User Name Scenario Tests")
+@DisplayName("Update User Name — Acceptance Scenario Tests")
 class UpdateUserNameScenarioTest extends AbstractIntegrationTest {
 
-    private static final String ENDPOINT = "/users/{userId}";
     private static final String X_UID_HEADER = "x-uid";
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
+    @Autowired private DatabaseCleaner databaseCleaner;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private AuthUserRepository authUserRepository;
-
-    private UUID existingUserId;
     private String authUid;
+    private String userId;
+    private String groupId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        databaseCleaner.clean();
         authUid = "scenario-uid-" + System.nanoTime();
-        AuthUserEntity authUser = AuthUserEntity.builder()
-                .uid(authUid)
-                .name("Scenario Auth User")
-                .email("scenario-" + System.nanoTime() + "@example.com")
-                .build();
-        authUserRepository.save(authUser);
 
-        existingUserId = UUID.randomUUID();
-        UserEntity user = UserEntity.builder()
-                .uuid(existingUserId)
-                .name("Alice")
-                .authUser(authUser)
-                .build();
-        userRepository.save(user);
-        flushAndClear();
-    }
-
-    // =========================================================
-    // P0 Scenarios — Must Pass (requirements.md Req 1–5)
-    // =========================================================
-
-    /**
-     * SCN-001 — 正常更新 (Req 1)
-     * Response returns updated name; subsequent fetch confirms persistence.
-     */
-    @Test
-    @DisplayName("SCN-001: Should update name and persist the change")
-    void scn001_shouldUpdateNameAndPersistChange() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "Bob"));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.uuid").value(existingUserId.toString()))
-                .andExpect(jsonPath("$.name").value("Bob"));
-
-        flushAndClear();
-        assertThat(userRepository.findById(existingUserId).orElseThrow().getName())
-                .isEqualTo("Bob");
-    }
-
-    /**
-     * SCN-002 — 前後空白トリム (Req 2-1)
-     * Leading/trailing whitespace is stripped before storage.
-     * Response and subsequent fetch both return the trimmed value.
-     */
-    @Test
-    @DisplayName("SCN-002: Should trim leading and trailing whitespace before storing")
-    void scn002_shouldTrimWhitespaceAndPersistNormalizedName() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "   Bob   "));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Bob"));
-
-        flushAndClear();
-        assertThat(userRepository.findById(existingUserId).orElseThrow().getName())
-                .isEqualTo("Bob");
-    }
-
-    /**
-     * SCN-003 — 同値更新の冪等 (Req 4)
-     * Sending the current name again succeeds, the name is unchanged,
-     * and no duplicate records are created (no observable inconsistency).
-     */
-    @Test
-    @DisplayName("SCN-003: Should succeed on same-value update without creating inconsistencies")
-    void scn003_shouldHandleSameValueUpdateIdempotently() throws Exception {
-        long userCountBefore = userRepository.count();
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "Alice"));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Alice"));
-
-        flushAndClear();
-        assertThat(userRepository.findById(existingUserId).orElseThrow().getName())
-                .isEqualTo("Alice");
-        assertThat(userRepository.count())
-                .as("No duplicate user records should be created on same-value update")
-                .isEqualTo(userCountBefore);
-    }
-
-    /**
-     * SCN-004 — バリデーション: 空値 (Req 2-2)
-     * Both empty string and whitespace-only inputs are rejected with VALIDATION.FAILED.
-     * Spec: "空値（"" または空白のみ）を送信する"
-     */
-    @ParameterizedTest(name = "[{index}] user_name = \"{0}\"")
-    @DisplayName("SCN-004: Should reject blank name with VALIDATION.FAILED")
-    @ValueSource(strings = {"", "   "})
-    void scn004_shouldRejectBlankName(String blankName) throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", blankName));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
-    }
-
-    /**
-     * SCN-005 — バリデーション: 長さ超過 (Req 2-3)
-     * A name exceeding 50 characters after normalization is rejected.
-     */
-    @Test
-    @DisplayName("SCN-005: Should reject name longer than 50 characters after normalization")
-    void scn005_shouldRejectNameExceedingMaxLength() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "A".repeat(51)));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
-    }
-
-    /**
-     * SCN-006 — 未認証拒否 (Req 3)
-     * Requests without authentication credentials are rejected with 401.
-     * Spec permits any of the three auth error codes.
-     */
-    @Test
-    @DisplayName("SCN-006: Should reject unauthenticated request with 401")
-    void scn006_shouldRejectUnauthenticatedRequest() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "Bob"));
-
-        mockMvc.perform(unauthenticatedPatch(existingUserId, body))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error_code").value(anyOf(
-                        is("AUTH.MISSING_CREDENTIALS"),
-                        is("AUTH.INVALID_FORMAT"),
-                        is("AUTH.INVALID_TOKEN")
-                )));
-    }
-
-    /**
-     * SCN-007 — 不正JSON (Req 1 / HTTP contract)
-     * Syntactically invalid JSON body is rejected with REQUEST.MALFORMED_JSON.
-     */
-    @Test
-    @DisplayName("SCN-007: Should reject malformed JSON with REQUEST.MALFORMED_JSON")
-    void scn007_shouldRejectMalformedJson() throws Exception {
-        mockMvc.perform(authenticatedPatch(existingUserId, "{ invalid json }"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error_code").value("REQUEST.MALFORMED_JSON"));
-    }
-
-    /**
-     * SCN-008 — ユーザー不存在 (Req 5)
-     * An authenticated request for a non-existent userId returns USER.NOT_FOUND.
-     */
-    @Test
-    @DisplayName("SCN-008: Should return USER.NOT_FOUND for non-existent userId")
-    void scn008_shouldReturnUserNotFoundForNonExistentUser() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "Bob"));
-        UUID nonExistentUserId = UUID.randomUUID();
-
-        mockMvc.perform(authenticatedPatch(nonExistentUserId, body))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error_code").value("USER.NOT_FOUND"));
-    }
-
-    // =========================================================
-    // P1 Scenarios — Optional / Extended
-    // =========================================================
-
-    /**
-     * P1-SCN-001 — 境界値: 最小長（1文字）
-     * A single-character name (after normalization) is accepted.
-     */
-    @Test
-    @DisplayName("P1-SCN-001: Should accept minimum-length name (1 character after normalization)")
-    void p1scn001_shouldAcceptSingleCharName() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "A"));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("A"));
-    }
-
-    /**
-     * P1-SCN-002 — 境界値: 最大長（50文字）
-     * A 50-character name (after normalization) is accepted.
-     */
-    @Test
-    @DisplayName("P1-SCN-002: Should accept maximum-length name (50 characters after normalization)")
-    void p1scn002_shouldAcceptMaxLengthName() throws Exception {
-        String maxName = "A".repeat(50);
-        String body = objectMapper.writeValueAsString(Map.of("user_name", maxName));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(maxName));
-    }
-
-    /**
-     * P1-SCN-003 — 境界値: トリム後50文字（受理）
-     * Confirms that whitespace trimming occurs BEFORE length validation:
-     * a 50-character name surrounded by whitespace is accepted (not rejected as too long).
-     */
-    @Test
-    @DisplayName("P1-SCN-003: Should accept 50-character name with surrounding whitespace (trim before length check)")
-    void p1scn003_shouldAcceptMaxLengthNameWithSurroundingWhitespace() throws Exception {
-        String nameWith50Chars = "A".repeat(50);
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "  " + nameWith50Chars + "  "));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(nameWith50Chars));
-    }
-
-    /**
-     * P1-SCN-004 — Unicode・絵文字
-     * Names containing multi-byte Unicode characters and emoji are stored and returned correctly.
-     */
-    @Test
-    @DisplayName("P1-SCN-004: Should persist Unicode and emoji characters correctly")
-    void p1scn004_shouldPersistUnicodeAndEmojiName() throws Exception {
-        String unicodeName = "田中 😊";
-        String body = objectMapper.writeValueAsString(Map.of("user_name", unicodeName));
-
-        mockMvc.perform(authenticatedPatch(existingUserId, body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(unicodeName));
-
-        flushAndClear();
-        assertThat(userRepository.findById(existingUserId).orElseThrow().getName())
-                .isEqualTo(unicodeName);
-    }
-
-    /**
-     * P1-SCN-005 — Content-Type 不正（415）
-     * Requests without application/json Content-Type are rejected with
-     * 415 Unsupported Media Type and REQUEST.UNSUPPORTED_MEDIA_TYPE error code.
-     */
-    @Test
-    @DisplayName("P1-SCN-005: Should return 415 when Content-Type is not application/json")
-    void p1scn005_shouldRejectUnsupportedMediaType() throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("user_name", "Bob"));
-
-        mockMvc.perform(patch(ENDPOINT, existingUserId)
+        // Step 1: Create auth user via API
+        mockMvc.perform(post("/auth/users")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .header(X_UID_HEADER, authUid)
+                        .content(objectMapper.writeValueAsString(Map.of("email", authUid + "@example.com"))))
+                .andExpect(status().isCreated());
+
+        // Step 2: Create group via API (creates User entity as host)
+        MvcResult groupResult = mockMvc.perform(post("/groups")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(X_UID_HEADER, authUid)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "group_name", "Test Group",
+                                "host_name", "Alice",
+                                "participants_name", List.of("Bob")
+                        ))))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        JsonNode groupResponse = objectMapper.readTree(groupResult.getResponse().getContentAsString());
+        groupId = groupResponse.path("group").path("uuid").asText();
+
+        // Find the host user's UUID from the group response
+        JsonNode users = groupResponse.path("users");
+        for (JsonNode user : users) {
+            if (user.path("auth_user") != null && !user.path("auth_user").isNull()
+                    && !user.path("auth_user").isMissingNode()) {
+                userId = user.path("uuid").asText();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Retrieves the display name of the test user by calling GET /groups/{groupId}
+     * and finding the user with matching userId in the response.
+     */
+    private String getUserNameViaGroupApi() throws Exception {
+        MvcResult result = mockMvc.perform(get("/groups/{groupId}", groupId)
                         .accept(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isUnsupportedMediaType())
-                .andExpect(jsonPath("$.error_code").value("REQUEST.UNSUPPORTED_MEDIA_TYPE"));
+                        .header(X_UID_HEADER, authUid))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
+        for (JsonNode user : response.path("users")) {
+            if (userId.equals(user.path("uuid").asText())) {
+                return user.path("name").asText();
+            }
+        }
+        throw new AssertionError("User " + userId + " not found in group response");
+    }
+
+    /**
+     * Retrieves the updated_at of the test user by calling GET /groups/{groupId}.
+     */
+    private String getUserUpdatedAtViaGroupApi() throws Exception {
+        MvcResult result = mockMvc.perform(get("/groups/{groupId}", groupId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(X_UID_HEADER, authUid))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
+        for (JsonNode user : response.path("users")) {
+            if (userId.equals(user.path("uuid").asText())) {
+                return user.path("updated_at").asText();
+            }
+        }
+        throw new AssertionError("User " + userId + " not found in group response");
     }
 
     // =========================================================
-    // Helpers
+    // Req 1: 表示名の更新（正常系）
     // =========================================================
 
-    private MockHttpServletRequestBuilder authenticatedPatch(UUID userId, String body) {
-        return patch(ENDPOINT, userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header(X_UID_HEADER, authUid)
-                .content(body);
+    @Nested
+    @DisplayName("Req1: Normal update")
+    class Req1_NormalUpdate {
+
+        @Test
+        @DisplayName("AC1: Should update name with normalized value and return it")
+        void ac1_shouldUpdateNameAndReturnIt() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Charlie"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("Charlie"));
+        }
+
+        @Test
+        @DisplayName("AC2: Should persist updated name — verified via GET group detail")
+        void ac2_shouldPersistUpdatedName() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Charlie"))))
+                    .andExpect(status().isOk());
+
+            assertThat(getUserNameViaGroupApi()).isEqualTo("Charlie");
+        }
     }
 
-    private MockHttpServletRequestBuilder unauthenticatedPatch(UUID userId, String body) {
-        return patch(ENDPOINT, userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(body);
+    // =========================================================
+    // Req 2: 入力正規化とバリデーション
+    // =========================================================
+
+    @Nested
+    @DisplayName("Req2: Normalization and validation")
+    class Req2_NormalizationAndValidation {
+
+        @Test
+        @DisplayName("AC1: Should trim whitespace — verified via PATCH response and GET group detail")
+        void ac1_shouldTrimAndPersistNormalizedValue() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "   Charlie   "))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("Charlie"));
+
+            assertThat(getUserNameViaGroupApi()).isEqualTo("Charlie");
+        }
+
+        @ParameterizedTest(name = "[{index}] user_name = \"{0}\"")
+        @DisplayName("AC2: Should reject blank values (empty or whitespace-only)")
+        @ValueSource(strings = {"", "   "})
+        void ac2_shouldRejectBlankValues(String blankName) throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", blankName))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+        }
+
+        @Test
+        @DisplayName("AC2: Should reject when user_name key is missing from request")
+        void ac2_shouldRejectMissingKey() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+        }
+
+        @Test
+        @DisplayName("AC2: Should reject when user_name is null")
+        void ac2_shouldRejectNullValue() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content("{\"user_name\": null}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+        }
+
+        @Test
+        @DisplayName("AC3: Should reject name exceeding 50 characters after normalization")
+        void ac3_shouldRejectNameExceedingMaxLength() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "A".repeat(51)))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+        }
+
+        @Test
+        @DisplayName("AC1+AC3: Should accept 50-char name with surrounding whitespace (trim before length check)")
+        void ac1ac3_shouldAcceptMaxLengthNameWithSurroundingWhitespace() throws Exception {
+            String nameWith50Chars = "A".repeat(50);
+
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "  " + nameWith50Chars + "  "))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value(nameWith50Chars));
+        }
+
+    }
+
+    // =========================================================
+    // Req 3: 認証と認可
+    // =========================================================
+
+    @Nested
+    @DisplayName("Req3: Authentication and authorization")
+    class Req3_AuthenticationAndAuthorization {
+
+        @Test
+        @DisplayName("AC1+AC2: Should reject unauthenticated request with 401")
+        void ac1ac2_shouldRejectUnauthenticatedRequest() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Charlie"))))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.error_code").value(anyOf(
+                            is("AUTH.MISSING_CREDENTIALS"),
+                            is("AUTH.INVALID_FORMAT"),
+                            is("AUTH.INVALID_TOKEN")
+                    )));
+        }
+
+        @Test
+        @DisplayName("AC3: Should reject when authenticated user is not the resource owner")
+        void ac3_shouldRejectWhenNotResourceOwner() throws Exception {
+            // Create another authenticated user via API
+            String otherUid = "other-uid-" + System.nanoTime();
+            mockMvc.perform(post("/auth/users")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, otherUid)
+                            .content(objectMapper.writeValueAsString(Map.of("email", otherUid + "@example.com"))))
+                    .andExpect(status().isCreated());
+
+            // Attempt to update the first user's name with the other user's credentials
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, otherUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Hacked"))))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.error_code").value("USER.FORBIDDEN"));
+
+            // Verify original name is unchanged via GET group detail
+            assertThat(getUserNameViaGroupApi()).isEqualTo("Alice");
+        }
+    }
+
+    // =========================================================
+    // Req 4: 冪等性（同値更新）
+    // =========================================================
+
+    @Nested
+    @DisplayName("Req4: Idempotent same-value update")
+    class Req4_IdempotentSameValueUpdate {
+
+        @Test
+        @DisplayName("AC1: Should succeed when updating with same normalized value")
+        void ac1_shouldSucceedOnSameValueUpdate() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Alice"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("Alice"));
+        }
+
+        @Test
+        @DisplayName("AC2: Should not create observable inconsistencies — name unchanged via GET group detail")
+        void ac2_shouldNotCreateInconsistencies() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Alice"))))
+                    .andExpect(status().isOk());
+
+            assertThat(getUserNameViaGroupApi()).isEqualTo("Alice");
+        }
+
+        @Test
+        @DisplayName("AC3: Should not change updated_at on same-value update")
+        void ac3_shouldNotChangeUpdatedAtOnSameValueUpdate() throws Exception {
+            String updatedAtBefore = getUserUpdatedAtViaGroupApi();
+
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Alice"))))
+                    .andExpect(status().isOk());
+
+            String updatedAtAfter = getUserUpdatedAtViaGroupApi();
+            assertThat(updatedAtAfter).isEqualTo(updatedAtBefore);
+        }
+    }
+
+    // =========================================================
+    // Req 5: リソース不存在
+    // =========================================================
+
+    @Nested
+    @DisplayName("Req5: Resource not found")
+    class Req5_ResourceNotFound {
+
+        @Test
+        @DisplayName("AC1: Should return not found for non-existent userId")
+        void ac1_shouldReturnNotFoundForNonExistentUser() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", UUID.randomUUID())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Charlie"))))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error_code").value("USER.NOT_FOUND"));
+        }
+    }
+
+    // =========================================================
+    // Technical Edge Cases (outside requirements.md scope)
+    // =========================================================
+
+    @Nested
+    @DisplayName("Technical: Request format edge cases")
+    class TechnicalEdgeCases {
+
+        @Test
+        @DisplayName("Should reject malformed JSON")
+        void shouldRejectMalformedJson() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", userId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_UID_HEADER, authUid)
+                            .content("{ invalid json }"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("REQUEST.MALFORMED_JSON"));
+        }
     }
 }

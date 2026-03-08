@@ -2,7 +2,14 @@ patch:
   tags:
     - Users
   summary: Update user name
-  description: Updates the display name of the user identified by userId. Leading and trailing whitespace is normalized before persistence, and updating with the same normalized value is treated as idempotent success.
+  description: |
+    Updates the display name of the authenticated user identified by userId.
+
+    **Normalization:** Leading and trailing whitespace is trimmed before validation and persistence.
+
+    **Idempotency:** Updating with the same normalized value is treated as a success without modifying the resource (updated_at remains unchanged).
+
+    **Authorization:** The authenticated user must be the owner of the target resource. Attempting to modify another user's name results in 403 Forbidden.
   operationId: updateUserName
   parameters:
     - $ref: "../components/parameters/userIdPath.yaml"
@@ -14,7 +21,7 @@ patch:
           $ref: "../components/schemas/requests/UpdateUserNameRequest.yaml"
   responses:
     "200":
-      description: User name updated successfully
+      description: User name updated successfully (also returned for idempotent same-value updates)
       content:
         application/json:
           schema:
@@ -43,6 +50,15 @@ patch:
               $ref: "../components/examples/errors/AUTH_INVALID_FORMAT.yaml"
             invalidToken:
               $ref: "../components/examples/errors/AUTH_INVALID_TOKEN.yaml"
+    "403":
+      description: Forbidden - Authenticated user is not the owner of the target resource
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/errors/ErrorResponse.yaml"
+          examples:
+            userForbidden:
+              $ref: "../components/examples/errors/USER_FORBIDDEN.yaml"
     "404":
       description: "User not found (error_code: USER.NOT_FOUND)"
       content:
