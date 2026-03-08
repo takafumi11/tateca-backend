@@ -1,5 +1,6 @@
 package com.tateca.tatecabackend.controller;
 
+import com.tateca.tatecabackend.annotation.UId;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.service.UserService;
@@ -23,10 +24,11 @@ public class UserController {
 
     @PatchMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponseDTO> updateUserName(
-            @PathVariable("userId") UUID userId,
-            @Valid @RequestBody UpdateUserNameRequestDTO nameRequestDTO
-            ) {
-        UserResponseDTO responseDTO = service.updateUserName(userId, nameRequestDTO);
+            @UId String authUid,
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateUserNameRequestDTO request
+    ) {
+        UserResponseDTO responseDTO = service.updateUserName(authUid, userId, request);
         return ResponseEntity.ok(responseDTO);
     }
 }

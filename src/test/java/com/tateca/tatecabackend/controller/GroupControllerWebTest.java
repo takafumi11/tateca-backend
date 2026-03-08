@@ -8,6 +8,7 @@ import com.tateca.tatecabackend.dto.request.UpdateGroupNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.GroupListResponseDTO;
 import com.tateca.tatecabackend.dto.response.GroupResponseDTO;
 import com.tateca.tatecabackend.dto.response.internal.GroupResponse;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.exception.domain.BusinessRuleViolationException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
@@ -1017,6 +1018,173 @@ class GroupControllerWebTest {
                     .andExpect(status().isUnsupportedMediaType());
 
             verify(groupService, never()).joinGroupInvited(any(), any(), anyString());
+        }
+    }
+
+    // ========================================
+    // removeMember Tests
+    // ========================================
+
+    /**
+     * Web layer tests for DELETE /groups/{groupId}/members/{userUuid}.
+     *
+     * <p>Note: 401 Unauthorized is NOT tested here. Authentication is handled by
+     * {@code TatecaAuthenticationFilter} before reaching the Controller.
+     * In {@code @WebMvcTest} with {@code TestSecurityConfig}, authentication is bypassed.
+     * 401 coverage is provided by {@code RemoveMemberScenarioTest} (Req4-AC1+AC2).
+     */
+    @Nested
+    @DisplayName("DELETE /groups/{groupId}/members/{userUuid} - Remove Member")
+    class RemoveMemberTests {
+
+        private static final UUID GROUP_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        private static final UUID USER_UUID = UUID.fromString("660e8400-e29b-41d4-a716-446655440000");
+        private static final String REMOVE_MEMBER_ENDPOINT = "/groups/{groupId}/members/{userUuid}";
+
+        @Nested
+        @DisplayName("204 No Content — Successful removal")
+        class Status204 {
+
+            @Test
+            @DisplayName("Should return 204 with no body when member is removed successfully")
+            void shouldReturn204WithNoBody() throws Exception {
+                doNothing().when(groupService).removeMember(eq(GROUP_ID), eq(USER_UUID), anyString());
+
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, USER_UUID))
+                        .andExpect(status().isNoContent())
+                        .andExpect(content().string(""));
+
+                verify(groupService, times(1))
+                        .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
+            }
+        }
+
+        @Nested
+        @DisplayName("400 Bad Request — Invalid path parameters")
+        class Status400 {
+
+            @Test
+            @DisplayName("Should return 400 when groupId is not a valid UUID")
+            void shouldReturn400WhenGroupIdNotUuid() throws Exception {
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, "not-a-uuid", USER_UUID))
+                        .andExpect(status().isBadRequest());
+
+                verify(groupService, never()).removeMember(any(), any(), anyString());
+            }
+
+            @Test
+            @DisplayName("Should return 400 when userUuid is not a valid UUID")
+            void shouldReturn400WhenUserUuidNotUuid() throws Exception {
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, "not-a-uuid"))
+                        .andExpect(status().isBadRequest());
+
+                verify(groupService, never()).removeMember(any(), any(), anyString());
+            }
+        }
+
+        @Nested
+        @DisplayName("403 Forbidden — Authorization errors")
+        class Status403 {
+
+            @Test
+            @DisplayName("Should return 403 with USER.NOT_GROUP_MEMBER when service throws ForbiddenException")
+            void shouldReturn403WithNotGroupMemberErrorCode() throws Exception {
+                doThrow(new ForbiddenException(ErrorCode.USER_NOT_GROUP_MEMBER))
+                        .when(groupService).removeMember(eq(GROUP_ID), eq(USER_UUID), anyString());
+
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, USER_UUID))
+                        .andExpect(status().isForbidden())
+                        .andExpect(jsonPath("$.status").value(403))
+                        .andExpect(jsonPath("$.error").value("Forbidden"))
+                        .andExpect(jsonPath("$.error_code").value("USER.NOT_GROUP_MEMBER"))
+                        .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
+                        .andExpect(jsonPath("$.errors").doesNotExist());
+
+                verify(groupService, times(1))
+                        .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
+            }
+        }
+
+        @Nested
+        @DisplayName("404 Not Found — Group or member not found")
+        class Status404 {
+
+            @Test
+            @DisplayName("Should return 404 with GROUP.NOT_FOUND when group does not exist")
+            void shouldReturn404WithGroupNotFoundErrorCode() throws Exception {
+                doThrow(new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND))
+                        .when(groupService).removeMember(eq(GROUP_ID), eq(USER_UUID), anyString());
+
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, USER_UUID))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.status").value(404))
+                        .andExpect(jsonPath("$.error").value("Not Found"))
+                        .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"))
+                        .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
+                        .andExpect(jsonPath("$.errors").doesNotExist());
+
+                verify(groupService, times(1))
+                        .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
+            }
+
+            @Test
+            @DisplayName("Should return 404 with USER.NOT_FOUND when member does not exist in group")
+            void shouldReturn404WithUserNotFoundErrorCode() throws Exception {
+                doThrow(new EntityNotFoundException(ErrorCode.USER_NOT_FOUND))
+                        .when(groupService).removeMember(eq(GROUP_ID), eq(USER_UUID), anyString());
+
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, USER_UUID))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.status").value(404))
+                        .andExpect(jsonPath("$.error").value("Not Found"))
+                        .andExpect(jsonPath("$.error_code").value("USER.NOT_FOUND"))
+                        .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
+                        .andExpect(jsonPath("$.errors").doesNotExist());
+
+                verify(groupService, times(1))
+                        .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
+            }
+        }
+
+        @Nested
+        @DisplayName("409 Conflict — Business rule violation")
+        class Status409 {
+
+            @Test
+            @DisplayName("Should return 409 with MEMBER.ALREADY_JOINED when target is a joined member")
+            void shouldReturn409WithAlreadyJoinedErrorCode() throws Exception {
+                doThrow(new BusinessRuleViolationException(ErrorCode.MEMBER_ALREADY_JOINED))
+                        .when(groupService).removeMember(eq(GROUP_ID), eq(USER_UUID), anyString());
+
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, USER_UUID))
+                        .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.status").value(409))
+                        .andExpect(jsonPath("$.error").value("Conflict"))
+                        .andExpect(jsonPath("$.error_code").value("MEMBER.ALREADY_JOINED"))
+                        .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
+                        .andExpect(jsonPath("$.errors").doesNotExist());
+
+                verify(groupService, times(1))
+                        .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
+            }
+
+            @Test
+            @DisplayName("Should return 409 with MEMBER.HAS_TRANSACTIONS when target is involved in transactions")
+            void shouldReturn409WithHasTransactionsErrorCode() throws Exception {
+                doThrow(new BusinessRuleViolationException(ErrorCode.MEMBER_HAS_TRANSACTIONS))
+                        .when(groupService).removeMember(eq(GROUP_ID), eq(USER_UUID), anyString());
+
+                mockMvc.perform(delete(REMOVE_MEMBER_ENDPOINT, GROUP_ID, USER_UUID))
+                        .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.status").value(409))
+                        .andExpect(jsonPath("$.error").value("Conflict"))
+                        .andExpect(jsonPath("$.error_code").value("MEMBER.HAS_TRANSACTIONS"))
+                        .andExpect(jsonPath("$.path").value("/groups/" + GROUP_ID + "/members/" + USER_UUID))
+                        .andExpect(jsonPath("$.errors").doesNotExist());
+
+                verify(groupService, times(1))
+                        .removeMember(eq(GROUP_ID), eq(USER_UUID), eq(TestSecurityConfig.TEST_UID));
+            }
         }
     }
 

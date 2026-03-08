@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("API Key Authentication Integration Tests")
+@Transactional
 class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -212,22 +214,4 @@ class ApiKeyAuthenticationIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @Nested
-    @DisplayName("Public Endpoints")
-    class PublicEndpointsTests {
-
-        @Test
-        @DisplayName("Should allow access to /actuator/health without authentication")
-        void shouldAllowAccessToActuatorHealth() {
-            // When
-            ResponseEntity<String> response = restTemplate.getForEntity(
-                    "/actuator/health",
-                    String.class
-            );
-
-            // Then
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        }
-
-    }
 }

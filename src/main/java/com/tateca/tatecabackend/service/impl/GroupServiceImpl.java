@@ -18,6 +18,7 @@ import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import com.tateca.tatecabackend.repository.AuthUserRepository;
 import com.tateca.tatecabackend.repository.GroupRepository;
+import com.tateca.tatecabackend.repository.ObligationRepository;
 import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import com.tateca.tatecabackend.service.GroupService;
@@ -44,6 +45,7 @@ public class GroupServiceImpl implements GroupService {
     private final AuthUserRepository authUserRepository;
     private final UserGroupRepository userGroupRepository;
     private final TransactionRepository transactionRepository;
+    private final ObligationRepository obligationRepository;
     private final BusinessRuleConfig businessRuleConfig;
 
     @Override
@@ -276,19 +278,7 @@ public class GroupServiceImpl implements GroupService {
             throw new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
         }
 
-        // Verify requester is a group member (authorization check)
-        boolean isRequesterMember = userGroupEntityList.stream()
-                .anyMatch(userGroupEntity -> {
-                    AuthUserEntity authUser = userGroupEntity.getUser().getAuthUser();
-                    return authUser != null && uid.equals(authUser.getUid());
-                });
-
-        if (!isRequesterMember) {
-            logger.warn("User is not a member of this group: uid={}, groupId={}",
-                    PiiMaskingUtil.maskUid(uid),
-                    PiiMaskingUtil.maskUuid(groupId));
-            throw new ForbiddenException(ErrorCode.USER_NOT_GROUP_MEMBER);
-        }
+        validateRequesterIsGroupMember(userGroupEntityList, uid);
 
         // Check if group has reached maximum size
         int currentMemberCount = userGroupEntityList.size();
@@ -330,6 +320,63 @@ public class GroupServiceImpl implements GroupService {
         Long transactionCount = transactionRepository.countByGroup_Uuid(groupId);
 
         return GroupResponseDTO.from(users, group, transactionCount);
+    }
+
+    @Override
+    @Transactional
+    public void removeMember(UUID groupId, UUID userUuid, String uid) {
+        logger.info("Removing member from group: groupId={}, targetUserUuid={}, requesterUid={}",
+                PiiMaskingUtil.maskUuid(groupId),
+                PiiMaskingUtil.maskUuid(userUuid),
+                PiiMaskingUtil.maskUid(uid));
+
+        List<UserGroupEntity> userGroups = userGroupRepository.findByGroupUuidWithUserDetails(groupId);
+        if (userGroups.isEmpty()) {
+            logger.warn("Group not found: groupId={}", PiiMaskingUtil.maskUuid(groupId));
+            throw new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND);
+        }
+
+        validateRequesterIsGroupMember(userGroups, uid);
+
+        UserGroupEntity targetUserGroup = userGroups.stream()
+                .filter(ug -> ug.getUserUuid().equals(userUuid))
+                .findFirst()
+                .orElseThrow(() -> {
+                    logger.warn("Target member not found in group: userUuid={}, groupId={}",
+                            PiiMaskingUtil.maskUuid(userUuid), PiiMaskingUtil.maskUuid(groupId));
+                    return new EntityNotFoundException(ErrorCode.USER_NOT_FOUND);
+                });
+
+        UserEntity targetUser = targetUserGroup.getUser();
+        if (targetUser.getAuthUser() != null) {
+            logger.warn("Cannot remove joined member: userUuid={}", PiiMaskingUtil.maskUuid(userUuid));
+            throw new BusinessRuleViolationException(ErrorCode.MEMBER_ALREADY_JOINED);
+        }
+
+        if (transactionRepository.existsByPayer(targetUser)
+                || obligationRepository.existsByUser(targetUser)) {
+            logger.warn("Cannot remove member involved in transactions: userUuid={}",
+                    PiiMaskingUtil.maskUuid(userUuid));
+            throw new BusinessRuleViolationException(ErrorCode.MEMBER_HAS_TRANSACTIONS);
+        }
+
+        userGroupRepository.delete(targetUserGroup);
+        userRepository.delete(targetUser);
+
+        logger.info("Member removed successfully: userUuid={}, groupId={}",
+                PiiMaskingUtil.maskUuid(userUuid), PiiMaskingUtil.maskUuid(groupId));
+    }
+
+    private void validateRequesterIsGroupMember(List<UserGroupEntity> userGroups, String uid) {
+        boolean isRequesterMember = userGroups.stream()
+                .anyMatch(ug -> {
+                    AuthUserEntity authUser = ug.getUser().getAuthUser();
+                    return authUser != null && uid.equals(authUser.getUid());
+                });
+        if (!isRequesterMember) {
+            logger.warn("User is not a member of this group: uid={}", PiiMaskingUtil.maskUid(uid));
+            throw new ForbiddenException(ErrorCode.USER_NOT_GROUP_MEMBER);
+        }
     }
 
     private void validateMaxGroupCount(String uid) {

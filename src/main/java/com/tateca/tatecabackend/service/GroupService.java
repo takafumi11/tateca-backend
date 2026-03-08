@@ -22,4 +22,6 @@ public interface GroupService {
     void leaveGroup(UUID groupId, UUID userUuid);
 
     GroupResponseDTO addMember(UUID groupId, String uid, AddMemberRequestDTO request);
+
+    void removeMember(UUID groupId, UUID userUuid, String uid);
 }

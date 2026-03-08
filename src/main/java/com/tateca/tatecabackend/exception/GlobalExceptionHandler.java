@@ -118,6 +118,7 @@ public class GlobalExceptionHandler {
                 .message("Validation failed")
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode("VALIDATION.FAILED")
                 .errors(fieldErrors)
                 .build();
 
@@ -148,6 +149,7 @@ public class GlobalExceptionHandler {
                 .message("Validation failed")
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode("VALIDATION.FAILED")
                 .errors(fieldErrors)
                 .build();
 
@@ -202,6 +204,7 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode("REQUEST.MALFORMED_JSON")
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
@@ -220,6 +223,7 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .path(request.getRequestURI())
                 .requestId(getRequestId(request))
+                .errorCode("REQUEST.UNSUPPORTED_MEDIA_TYPE")
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);

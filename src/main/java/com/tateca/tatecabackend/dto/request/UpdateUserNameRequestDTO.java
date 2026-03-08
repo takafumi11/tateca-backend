@@ -10,4 +10,9 @@ public record UpdateUserNameRequestDTO(
         @Size(min = 1, max = 50, message = "User name must be between 1 and 50 characters")
         String name
 ) {
+    public UpdateUserNameRequestDTO {
+        if (name != null) {
+            name = name.strip();
+        }
+    }
 }

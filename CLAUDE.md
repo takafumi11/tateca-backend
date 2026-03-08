@@ -2,6 +2,16 @@
 
 Spring Boot 3.5.4 Java 21 application for group expense management with Firebase authentication.
 
+## Development Methodology
+
+This project follows **Specification-Driven Development (SDD)**.
+
+- Process guide: `docs/sdd-process.md`
+- Testing strategy: `docs/testing.md`
+- SDD skills: `.cursor/skills/sdd-*`
+- New features MUST follow the SDD process: Requirements + HLD → OpenAPI → Scenario Test (RED) → LLD (optional) → TDD Implementation (GREEN)
+- Existing APIs without documentation require partial or full Reverse SDD before modification (see `sdd-reverse` skill)
+
 ## Commands
 
 **Build & Test:**
@@ -55,134 +65,65 @@ Spring Boot 3.5.4 Java 21 application for group expense management with Firebase
 
 ### Overview
 
-Modern CI/CD pipeline following **Build Once, Deploy Anywhere** principle with semantic versioning:
+2つのワークフローでシンプルに構成:
 
 ```
-PR (version update) → CI (Build & Tag version) → Merge → CD (Retag & Deploy)
+PR → CI (Test + OpenAPI Preview)  ※テスト必須でマージブロック
+Main merge → CD (OpenAPI Deploy + Docker Build latest + Railway Redeploy)
 ```
-
-**Key Principles:**
-- ✅ **Build Once**: Docker image built once in PR, reused in CD (no rebuild)
-- ✅ **Semantic Versioning**: Version managed in `build.gradle.kts` (e.g., `1.2.3`)
-- ✅ **Version Tagging**: CI automatically tags with version from build.gradle.kts
-- ✅ **Shift-Left Testing**: All validation happens during PR (before merge)
-- ✅ **Workflow Chaining**: CD waits for CI completion (no race conditions)
-- ✅ **Branch Protection**: All code flows through PR → CI → Main → CD
 
 ### Prerequisites
 
 **Branch Protection Rules** (Required):
-- Navigate to: GitHub Repository → Settings → Branches → Branch protection rules
-- Enable for `main` branch:
-  - ✅ Require pull request before merging
-  - ✅ Require status checks to pass (CI pipeline)
-  - ✅ Prevent direct pushes to main
-- **Why**: Ensures all code goes through CI validation before reaching production
+- GitHub Repository → Settings → Branches → Branch protection rules
+- `main` ブランチに対して:
+  - Require pull request before merging
+  - Require status checks to pass: `Test` ジョブを必須に設定
+  - Prevent direct pushes to main
+
+**Required Secrets:**
+- `RAILWAY_TOKEN` - Railway API token
+- `RAILWAY_SERVICE_ID` - Railway service ID
 
 ### Workflows
 
 #### 1. CI Pipeline (`.github/workflows/ci.yml`)
 
-**Trigger:** Pull requests to `main` AND pushes to `main` (PR merges)
+**Trigger:** Pull requests to `main` (opened, synchronize, reopened, closed)
 
-**Purpose:** Validate code quality, build artifacts, generate documentation
+**Jobs (PR open/sync/reopen):**
 
-**Jobs:**
+| Job | Description | 依存関係 |
+|-----|-------------|---------|
+| `test` | JDK 25 テスト実行 + JaCoCo カバレッジ | なし (マージブロッカー) |
+| `openapi-lint` | Redocly による OpenAPI スペック検証 | なし |
+| `openapi-preview` | ブランチ名パスで GitHub Pages にプレビューデプロイ | `openapi-lint` |
 
-| Job | Duration | Description |
-|-----|----------|-------------|
-| `java-test` | 2-3 min | JDK 21 build & test execution |
-| `docker-build-push` | 3-4 min | Multi-stage Docker build → GHCR push |
-| `api-validation` | 5-7 min | OpenAPI generation, validation, documentation |
+**Jobs (PR close):**
 
-**Job Details:**
+| Job | Description |
+|-----|-------------|
+| `cleanup-preview` | gh-pages からプレビューフォルダを削除 |
 
-1. **Java Tests** (`java-test`)
-   - Builds project with Gradle
-   - Runs all unit, integration, and contract tests
-   - Required for subsequent jobs
-
-2. **Docker Build & Push** (`docker-build-push`)
-   - **Depends on:** `java-test`
-   - Extracts version from `build.gradle.kts` (e.g., `0.0.1-SNAPSHOT` or `1.2.3`)
-   - Builds Docker image with multi-stage build (Gradle + JRE)
-   - Pushes to GitHub Container Registry (GHCR)
-   - **Tags:**
-     - `<version>` from build.gradle.kts (e.g., `1.2.3`) ⭐ **Release version**
-     - `sha-<commit-hash>` (always)
-     - `pr-<number>` (PR only)
-     - `latest` (main branch only, via `is_default_branch` check)
-   - Uses GitHub Actions cache for faster subsequent builds
-   - Comments on PR with version and image tags
-
-3. **API Validation & Generation** (`api-validation`)
-   - Builds and starts Spring Boot application with minimal environment
-   - Fetches OpenAPI spec from `/v3/api-docs` endpoint (Code-First)
-   - Validates spec with Spectral CLI
-   - Generates HTML documentation with Redocly
-   - Uploads spec artifacts to GitHub Actions
-   - Comments on PR with specification statistics
-
-**Total CI Time:** ~10-15 minutes
-
-**Why CI Runs on Both PRs and Main Pushes:**
-- **PR:** Validation before merge
-- **Main push:** Handles Squash/Rebase merges where SHA changes
-- **Smart tagging:** `latest` only applied on main branch
-- **No duplicate builds:** Concurrency group ensures only one runs per ref
+**OpenAPI Preview URL:** `https://<owner>.github.io/<repo>/<branch-name>/`
+- ブランチ名の `/` は `-` に変換 (例: `feature/foo` → `feature-foo`)
+- PR にコメントでプレビュー URL を自動投稿
 
 ---
 
 #### 2. CD Pipeline (`.github/workflows/cd.yml`)
 
-**Trigger:** After CI Pipeline completes successfully on `main` branch
+**Trigger:** Push to `main` (= PR マージ) + workflow_dispatch
 
-**Purpose:** Deploy validated artifacts to production environments
+**Jobs:**
 
-**Workflow Chaining:**
-```
-main merge → CI Pipeline (builds & tags version) → CD Pipeline (retags & deploys)
-```
+| Job | Description | 依存関係 |
+|-----|-------------|---------|
+| `deploy-docs` | OpenAPI ドキュメントを GitHub Pages ルートにデプロイ | なし |
+| `docker-build-push` | Docker Build → GHCR に `latest` + `sha-<hash>` タグでプッシュ | なし |
+| `railway-redeploy` | Railway に `latest` イメージの再デプロイをトリガー | `docker-build-push` |
 
-**Jobs:** Run in sequence with dependencies
-
-```
-retag-release → [deploy-docs, railway-redeploy]
-```
-
-**Job Details:**
-
-1. **Retag Release Version** (`retag-release`)
-   - **Duration:** ~30 seconds
-   - Extracts version from `build.gradle.kts`
-   - Pulls version-tagged image from CI (e.g., `1.2.3`)
-   - Retags as `latest` for production
-   - **No rebuild** - reuses PR's tested image
-   - **Optimization:** 3-4 min saved vs rebuilding
-
-2. **Deploy API Documentation** (`deploy-docs`)
-   - **Duration:** ~2-3 minutes
-   - **Depends on:** `retag-release`
-   - Uses `latest` image (points to version image)
-   - Starts application container with MySQL service
-   - Fetches OpenAPI spec from running container
-   - Generates Swagger UI for interactive testing
-   - Generates Redoc for static documentation
-   - Deploys to GitHub Pages
-
-3. **Railway Redeploy** (`railway-redeploy`)
-   - **Duration:** ~30 seconds (trigger only, actual deploy by Railway)
-   - **Depends on:** `retag-release`
-   - Triggers Railway to pull `latest` image from GHCR
-   - Railway deploys pre-built image (no build step on Railway)
-
-**Total CD Time:** ~2-3 minutes (jobs run in parallel)
-
-**Documentation URLs:**
-- Base: https://tateca.github.io/tateca-backend
-- Swagger UI: `/swagger.html` - Interactive API testing
-- Redoc: `/` - Beautiful API documentation
-- Resources: `/downloads.html` - Download OpenAPI specs
+**Documentation URL:** `https://<owner>.github.io/<repo>/`
 
 ---
 
@@ -190,50 +131,19 @@ retag-release → [deploy-docs, railway-redeploy]
 
 **Registry:** GitHub Container Registry (GHCR) at `ghcr.io/<owner>/<repo>`
 
-**Build Strategy:**
-- Multi-stage Dockerfile (builder: JDK 21 + Gradle, runtime: JRE 21)
-- Built **once** in CI, **reused** in CD
-- No rebuilds in CD pipeline
+**Tags:**
 
-**Image Tags:**
+| Tag | When | Purpose |
+|-----|------|---------|
+| `latest` | main merge | Railway がプルするプロダクションポインタ |
+| `sha-<commit>` | main merge | 不変のコミット参照 (監査用) |
 
-| Tag | Created By | When | Example | Purpose |
-|-----|-----------|------|---------|---------|
-| `<version>` | CI | Every build | `1.2.3` | Release version (from build.gradle.kts) ⭐ |
-| `sha-<commit>` | CI | Every commit/PR | `sha-a1b2c3d` | Immutable commit reference |
-| `pr-<number>` | CI | PR only | `pr-123` | PR-specific testing |
-| `latest` | CI (main) or CD | Main branch | `latest` | Production deployment pointer |
-
-**Tag Lifecycle (Version-Based with Squash/Rebase Support):**
+**Deployment Flow:**
 ```
-1. Developer updates version in build.gradle.kts (e.g., 1.2.3)
-
-2. PR created (commit: a1b2c3d)
-   └─ CI builds → ghcr.io/repo:1.2.3, sha-a1b2c3d, pr-123
-
-3. PR squash merged to main (new commit: xyz9999)
-   └─ CI builds → ghcr.io/repo:1.2.3, sha-xyz9999, latest
-
-4. CD retags version as latest (if not already done by CI)
-   └─ CD pulls ghcr.io/repo:1.2.3 → retag as latest
-
-5. Railway deploys ghcr.io/repo:latest (points to version 1.2.3)
+1. PR merge to main
+2. CD: Docker Build → ghcr.io/repo:latest, sha-<hash>
+3. CD: railway redeploy → Railway pulls latest → Deploy
 ```
-
-**Image Specifications:**
-- Size: ~200MB (JRE-based, optimized for production)
-- Base: eclipse-temurin:21-jre
-- Caching: GitHub Actions cache for faster builds
-- Storage: All SHA-tagged images retained indefinitely
-
-**Smart Tagging Strategy:**
-- ✅ **Version tag** from `build.gradle.kts` (e.g., `1.2.3`) - Primary release identifier
-- ✅ **SHA tag** is immutable (always created for audit trail)
-- ✅ **PR tag** for easy PR testing (e.g., `pr-123`)
-- ✅ **Latest tag** only on main branch (via `is_default_branch` in CI)
-- ✅ Handles Squash/Rebase merges (CI rebuilds with new SHA)
-- ✅ Version tags can be overwritten (allows version republishing)
-- ✅ CD retags version as latest (redundant safety, ~30s)
 
 ---
 
@@ -243,90 +153,27 @@ retag-release → [deploy-docs, railway-redeploy]
 
 **Image URL:** `ghcr.io/tateca/tateca-backend:latest`
 
-**Deployment Flow:**
-```
-1. Developer updates version in build.gradle.kts (e.g., 1.2.3 → 1.2.4)
-
-2. PR merge → CI: Build image with version tag
-   └─ CI builds → ghcr.io/repo:1.2.4, sha-xyz9999, latest
-
-3. CD: Retag version as latest (redundant safety)
-   └─ CD pulls ghcr.io/repo:1.2.4 → retag as latest → push
-
-4. CD: Trigger railway redeploy
-   └─ Railway CLI: railway redeploy --service=<id> --yes
-
-5. Railway: Pull latest from GHCR → Deploy
-   └─ Deploys ghcr.io/repo:latest (points to version 1.2.4)
-```
-
-**Version Management:**
-- **Update:** Manually edit `version` in `build.gradle.kts`
-- **Tagging:** CI automatically extracts and tags Docker image
-- **Deployment:** CD retags version image as `latest` for Railway
-- **Rollback:** Change Railway to point to specific version tag (e.g., `1.2.3`)
-
-**Benefits:**
-- ⚡ **Fast:** Railway deployment ~30s (no build, just pull)
-- 🔒 **Consistent:** Exact same image tested in PR
-- 💰 **Cost-effective:** Zero Railway build minutes used
-- ✅ **Reliable:** Pre-tested artifacts, immutable images
-
-**No `railway.toml` Required:**
-- Railway configured via Web Console (not file-based)
-- Image URL set directly in Railway settings
-- Dockerfile in repo is NOT used by Railway
+- Railway は `latest` タグのイメージを自動プル
+- `railway redeploy` コマンドでトリガー
+- Dockerfile は Railway では使用しない (CI でビルド済み)
 
 ---
 
-### API Documentation (Code-First)
+### API Documentation
 
-**Philosophy:** Source code is the single source of truth for API specification
+**Single Source of Truth:** `openapi/` ディレクトリの OpenAPI スペックファイル
 
-**Implementation:**
-- SpringDoc annotations on controllers define API spec
-- OpenAPI spec auto-generated at runtime from `/v3/api-docs` endpoint
-- No manual YAML/JSON maintenance required
+**Tools:** Redocly (Lint + Build + Bundle)
 
-**Generation Process:**
-1. **PR (ci.yml):**
-   - Builds Spring Boot application from source
-   - Generates OpenAPI spec for validation and review
-   - Uploads spec as artifact
+**Deploy タイミング:**
+- **PR:** ブランチ名パスでプレビューデプロイ (CI)
+- **Main merge:** ルートパスで本番デプロイ (CD)
 
-2. **Main (cd.yml):**
-   - Uses pre-built Docker image (`latest` tag, points to version image)
-   - Starts application in container
-   - Fetches OpenAPI spec from running container
-   - Generates and deploys documentation to GitHub Pages
-
-**Tools:**
-- SpringDoc OpenAPI: Annotation-based spec generation
-- Spectral: Linting and validation
-- Redocly: Static documentation site generation
-- Swagger UI: Interactive API testing interface
-
-**Benefits:**
-- ✅ Code and docs always in sync (impossible to be out of date)
-- ✅ Breaking changes caught automatically in PRs
-- ✅ Zero manual spec maintenance
-- ✅ Interactive testing without Postman
-
-**Usage:**
-- **Swagger UI:** Test endpoints in browser with "Try it out"
-- **Redoc:** Browse beautiful, responsive documentation
-- **Downloads:** Get OpenAPI YAML/JSON for Postman, Insomnia, etc.
+**Documentation URL:** https://tateca.github.io/tateca-backend
 
 ---
 
 ### Additional Features
-
-**API Breaking Change Detection (Disabled):**
-- **Status:** Currently disabled, not in active use
-- **Tool:** [oasdiff](https://github.com/Tufin/oasdiff) for spec comparison
-- **Capability:** Automated detection of breaking API changes in PRs
-- **Future:** Can be re-enabled when API versioning becomes critical
-- **Examples:** Removed endpoints, new required fields, type changes
 
 **Dependabot:**
 - Weekly dependency updates (Monday 09:00 JST)
@@ -389,7 +236,6 @@ JACOCO_VERIFICATION_ENABLED=true ./gradlew test
 - **WireMock**: 3.9.1 (was 2.35.0) - Maven artifact changed, Java packages unchanged
 - **Testcontainers**: 1.20.4 (was 1.19.3)
 - **REST Assured**: 5.5.0 (was 5.4.0)
-- **SpringDoc**: 2.8.1 (was 2.8.0)
 
 ### Gradual Improvement Strategy
 
@@ -562,18 +408,10 @@ class ExchangeRateContractTest extends AbstractContractTest {
 
 ## API Specification Management
 
-### Current Approach: Code-First
+OpenAPI specs in `openapi/` directory are the single source of truth for HTTP interface contracts.
+See the [Development Methodology](#development-methodology) section for the full SDD process.
 
-This project uses **Code-First** approach for API documentation:
-
-**Implementation:**
-- SpringDoc annotations on controllers define API specification
-- OpenAPI spec auto-generated at runtime from `/v3/api-docs` endpoint
-- CI/CD automatically generates and deploys documentation
-
-**Documentation:** See [CI/CD → API Documentation (Code-First)](#api-documentation-code-first) section above
-
-**Artifacts:**
+**Documentation:**
 - Live docs: https://tateca.github.io/tateca-backend
 - Swagger UI: Interactive API testing
 - Redoc: Static documentation

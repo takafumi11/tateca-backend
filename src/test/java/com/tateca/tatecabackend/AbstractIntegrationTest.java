@@ -2,15 +2,12 @@ package com.tateca.tatecabackend;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.wiremock.integrations.testcontainers.WireMockContainer;
 
@@ -18,14 +15,13 @@ import org.wiremock.integrations.testcontainers.WireMockContainer;
  * Base class for Integration tests with MySQL and WireMock containers.
  * Provides database and external API mocking infrastructure.
  * <p>
- * Tests extending this class run sequentially to avoid database deadlocks
- * when multiple tests access the same Testcontainers MySQL instance concurrently.
+ * {@code @Isolated} prevents parallel execution with other test classes,
+ * because all subclasses share a single Testcontainers MySQL instance.
+ * Without it, concurrent DELETE/INSERT from different test classes cause deadlocks.
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Transactional
-@Execution(ExecutionMode.SAME_THREAD)
+@Isolated
 public abstract class AbstractIntegrationTest {
 
     @ServiceConnection

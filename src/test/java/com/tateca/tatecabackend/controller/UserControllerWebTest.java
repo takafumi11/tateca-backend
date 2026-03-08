@@ -3,12 +3,16 @@ package com.tateca.tatecabackend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.config.TestSecurityConfig;
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
+import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.GlobalExceptionHandler;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
+import com.tateca.tatecabackend.exception.domain.ForbiddenException;
+import com.tateca.tatecabackend.model.AppReviewStatus;
 import com.tateca.tatecabackend.service.UserService;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,18 +22,35 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Map;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Web layer tests for PATCH /users/{userId}.
+ *
+ * <p>Note: 401 Unauthorized is defined in the OpenAPI spec but is NOT tested here.
+ * Authentication is handled by {@code TatecaAuthenticationFilter} before reaching
+ * the Controller. In {@code @WebMvcTest} with {@code TestSecurityConfig}, authentication
+ * is bypassed, making 401 scenarios untestable at this layer. 401 coverage is provided
+ * by {@code UpdateUserNameScenarioTest} (Req3-AC1+AC2) which runs the full stack.
+ */
 @WebMvcTest(UserController.class)
 @Import({GlobalExceptionHandler.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
-@DisplayName("UserController Web Tests")
+@DisplayName("PATCH /users/{userId} — UserController Web Tests")
 class UserControllerWebTest {
 
     @Autowired
@@ -41,323 +62,276 @@ class UserControllerWebTest {
     @MockitoBean
     private UserService userService;
 
-    private static final String BASE_ENDPOINT = "/users";
+    private static final String ENDPOINT = "/users/{userId}";
+    private static final UUID USER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    @Test
-    @DisplayName("Should return 200 OK and updated user info when update succeeds")
-    void shouldReturn200WhenUpdateSucceeds() throws Exception {
-        // Given: Valid request and service returns updated user
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("Updated Name");
+    private static final UserResponseDTO STUB_USER_RESPONSE = new UserResponseDTO(
+            USER_ID.toString(),
+            "Bob",
+            new AuthUserResponseDTO(
+                    TestSecurityConfig.TEST_UID,
+                    "Auth Name",
+                    "bob@example.com",
+                    "2024-01-01T12:00:00+09:00",
+                    "2024-01-15T14:30:00+09:00",
+                    "2024-01-20T10:15:00+09:00",
+                    5,
+                    null,
+                    AppReviewStatus.PENDING
+            ),
+            "2024-01-01T12:00:00+09:00",
+            "2024-01-15T14:30:00+09:00"
+    );
 
-        UserResponseDTO expectedResponse = new UserResponseDTO(
-                userId.toString(),
-                "Updated Name",
-                null,
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-15T09:00:00+09:00"
-        );
+    // =================================================================
+    // 200 OK — Success
+    // =================================================================
 
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenReturn(expectedResponse);
+    @Nested
+    @DisplayName("200 OK — Successful update")
+    class Status200 {
 
-        // When & Then: Should return 200 with updated user info
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.uuid").value(userId.toString()))
-                .andExpect(jsonPath("$.name").value("Updated Name"))
-                .andExpect(jsonPath("$.created_at").exists())
-                .andExpect(jsonPath("$.updated_at").exists());
+        @Test
+        @DisplayName("Should return 200 with UserResponse schema when valid request")
+        void shouldReturn200WithUserResponseSchema() throws Exception {
+            when(userService.updateUserName(anyString(), eq(USER_ID), any(UpdateUserNameRequestDTO.class)))
+                    .thenReturn(STUB_USER_RESPONSE);
 
-        // And: Service should be called once
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Bob"))))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.uuid").value(USER_ID.toString()))
+                    .andExpect(jsonPath("$.name").value("Bob"))
+                    .andExpect(jsonPath("$.created_at").exists())
+                    .andExpect(jsonPath("$.updated_at").exists())
+                    .andExpect(jsonPath("$.auth_user").exists())
+                    .andExpect(jsonPath("$.auth_user.uid").value(TestSecurityConfig.TEST_UID))
+                    .andExpect(jsonPath("$.auth_user.name").exists())
+                    .andExpect(jsonPath("$.auth_user.email").exists())
+                    .andExpect(jsonPath("$.auth_user.created_at").exists())
+                    .andExpect(jsonPath("$.auth_user.updated_at").exists())
+                    .andExpect(jsonPath("$.auth_user.last_login_time").exists())
+                    .andExpect(jsonPath("$.auth_user.total_login_count").isNumber())
+                    .andExpect(jsonPath("$.auth_user.last_app_review_dialog_shown_at").value(nullValue()))
+                    .andExpect(jsonPath("$.auth_user.app_review_status").value("PENDING"));
+
+            verify(userService, times(1))
+                    .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
+        }
+
+        @Test
+        @DisplayName("Should return 200 with null auth_user when user has no auth")
+        void shouldReturn200WithNullAuthUser() throws Exception {
+            UserResponseDTO responseWithoutAuth = new UserResponseDTO(
+                    USER_ID.toString(), "Bob", null,
+                    "2024-01-01T12:00:00+09:00", "2024-01-15T14:30:00+09:00"
+            );
+            when(userService.updateUserName(anyString(), eq(USER_ID), any(UpdateUserNameRequestDTO.class)))
+                    .thenReturn(responseWithoutAuth);
+
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Bob"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.auth_user").value(nullValue()));
+
+            verify(userService, times(1))
+                    .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should return 400 when user_name is missing")
-    void shouldReturn400WhenUserNameIsMissing() throws Exception {
-        // Given: Empty request body (user_name missing)
-        UUID userId = UUID.randomUUID();
-        String emptyRequest = "{}";
+    // =================================================================
+    // 400 Bad Request — Validation & Malformed JSON
+    // =================================================================
 
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(emptyRequest))
-                .andExpect(status().isBadRequest());
+    @Nested
+    @DisplayName("400 Bad Request — Validation errors")
+    class Status400 {
 
-        verify(userService, never()).updateUserName(any(), any());
+        @Test
+        @DisplayName("Should return 400 with VALIDATION.FAILED and errors array when user_name is empty")
+        void shouldReturn400WithErrorsArrayWhenEmpty() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", ""))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.message").value("Validation failed"))
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"))
+                    .andExpect(jsonPath("$.errors").isArray())
+                    .andExpect(jsonPath("$.errors[0].field").exists())
+                    .andExpect(jsonPath("$.errors[0].message").exists());
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when user_name is whitespace only")
+        void shouldReturn400WhenWhitespaceOnly() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "   "))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when user_name key is missing from request")
+        void shouldReturn400WhenKeyMissing() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when user_name is null")
+        void shouldReturn400WhenNull() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"user_name\": null}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when user_name exceeds 50 characters")
+        void shouldReturn400WhenExceedsMaxLength() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "A".repeat(51)))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error_code").value("VALIDATION.FAILED"));
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 with REQUEST.MALFORMED_JSON when JSON is invalid")
+        void shouldReturn400WithMalformedJsonErrorCode() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{ invalid json }"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.error_code").value("REQUEST.MALFORMED_JSON"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when request body is missing")
+        void shouldReturn400WhenBodyMissing() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when userId path parameter is not a valid UUID")
+        void shouldReturn400WhenUserIdNotUuid() throws Exception {
+            mockMvc.perform(patch("/users/{userId}", "not-a-uuid")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Bob"))))
+                    .andExpect(status().isBadRequest());
+
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
     }
 
-    @Test
-    @DisplayName("Should return 400 when user_name is null")
-    void shouldReturn400WhenUserNameIsNull() throws Exception {
-        // Given: Request with null user_name
-        UUID userId = UUID.randomUUID();
-        String requestWithNull = """
-            {
-                "user_name": null
-            }
-            """;
+    // =================================================================
+    // 403 Forbidden — Authorization
+    // =================================================================
 
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestWithNull))
-                .andExpect(status().isBadRequest());
+    @Nested
+    @DisplayName("403 Forbidden — Authorization errors")
+    class Status403 {
 
-        verify(userService, never()).updateUserName(any(), any());
+        @Test
+        @DisplayName("Should return 403 with USER.FORBIDDEN error_code when service throws ForbiddenException")
+        void shouldReturn403WithForbiddenErrorCode() throws Exception {
+            when(userService.updateUserName(anyString(), eq(USER_ID), any(UpdateUserNameRequestDTO.class)))
+                    .thenThrow(new ForbiddenException(ErrorCode.USER_FORBIDDEN));
+
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Hacked"))))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value(403))
+                    .andExpect(jsonPath("$.error").value("Forbidden"))
+                    .andExpect(jsonPath("$.message").value("You are not allowed to modify this resource"))
+                    .andExpect(jsonPath("$.error_code").value("USER.FORBIDDEN"))
+                    .andExpect(jsonPath("$.path").value("/users/" + USER_ID))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
+
+            verify(userService, times(1))
+                    .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should return 400 when user_name is empty string")
-    void shouldReturn400WhenUserNameIsEmpty() throws Exception {
-        // Given: Request with empty string
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("");
+    // =================================================================
+    // 404 Not Found
+    // =================================================================
 
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+    @Nested
+    @DisplayName("404 Not Found — User not found")
+    class Status404 {
 
-        verify(userService, never()).updateUserName(any(), any());
+        @Test
+        @DisplayName("Should return 404 with USER.NOT_FOUND error_code when service throws EntityNotFoundException")
+        void shouldReturn404WithNotFoundErrorCode() throws Exception {
+            when(userService.updateUserName(anyString(), eq(USER_ID), any(UpdateUserNameRequestDTO.class)))
+                    .thenThrow(new EntityNotFoundException(ErrorCode.USER_NOT_FOUND));
+
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Bob"))))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.error").value("Not Found"))
+                    .andExpect(jsonPath("$.message").value("User not found"))
+                    .andExpect(jsonPath("$.error_code").value("USER.NOT_FOUND"))
+                    .andExpect(jsonPath("$.path").value("/users/" + USER_ID))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
+
+            verify(userService, times(1))
+                    .updateUserName(eq(TestSecurityConfig.TEST_UID), eq(USER_ID), any(UpdateUserNameRequestDTO.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should return 400 when user_name is only whitespace")
-    void shouldReturn400WhenUserNameIsOnlyWhitespace() throws Exception {
-        // Given: Request with only whitespace
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("   ");
+    // =================================================================
+    // 415 Unsupported Media Type
+    // =================================================================
 
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+    @Nested
+    @DisplayName("415 Unsupported Media Type")
+    class Status415 {
 
-        verify(userService, never()).updateUserName(any(), any());
-    }
+        @Test
+        @DisplayName("Should return 415 with REQUEST.UNSUPPORTED_MEDIA_TYPE when Content-Type is missing")
+        void shouldReturn415WhenContentTypeMissing() throws Exception {
+            mockMvc.perform(patch(ENDPOINT, USER_ID)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of("user_name", "Bob"))))
+                    .andExpect(status().isUnsupportedMediaType())
+                    .andExpect(jsonPath("$.status").value(415))
+                    .andExpect(jsonPath("$.error_code").value("REQUEST.UNSUPPORTED_MEDIA_TYPE"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
-    @Test
-    @DisplayName("Should update with unicode characters")
-    void shouldUpdateWithUnicodeCharacters() throws Exception {
-        // Given: Request with Japanese characters
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("田中太郎");
-
-        UserResponseDTO expectedResponse = new UserResponseDTO(
-                userId.toString(),
-                "田中太郎",
-                null,
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-15T09:00:00+09:00"
-        );
-
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-        // When & Then: Should handle unicode
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .characterEncoding("UTF-8"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("田中太郎"));
-
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
-    }
-
-    @Test
-    @DisplayName("Should accept name with exactly 1 character")
-    void shouldAcceptNameWith1Character() throws Exception {
-        // Given: Request with 1 character (minimum boundary value)
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("A");
-
-        UserResponseDTO expectedResponse = new UserResponseDTO(
-                userId.toString(),
-                "A",
-                null,
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-15T09:00:00+09:00"
-        );
-
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-        // When & Then: Should accept minimum length name
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("A"));
-
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
-    }
-
-    @Test
-    @DisplayName("Should accept name with exactly 50 characters")
-    void shouldAcceptNameWith50Characters() throws Exception {
-        // Given: Request with 50 characters (boundary value)
-        UUID userId = UUID.randomUUID();
-        String name50Chars = "A".repeat(50);
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO(name50Chars);
-
-        UserResponseDTO expectedResponse = new UserResponseDTO(
-                userId.toString(),
-                name50Chars,
-                null,
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-15T09:00:00+09:00"
-        );
-
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-        // When & Then: Should accept maximum length name
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(name50Chars));
-
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
-    }
-
-    @Test
-    @DisplayName("Should return 400 when name exceeds 50 characters")
-    void shouldReturn400WhenNameExceeds50Characters() throws Exception {
-        // Given: Request with 51 characters (over limit)
-        UUID userId = UUID.randomUUID();
-        String name51Chars = "A".repeat(51);
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO(name51Chars);
-
-        // When & Then: Should return 400 due to @Size validation
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, never()).updateUserName(any(), any());
-    }
-
-    @Test
-    @DisplayName("Should accept name with emoji characters")
-    void shouldAcceptNameWithEmoji() throws Exception {
-        // Given: Request with emoji characters
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("John 😊 Doe");
-
-        UserResponseDTO expectedResponse = new UserResponseDTO(
-                userId.toString(),
-                "John 😊 Doe",
-                null,
-                "2024-01-01T09:00:00+09:00",
-                "2024-01-15T09:00:00+09:00"
-        );
-
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenReturn(expectedResponse);
-
-        // When & Then: Should handle emoji
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .characterEncoding("UTF-8"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("John 😊 Doe"));
-
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
-    }
-
-    @Test
-    @DisplayName("Should return 400 when request body is completely missing")
-    void shouldReturn400WhenRequestBodyMissing() throws Exception {
-        // Given: Request without body
-        UUID userId = UUID.randomUUID();
-
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, never()).updateUserName(any(), any());
-    }
-
-    @Test
-    @DisplayName("Should return 404 with error code when user not found")
-    void shouldReturn404WhenUserNotFound() throws Exception {
-        // Given: Service throws EntityNotFoundException with ErrorCode
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-        when(userService.updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class)))
-                .thenThrow(new EntityNotFoundException(ErrorCode.USER_NOT_FOUND));
-
-        // When & Then: Should return 404 with error_code
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error_code").value("USER.NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("User not found"))
-                .andExpect(jsonPath("$.path").value("/users/" + userId));
-
-        verify(userService, times(1)).updateUserName(eq(userId), any(UpdateUserNameRequestDTO.class));
-    }
-
-    @Test
-    @DisplayName("Should return 400 when invalid UUID format")
-    void shouldReturn400WhenInvalidUUIDFormat() throws Exception {
-        // Given: Invalid UUID format
-        String invalidUUID = "not-a-valid-uuid";
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", invalidUUID)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-
-        // Service should not be called with invalid UUID
-        verify(userService, never()).updateUserName(any(), any());
-    }
-
-    @Test
-    @DisplayName("Should return 400 when Content-Type is missing")
-    void shouldReturn400WhenContentTypeIsMissing() throws Exception {
-        // Given: Request without Content-Type header
-        UUID userId = UUID.randomUUID();
-        UpdateUserNameRequestDTO request = new UpdateUserNameRequestDTO("New Name");
-
-        // When & Then: Should return 415 Unsupported Media Type
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnsupportedMediaType());
-
-        verify(userService, never()).updateUserName(any(), any());
-    }
-
-    @Test
-    @DisplayName("Should return 400 when request body is malformed JSON")
-    void shouldReturn400WhenRequestBodyIsMalformedJSON() throws Exception {
-        // Given: Malformed JSON
-        UUID userId = UUID.randomUUID();
-        String malformedJson = "{ invalid json }";
-
-        // When & Then: Should return 400
-        mockMvc.perform(patch(BASE_ENDPOINT + "/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(malformedJson))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, never()).updateUserName(any(), any());
+            verify(userService, never()).updateUserName(anyString(), any(), any());
+        }
     }
 }

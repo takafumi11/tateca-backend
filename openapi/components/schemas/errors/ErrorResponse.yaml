@@ -1,5 +1,12 @@
 type: object
 description: Standard error response
+required:
+  - timestamp
+  - status
+  - error
+  - message
+  - path
+  - error_code
 properties:
   timestamp:
     type: string
@@ -27,7 +34,8 @@ properties:
     example: 550e8400-e29b-41d4-a716-446655440000
   error_code:
     type: string
-    description: Machine-readable error code for client-side handling
+    description: Machine-readable error code for client-side handling. Operation-specific allowed values are documented in each operation's error responses.
+    pattern: '^[A-Z0-9_]+(?:\\.[A-Z0-9_]+)+$'
     example: AUTH.INVALID_TOKEN
   errors:
     type: array

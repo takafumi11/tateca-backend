@@ -43,6 +43,11 @@ public enum ErrorCode {
      */
     USER_MAX_GROUP_COUNT_EXCEEDED("USER.MAX_GROUP_COUNT_EXCEEDED", "User can't join more than 10 groups"),
 
+    /**
+     * Authenticated user attempted to modify a resource they do not own
+     */
+    USER_FORBIDDEN("USER.FORBIDDEN", "You are not allowed to modify this resource"),
+
     // ==================== Auth User Errors ====================
     /**
      * Auth user entity not found in database
@@ -73,7 +78,18 @@ public enum ErrorCode {
     /**
      * Invalid or expired join token provided
      */
-    GROUP_INVALID_JOIN_TOKEN("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token");
+    GROUP_INVALID_JOIN_TOKEN("GROUP.INVALID_JOIN_TOKEN", "Invalid or expired join token"),
+
+    // ==================== Member Errors ====================
+    /**
+     * Target member is already joined (authenticated) and cannot be removed
+     */
+    MEMBER_ALREADY_JOINED("MEMBER.ALREADY_JOINED", "Member is already joined and cannot be removed"),
+
+    /**
+     * Target member is involved in transactions and cannot be removed
+     */
+    MEMBER_HAS_TRANSACTIONS("MEMBER.HAS_TRANSACTIONS", "Member has transactions and cannot be removed");
 
     private final String code;
     private final String defaultMessage;
