@@ -1189,6 +1189,158 @@ class GroupControllerWebTest {
     }
 
     // ========================================
+    // addMember Tests
+    // ========================================
+
+    @Nested
+    @DisplayName("POST /groups/{groupId}/members - Add Member")
+    class AddMemberTests {
+
+        @Test
+        @DisplayName("Should return 200 OK when member is added successfully")
+        void shouldReturn200WhenMemberAdded() throws Exception {
+            UUID groupId = UUID.randomUUID();
+            com.tateca.tatecabackend.dto.request.AddMemberRequestDTO request =
+                    new com.tateca.tatecabackend.dto.request.AddMemberRequestDTO("New Member");
+
+            GroupResponse groupInfo = new GroupResponse(
+                    groupId.toString(), "Test Group", UUID.randomUUID().toString(),
+                    "2024-12-31T23:59:59Z", "2024-01-01T09:00:00+09:00", "2024-01-01T09:00:00+09:00");
+            GroupResponseDTO expectedResponse = new GroupResponseDTO(groupInfo, List.of(), 0L);
+
+            when(groupService.addMember(eq(groupId), anyString(), any()))
+                    .thenReturn(expectedResponse);
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.group").exists())
+                    .andExpect(jsonPath("$.users").isArray());
+
+            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when member name is blank")
+        void shouldReturn400WhenMemberNameIsBlank() throws Exception {
+            UUID groupId = UUID.randomUUID();
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":\"\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400));
+
+            verify(groupService, never()).addMember(any(), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when member name exceeds 50 characters")
+        void shouldReturn400WhenMemberNameExceedsMaxLength() throws Exception {
+            UUID groupId = UUID.randomUUID();
+            String longName = "A".repeat(51);
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":\"" + longName + "\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400));
+
+            verify(groupService, never()).addMember(any(), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when member name is null")
+        void shouldReturn400WhenMemberNameIsNull() throws Exception {
+            UUID groupId = UUID.randomUUID();
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":null}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400));
+
+            verify(groupService, never()).addMember(any(), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when groupId is invalid UUID")
+        void shouldReturn400WhenInvalidGroupId() throws Exception {
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", "not-a-uuid")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":\"Member\"}"))
+                    .andExpect(status().isBadRequest());
+
+            verify(groupService, never()).addMember(any(), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 403 when requester is not a group member")
+        void shouldReturn403WhenNotGroupMember() throws Exception {
+            UUID groupId = UUID.randomUUID();
+
+            when(groupService.addMember(eq(groupId), anyString(), any()))
+                    .thenThrow(new ForbiddenException("USER.NOT_GROUP_MEMBER", "User is not a member of this group"));
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":\"Member\"}"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.error_code").value("USER.NOT_GROUP_MEMBER"));
+
+            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 404 when group not found")
+        void shouldReturn404WhenGroupNotFound() throws Exception {
+            UUID groupId = UUID.randomUUID();
+
+            when(groupService.addMember(eq(groupId), anyString(), any()))
+                    .thenThrow(new EntityNotFoundException("GROUP.NOT_FOUND", "Group not found"));
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":\"Member\"}"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"));
+
+            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 409 when group size limit reached")
+        void shouldReturn409WhenGroupSizeLimitReached() throws Exception {
+            UUID groupId = UUID.randomUUID();
+
+            when(groupService.addMember(eq(groupId), anyString(), any()))
+                    .thenThrow(new BusinessRuleViolationException("Group has reached maximum size of 10 members"));
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"member_name\":\"Member\"}"))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.status").value(409));
+
+            verify(groupService, times(1)).addMember(eq(groupId), anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should return 415 when Content-Type is missing")
+        void shouldReturn415WhenContentTypeIsMissing() throws Exception {
+            UUID groupId = UUID.randomUUID();
+
+            mockMvc.perform(post(BASE_ENDPOINT + "/{groupId}/members", groupId)
+                            .content("{\"member_name\":\"Member\"}"))
+                    .andExpect(status().isUnsupportedMediaType());
+
+            verify(groupService, never()).addMember(any(), anyString(), any());
+        }
+    }
+
+    // ========================================
     // leaveGroup Tests
     // ========================================
 
