@@ -5,6 +5,7 @@ import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
 import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.domain.DuplicateResourceException;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.model.AppReviewStatus;
@@ -21,31 +22,25 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyList;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AuthUserService Unit Tests")
+@DisplayName("AuthUserServiceImpl — Domain Logic")
 class AuthUserServiceUnitTest {
 
-    @Mock
-    private AuthUserRepository repository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @InjectMocks
-    private AuthUserServiceImpl authUserService;
+    @Mock private AuthUserRepository repository;
+    @Mock private UserRepository userRepository;
+    @InjectMocks private AuthUserServiceImpl authUserService;
 
     private static final String TEST_UID = "test-uid-123";
     private AuthUserEntity testAuthUser;
@@ -64,194 +59,180 @@ class AuthUserServiceUnitTest {
                 .build();
     }
 
-    // ========================================
-    // getAuthUserInfo Tests
-    // ========================================
+    // =================================================================
+    // getAuthUserInfo
+    // =================================================================
 
     @Nested
-    @DisplayName("getAuthUserInfo")
-    class GetAuthUserInfo {
+    @DisplayName("Given 認証ユーザーが存在する")
+    class GivenAuthUserExists_GetInfo {
 
         @Test
-        @DisplayName("Should throw EntityNotFoundException when user not found")
-        void shouldThrowEntityNotFoundExceptionWhenUserNotFound() {
-            // Given: Repository returns empty
-            when(repository.findById(TEST_UID))
-                    .thenReturn(Optional.empty());
-
-            // When & Then: Should throw EntityNotFoundException
-            assertThatThrownBy(() -> authUserService.getAuthUserInfo(TEST_UID))
-                    .isInstanceOf(EntityNotFoundException.class)
-                    .hasMessageContaining("Auth user not found");
-
-            // And: Save should not be called
-            verify(repository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Should update login count and timestamp")
-        void shouldUpdateLoginCountAndTimestamp() {
-            // Given: Existing user
+        @DisplayName("Then ログイン回数を1加算して保存する")
+        void thenShouldIncrementLoginCountAndSave() {
             when(repository.findById(TEST_UID)).thenReturn(Optional.of(testAuthUser));
-            when(repository.save(any(AuthUserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(repository.save(any(AuthUserEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            // When: Getting user info
             AuthUserResponseDTO result = authUserService.getAuthUserInfo(TEST_UID);
 
-            // Then: Should update login count
             verify(repository).save(argThat(user ->
-                    user.getTotalLoginCount() == 6 && user.getLastLoginTime() != null
-            ));
+                    user.getTotalLoginCount() == 6 && user.getLastLoginTime() != null));
             assertThat(result).isNotNull();
         }
     }
 
-    // ========================================
-    // createAuthUser Tests
-    // ========================================
-
     @Nested
-    @DisplayName("createAuthUser")
-    class CreateAuthUser {
+    @DisplayName("Given 認証ユーザーが存在しない")
+    class GivenAuthUserNotExists_GetInfo {
 
         @Test
-        @DisplayName("Should throw DuplicateResourceException when email already exists")
-        void shouldThrowDuplicateResourceExceptionWhenEmailExists() {
-            // Given: Email already exists
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("existing@example.com");
+        @DisplayName("Then EntityNotFoundException をスローする")
+        void thenShouldThrowEntityNotFoundException() {
+            when(repository.findById(TEST_UID)).thenReturn(Optional.empty());
 
-            when(repository.existsByEmail(request.email())).thenReturn(true);
+            assertThatThrownBy(() -> authUserService.getAuthUserInfo(TEST_UID))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_USER_NOT_FOUND.getCode());
 
-            // When & Then: Should throw DuplicateResourceException
-            assertThatThrownBy(() -> authUserService.createAuthUser(TEST_UID, request))
-                    .isInstanceOf(DuplicateResourceException.class)
-                    .hasMessageContaining("Email already exists");
-
-            // And: Save should not be called
             verify(repository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Should validate email before creating user")
-        void shouldValidateEmailBeforeCreatingUser() {
-            // Given: Valid request
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO("test@example.com");
-            when(repository.existsByEmail(request.email())).thenReturn(false);
-            when(repository.save(any(AuthUserEntity.class))).thenAnswer(invocation -> {
-                AuthUserEntity entity = invocation.getArgument(0);
-                // Simulate @PrePersist behavior
-                return AuthUserEntity.builder()
-                        .uid(entity.getUid())
-                        .name(entity.getName())
-                        .email(entity.getEmail())
-                        .createdAt(Instant.now())
-                        .updatedAt(Instant.now())
-                        .lastLoginTime(entity.getLastLoginTime())
-                        .totalLoginCount(entity.getTotalLoginCount())
-                        .appReviewStatus(entity.getAppReviewStatus())
-                        .build();
-            });
-
-            // When: Creating user
-            authUserService.createAuthUser(TEST_UID, request);
-
-            // Then: Should validate email first
-            verify(repository).existsByEmail(request.email());
-            verify(repository).save(any(AuthUserEntity.class));
         }
     }
 
-    // ========================================
-    // deleteAuthUser Tests
-    // ========================================
+    // =================================================================
+    // createAuthUser
+    // =================================================================
 
     @Nested
-    @DisplayName("deleteAuthUser")
-    class DeleteAuthUser {
+    @DisplayName("Given メールアドレスが未登録")
+    class GivenEmailNotRegistered {
 
         @Test
-        @DisplayName("Should throw EntityNotFoundException when user not found")
-        void shouldThrowEntityNotFoundExceptionWhenUserNotFound() {
-            // Given: Repository returns empty
-            when(repository.findById(TEST_UID))
-                    .thenReturn(Optional.empty());
+        @DisplayName("Then 正しい初期値でエンティティを作成して保存する")
+        void thenShouldCreateEntityWithCorrectDefaults() {
+            var request = new CreateAuthUserRequestDTO("new@example.com");
+            when(repository.existsByEmail("new@example.com")).thenReturn(false);
+            when(repository.save(any(AuthUserEntity.class))).thenAnswer(inv -> {
+                AuthUserEntity entity = inv.getArgument(0);
+                entity.setCreatedAt(Instant.now());
+                entity.setUpdatedAt(Instant.now());
+                return entity;
+            });
 
-            // When & Then: Should throw EntityNotFoundException
-            assertThatThrownBy(() -> authUserService.deleteAuthUser(TEST_UID))
-                    .isInstanceOf(EntityNotFoundException.class)
-                    .hasMessageContaining("Auth user not found");
+            authUserService.createAuthUser(TEST_UID, request);
+
+            verify(repository).existsByEmail("new@example.com");
+            verify(repository).save(argThat(user ->
+                    user.getUid().equals(TEST_UID) &&
+                    user.getName().equals("") &&
+                    user.getEmail().equals("new@example.com") &&
+                    user.getTotalLoginCount() == 1 &&
+                    user.getAppReviewStatus() == AppReviewStatus.PENDING &&
+                    user.getLastLoginTime() != null));
         }
+    }
+
+    @Nested
+    @DisplayName("Given メールアドレスが既に登録済み")
+    class GivenEmailAlreadyRegistered {
 
         @Test
-        @DisplayName("Should nullify authUser reference before deleting")
-        void shouldNullifyAuthUserReferenceBeforeDeleting() {
-            // Given: User entities associated with auth user
+        @DisplayName("Then DuplicateResourceException をスローする")
+        void thenShouldThrowDuplicateResourceException() {
+            var request = new CreateAuthUserRequestDTO("existing@example.com");
+            when(repository.existsByEmail("existing@example.com")).thenReturn(true);
+
+            assertThatThrownBy(() -> authUserService.createAuthUser(TEST_UID, request))
+                    .isInstanceOf(DuplicateResourceException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_USER_EMAIL_DUPLICATE.getCode());
+
+            verify(repository, never()).save(any());
+        }
+    }
+
+    // =================================================================
+    // deleteAuthUser
+    // =================================================================
+
+    @Nested
+    @DisplayName("Given 認証ユーザーが存在し紐付くアプリ内ユーザーがいる")
+    class GivenAuthUserExistsWithLinkedUsers {
+
+        @Test
+        @DisplayName("Then 紐付け解除してから削除する")
+        void thenShouldUnlinkUsersAndDelete() {
             UserEntity user1 = UserEntity.builder().name("User 1").authUser(testAuthUser).build();
             UserEntity user2 = UserEntity.builder().name("User 2").authUser(testAuthUser).build();
-            List<UserEntity> userEntities = Arrays.asList(user1, user2);
+            List<UserEntity> linkedUsers = List.of(user1, user2);
 
             when(repository.findById(TEST_UID)).thenReturn(Optional.of(testAuthUser));
-            when(userRepository.findByAuthUserUid(TEST_UID)).thenReturn(userEntities);
-            when(userRepository.saveAll(anyList())).thenReturn(userEntities);
+            when(userRepository.findByAuthUserUid(TEST_UID)).thenReturn(linkedUsers);
+            when(userRepository.saveAll(anyList())).thenReturn(linkedUsers);
 
-            // When: Deleting auth user
             authUserService.deleteAuthUser(TEST_UID);
 
-            // Then: Should nullify authUser references and save
             verify(userRepository).saveAll(argThat(users -> {
-                if (users instanceof List) {
-                    return ((List<UserEntity>) users).stream().allMatch(u -> u.getAuthUser() == null);
-                }
-                return false;
+                @SuppressWarnings("unchecked")
+                List<UserEntity> list = (List<UserEntity>) users;
+                return list.stream().allMatch(u -> u.getAuthUser() == null);
             }));
             verify(repository).deleteById(TEST_UID);
         }
     }
 
-    // ========================================
-    // updateAppReview Tests
-    // ========================================
+    @Nested
+    @DisplayName("Given 認証ユーザーが存在しない（削除）")
+    class GivenAuthUserNotExists_Delete {
+
+        @Test
+        @DisplayName("Then EntityNotFoundException をスローする")
+        void thenShouldThrowEntityNotFoundException() {
+            when(repository.findById(TEST_UID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authUserService.deleteAuthUser(TEST_UID))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_USER_NOT_FOUND.getCode());
+        }
+    }
+
+    // =================================================================
+    // updateAppReview
+    // =================================================================
 
     @Nested
-    @DisplayName("updateAppReview")
-    class UpdateAppReview {
+    @DisplayName("Given 認証ユーザーが存在する（レビュー設定更新）")
+    class GivenAuthUserExists_UpdateReview {
 
         @Test
-        @DisplayName("Should throw EntityNotFoundException when user not found")
-        void shouldThrowEntityNotFoundExceptionWhenUserNotFound() {
-            // Given: Repository returns empty
-            UpdateAppReviewRequestDTO request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
-
-            when(repository.findById(TEST_UID))
-                    .thenReturn(Optional.empty());
-
-            // When & Then: Should throw EntityNotFoundException
-            assertThatThrownBy(() -> authUserService.updateAppReview(TEST_UID, request))
-                    .isInstanceOf(EntityNotFoundException.class)
-                    .hasMessageContaining("Auth user not found");
-
-            // And: Save should not be called
-            verify(repository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Should update lastAppReviewDialogShownAt and status")
-        void shouldUpdateLastAppReviewDialogShownAtAndStatus() {
-            // Given: Existing user
-            UpdateAppReviewRequestDTO request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
-
+        @DisplayName("Then ステータスとダイアログ表示日時を更新して保存する")
+        void thenShouldUpdateStatusAndTimestamp() {
+            var request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
             when(repository.findById(TEST_UID)).thenReturn(Optional.of(testAuthUser));
-            when(repository.save(any(AuthUserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(repository.save(any(AuthUserEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            // When: Updating app review
             AuthUserResponseDTO result = authUserService.updateAppReview(TEST_UID, request);
 
-            // Then: Should update both fields
             verify(repository).save(argThat(user ->
-                    user.getLastAppReviewDialogShownAt() != null &&
-                            user.getAppReviewStatus() == AppReviewStatus.COMPLETED
-            ));
+                    user.getAppReviewStatus() == AppReviewStatus.COMPLETED &&
+                    user.getLastAppReviewDialogShownAt() != null));
             assertThat(result).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("Given 認証ユーザーが存在しない（レビュー設定更新）")
+    class GivenAuthUserNotExists_UpdateReview {
+
+        @Test
+        @DisplayName("Then EntityNotFoundException をスローする")
+        void thenShouldThrowEntityNotFoundException() {
+            var request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
+            when(repository.findById(TEST_UID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authUserService.updateAppReview(TEST_UID, request))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_USER_NOT_FOUND.getCode());
+
+            verify(repository, never()).save(any());
         }
     }
 }

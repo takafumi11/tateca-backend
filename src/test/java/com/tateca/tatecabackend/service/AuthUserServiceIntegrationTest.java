@@ -3,7 +3,6 @@ package com.tateca.tatecabackend.service;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
 import com.tateca.tatecabackend.dto.request.CreateAuthUserRequestDTO;
 import com.tateca.tatecabackend.dto.request.UpdateAppReviewRequestDTO;
-import com.tateca.tatecabackend.dto.response.AuthUserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
 import com.tateca.tatecabackend.model.AppReviewStatus;
@@ -21,27 +20,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("AuthUserService Integration Tests")
+@DisplayName("AuthUserService Integration Tests — Infrastructure behavior")
 @Transactional
 class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private AuthUserService authUserService;
-
-    @Autowired
-    private AuthUserRepository authUserRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private AuthUserService authUserService;
+    @Autowired private AuthUserRepository authUserRepository;
+    @Autowired private UserRepository userRepository;
 
     private static final String TEST_UID = "test-uid-" + System.currentTimeMillis();
     private AuthUserEntity testAuthUser;
 
     @BeforeEach
     void setUp() {
-        // Create test auth user
         testAuthUser = AuthUserEntity.builder()
                 .uid(TEST_UID)
                 .name("Test User")
@@ -51,410 +43,164 @@ class AuthUserServiceIntegrationTest extends AbstractIntegrationTest {
                 .appReviewStatus(AppReviewStatus.PENDING)
                 .build();
         authUserRepository.save(testAuthUser);
-
         flushAndClear();
     }
 
-    // ========================================
-    // getAuthUserInfo Tests
-    // ========================================
-
     @Nested
-    @DisplayName("Given auth user exists in database")
-    class WhenAuthUserExistsInDatabase {
+    @DisplayName("@PrePersist / @PreUpdate — タイムスタンプ自動設定")
+    class PrePersistPreUpdateBehavior {
 
         @Test
-        @DisplayName("Then should update login count and timestamp and persist to database")
-        void thenShouldUpdateLoginCountAndTimestampAndPersistToDatabase() {
-            // Given: Existing auth user with login count 5
-            int originalLoginCount = testAuthUser.getTotalLoginCount();
+        @DisplayName("Should set createdAt and updatedAt on @PrePersist when creating auth user")
+        void shouldSetTimestampsOnCreate() {
+            String newUid = "new-uid-" + System.currentTimeMillis();
+            var request = new CreateAuthUserRequestDTO("new" + System.currentTimeMillis() + "@example.com");
 
-            // When: Getting user info
-            AuthUserResponseDTO result = authUserService.getAuthUserInfo(TEST_UID);
-
-            // Then: Should return DTO with incremented login count
-            assertThat(result).isNotNull();
-            assertThat(result.uid()).isEqualTo(TEST_UID);
-            assertThat(result.totalLoginCount()).isEqualTo(originalLoginCount + 1);
-            assertThat(result.lastLoginTime()).isNotNull();
-
-            // And: Changes should be persisted in database
+            authUserService.createAuthUser(newUid, request);
             flushAndClear();
-            Optional<AuthUserEntity> updatedUser = authUserRepository.findById(TEST_UID);
-            assertThat(updatedUser).isPresent();
-            assertThat(updatedUser.get().getTotalLoginCount()).isEqualTo(originalLoginCount + 1);
-            assertThat(updatedUser.get().getLastLoginTime()).isNotNull();
+
+            AuthUserEntity created = authUserRepository.findById(newUid)
+                    .orElseThrow(() -> new AssertionError("User should exist"));
+            assertThat(created.getCreatedAt()).isNotNull();
+            assertThat(created.getUpdatedAt()).isNotNull();
         }
 
         @Test
-        @DisplayName("Then should increment login count on multiple calls")
-        void thenShouldIncrementLoginCountOnMultipleCalls() {
-            // Given: Initial login count
-            int initialCount = testAuthUser.getTotalLoginCount();
-
-            // When: Getting user info multiple times
-            authUserService.getAuthUserInfo(TEST_UID);
-            flushAndClear();
-            authUserService.getAuthUserInfo(TEST_UID);
-            flushAndClear();
-            authUserService.getAuthUserInfo(TEST_UID);
-            flushAndClear();
-
-            // Then: Login count should be incremented 3 times
-            AuthUserEntity updatedUser = authUserRepository.findById(TEST_UID)
+        @DisplayName("Should update updatedAt via @PreUpdate on app review update")
+        void shouldUpdateTimestampOnUpdate() {
+            AuthUserEntity before = authUserRepository.findById(TEST_UID)
                     .orElseThrow(() -> new AssertionError("User should exist"));
-            assertThat(updatedUser.getTotalLoginCount()).isEqualTo(initialCount + 3);
-        }
+            Instant originalUpdatedAt = before.getUpdatedAt();
 
-        @Test
-        @DisplayName("Then should update lastLoginTime on each call")
-        void thenShouldUpdateLastLoginTimeOnEachCall() {
-            // Given: Get user info first time
-            authUserService.getAuthUserInfo(TEST_UID);
-            flushAndClear();
-
-            AuthUserEntity firstUpdate = authUserRepository.findById(TEST_UID)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            Instant firstLoginTime = firstUpdate.getLastLoginTime();
-
-            // Sleep briefly to ensure timestamp difference
             try {
-                Thread.sleep(10);
+                Thread.sleep(1100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
 
-            // When: Getting user info second time
+            var request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
+            authUserService.updateAppReview(TEST_UID, request);
+            flushAndClear();
+
+            AuthUserEntity after = authUserRepository.findById(TEST_UID)
+                    .orElseThrow(() -> new AssertionError("User should exist"));
+            assertThat(after.getUpdatedAt()).isAfter(originalUpdatedAt);
+        }
+    }
+
+    @Nested
+    @DisplayName("ログイン回数 — 累積永続化")
+    class LoginCountPersistence {
+
+        @Test
+        @DisplayName("Should persist incremented login count across multiple calls")
+        void shouldPersistIncrementedLoginCount() {
+            int initial = testAuthUser.getTotalLoginCount();
+
+            authUserService.getAuthUserInfo(TEST_UID);
+            flushAndClear();
+            authUserService.getAuthUserInfo(TEST_UID);
+            flushAndClear();
             authUserService.getAuthUserInfo(TEST_UID);
             flushAndClear();
 
-            // Then: Last login time should be updated
-            AuthUserEntity secondUpdate = authUserRepository.findById(TEST_UID)
+            AuthUserEntity updated = authUserRepository.findById(TEST_UID)
                     .orElseThrow(() -> new AssertionError("User should exist"));
-            assertThat(secondUpdate.getLastLoginTime()).isAfterOrEqualTo(firstLoginTime);
+            assertThat(updated.getTotalLoginCount()).isEqualTo(initial + 3);
         }
     }
 
     @Nested
-    @DisplayName("Given auth user does not exist in database")
-    class WhenAuthUserDoesNotExistInDatabase {
+    @DisplayName("削除 — 紐付け解除とアプリ内ユーザー保持")
+    class DeleteUnlinkBehavior {
 
         @Test
-        @DisplayName("Then should throw ResponseStatusException with NOT_FOUND status")
-        void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
-            // Given: Non-existent user UID
-            String nonExistentUid = "non-existent-uid";
-
-            // When & Then: Should throw EntityNotFoundException
-            assertThatThrownBy(() -> authUserService.getAuthUserInfo(nonExistentUid))
-                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.EntityNotFoundException.class)
-                    .hasMessageContaining("Auth user not found");
-        }
-    }
-
-    // ========================================
-    // createAuthUser Tests
-    // ========================================
-
-    @Nested
-    @DisplayName("Given valid user data")
-    class WhenCreatingAuthUserWithValidData {
-
-        @Test
-        @DisplayName("Then should create and persist user to database")
-        void thenShouldCreateAndPersistUserToDatabase() {
-            // Given: Valid request for new user
-            String newUid = "new-uid-" + System.currentTimeMillis();
-            String newEmail = "newuser" + System.currentTimeMillis() + "@example.com";
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(newEmail);
-
-            // When: Creating user
-            AuthUserResponseDTO result = authUserService.createAuthUser(newUid, request);
-
-            // Then: Should return DTO with correct data
-            assertThat(result).isNotNull();
-            assertThat(result.uid()).isEqualTo(newUid);
-            assertThat(result.name()).isEqualTo("");
-            assertThat(result.email()).isEqualTo(newEmail);
-            assertThat(result.totalLoginCount()).isEqualTo(1);
-            assertThat(result.lastLoginTime()).isNotNull();
-            assertThat(result.appReviewStatus()).isEqualTo(AppReviewStatus.PENDING);
-
-            // And: Should be persisted in database
-            flushAndClear();
-            Optional<AuthUserEntity> createdUser = authUserRepository.findById(newUid);
-            assertThat(createdUser).isPresent();
-            assertThat(createdUser.get().getName()).isEqualTo("");
-            assertThat(createdUser.get().getEmail()).isEqualTo(newEmail);
-        }
-
-        @Test
-        @DisplayName("Then should set default values correctly")
-        void thenShouldSetDefaultValuesCorrectly() {
-            // Given: Valid request
-            String newUid = "default-uid-" + System.currentTimeMillis();
-            String newEmail = "default" + System.currentTimeMillis() + "@example.com";
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(newEmail);
-
-            // When: Creating user
-            authUserService.createAuthUser(newUid, request);
-
-            // Then: Should set correct default values
-            flushAndClear();
-            AuthUserEntity createdUser = authUserRepository.findById(newUid)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-
-            assertThat(createdUser.getTotalLoginCount()).isEqualTo(1);
-            assertThat(createdUser.getAppReviewStatus()).isEqualTo(AppReviewStatus.PENDING);
-            assertThat(createdUser.getLastLoginTime()).isNotNull();
-            assertThat(createdUser.getLastAppReviewDialogShownAt()).isNull();
-        }
-    }
-
-    @Nested
-    @DisplayName("Given email already exists")
-    class WhenEmailAlreadyExists {
-
-        @Test
-        @DisplayName("Then should throw DuplicateResourceException")
-        void thenShouldThrowConflictExceptionWhenEmailExists() {
-            // Given: Existing user with email
-            String existingEmail = testAuthUser.getEmail();
-            String newUid = "conflict-uid-" + System.currentTimeMillis();
-            CreateAuthUserRequestDTO request = new CreateAuthUserRequestDTO(existingEmail);
-
-            // When & Then: Should throw DuplicateResourceException
-            assertThatThrownBy(() -> authUserService.createAuthUser(newUid, request))
-                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.DuplicateResourceException.class)
-                    .hasMessageContaining("Email already exists");
-
-            // And: Should not create new user
-            flushAndClear();
-            Optional<AuthUserEntity> conflictUser = authUserRepository.findById(newUid);
-            assertThat(conflictUser).isEmpty();
-        }
-    }
-
-    // ========================================
-    // deleteAuthUser Tests
-    // ========================================
-
-    @Nested
-    @DisplayName("Given auth user exists without associated users")
-    class WhenDeletingAuthUserWithoutAssociatedUsers {
-
-        @Test
-        @DisplayName("Then should delete auth user from database")
-        void thenShouldDeleteAuthUserFromDatabase() {
-            // Given: Existing auth user
-            long countBefore = authUserRepository.count();
-
-            // When: Deleting auth user
-            authUserService.deleteAuthUser(TEST_UID);
-
-            // Then: User should be deleted from database
-            flushAndClear();
-            Optional<AuthUserEntity> deletedUser = authUserRepository.findById(TEST_UID);
-            assertThat(deletedUser).isEmpty();
-            assertThat(authUserRepository.count()).isEqualTo(countBefore - 1);
-        }
-    }
-
-    @Nested
-    @DisplayName("Given auth user exists with associated users")
-    class WhenDeletingAuthUserWithAssociatedUsers {
-
-        @Test
-        @DisplayName("Then should nullify authUser reference in associated users before deleting")
-        void thenShouldNullifyAuthUserReferenceBeforeDeleting() {
-            // Given: Auth user with associated users
+        @DisplayName("Should nullify authUser reference and preserve user entities in DB")
+        void shouldNullifyAndPreserveUsers() {
             UUID userId1 = UUID.randomUUID();
             UUID userId2 = UUID.randomUUID();
 
-            UserEntity user1 = UserEntity.builder()
-                    .uuid(userId1)
-                    .name("Associated User 1")
-                    .authUser(testAuthUser)
-                    .build();
-
-            UserEntity user2 = UserEntity.builder()
-                    .uuid(userId2)
-                    .name("Associated User 2")
-                    .authUser(testAuthUser)
-                    .build();
-
-            userRepository.save(user1);
-            userRepository.save(user2);
+            userRepository.save(UserEntity.builder()
+                    .uuid(userId1).name("User 1").authUser(testAuthUser).build());
+            userRepository.save(UserEntity.builder()
+                    .uuid(userId2).name("User 2").authUser(testAuthUser).build());
             flushAndClear();
 
-            // When: Deleting auth user
             authUserService.deleteAuthUser(TEST_UID);
-
-            // Then: Associated users should have nullified authUser reference
             flushAndClear();
-            UserEntity updatedUser1 = userRepository.findById(userId1)
+
+            // Auth user should be deleted
+            assertThat(authUserRepository.findById(TEST_UID)).isEmpty();
+
+            // App users should still exist with null authUser
+            UserEntity u1 = userRepository.findById(userId1)
                     .orElseThrow(() -> new AssertionError("User 1 should still exist"));
-            UserEntity updatedUser2 = userRepository.findById(userId2)
+            UserEntity u2 = userRepository.findById(userId2)
                     .orElseThrow(() -> new AssertionError("User 2 should still exist"));
-
-            assertThat(updatedUser1.getAuthUser()).isNull();
-            assertThat(updatedUser2.getAuthUser()).isNull();
-
-            // And: Auth user should be deleted
-            Optional<AuthUserEntity> deletedAuthUser = authUserRepository.findById(TEST_UID);
-            assertThat(deletedAuthUser).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Then should preserve associated user entities after auth user deletion")
-        void thenShouldPreserveAssociatedUserEntities() {
-            // Given: Auth user with associated users
-            UUID userId = UUID.randomUUID();
-            UserEntity user = UserEntity.builder()
-                    .uuid(userId)
-                    .name("Preserved User")
-                    .authUser(testAuthUser)
-                    .build();
-            userRepository.save(user);
-            flushAndClear();
-
-            long userCountBefore = userRepository.count();
-
-            // When: Deleting auth user
-            authUserService.deleteAuthUser(TEST_UID);
-
-            // Then: User entities should still exist
-            flushAndClear();
-            long userCountAfter = userRepository.count();
-            assertThat(userCountAfter).isEqualTo(userCountBefore);
-
-            UserEntity preservedUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new AssertionError("User should still exist"));
-            assertThat(preservedUser.getName()).isEqualTo("Preserved User");
+            assertThat(u1.getAuthUser()).isNull();
+            assertThat(u2.getAuthUser()).isNull();
+            assertThat(u1.getName()).isEqualTo("User 1");
         }
     }
 
     @Nested
-    @DisplayName("Given auth user does not exist")
-    class WhenDeletingNonExistentAuthUser {
+    @DisplayName("メール一意性 — DB 制約")
+    class EmailUniquenessConstraint {
 
         @Test
-        @DisplayName("Then should throw ResponseStatusException with NOT_FOUND status")
-        void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
-            // Given: Non-existent user UID
-            String nonExistentUid = "non-existent-uid";
+        @DisplayName("Should enforce email uniqueness at repository level")
+        void shouldEnforceEmailUniqueness() {
+            String existingEmail = testAuthUser.getEmail();
 
-            // When & Then: Should throw EntityNotFoundException
-            assertThatThrownBy(() -> authUserService.deleteAuthUser(nonExistentUid))
-                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.EntityNotFoundException.class)
-                    .hasMessageContaining("Auth user not found");
+            boolean exists = authUserRepository.existsByEmail(existingEmail);
+            assertThat(exists).isTrue();
+
+            boolean notExists = authUserRepository.existsByEmail("nonexistent@example.com");
+            assertThat(notExists).isFalse();
         }
     }
 
-    // ========================================
-    // updateAppReview Tests
-    // ========================================
-
     @Nested
-    @DisplayName("Given auth user exists")
-    class WhenUpdatingAppReviewPreferences {
+    @DisplayName("AppReviewStatus — DB enum 永続化")
+    class AppReviewStatusPersistence {
 
         @Test
-        @DisplayName("Then should update app review status and timestamp and persist to database")
-        void thenShouldUpdateAppReviewStatusAndTimestampAndPersistToDatabase() {
-            // Given: Existing auth user with PENDING status
-            UpdateAppReviewRequestDTO request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
+        @DisplayName("Should persist all AppReviewStatus enum values correctly")
+        void shouldPersistAllStatusValues() {
+            for (AppReviewStatus status : AppReviewStatus.values()) {
+                var request = new UpdateAppReviewRequestDTO(status);
+                authUserService.updateAppReview(TEST_UID, request);
+                flushAndClear();
 
-            // When: Updating app review
-            AuthUserResponseDTO result = authUserService.updateAppReview(TEST_UID, request);
-
-            // Then: Should return DTO with updated status
-            assertThat(result).isNotNull();
-            assertThat(result.uid()).isEqualTo(TEST_UID);
-            assertThat(result.appReviewStatus()).isEqualTo(AppReviewStatus.COMPLETED);
-            assertThat(result.lastAppReviewDialogShownAt()).isNotNull();
-
-            // And: Changes should be persisted in database
-            flushAndClear();
-            AuthUserEntity updatedUser = authUserRepository.findById(TEST_UID)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            assertThat(updatedUser.getAppReviewStatus()).isEqualTo(AppReviewStatus.COMPLETED);
-            assertThat(updatedUser.getLastAppReviewDialogShownAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("Then should update lastAppReviewDialogShownAt on each call")
-        void thenShouldUpdateLastAppReviewDialogShownAtOnEachCall() {
-            // Given: First update
-            UpdateAppReviewRequestDTO request1 = new UpdateAppReviewRequestDTO(AppReviewStatus.PENDING);
-            authUserService.updateAppReview(TEST_UID, request1);
-            flushAndClear();
-
-            AuthUserEntity firstUpdate = authUserRepository.findById(TEST_UID)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            Instant firstTimestamp = firstUpdate.getLastAppReviewDialogShownAt();
-
-            // Sleep briefly to ensure timestamp difference
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                AuthUserEntity updated = authUserRepository.findById(TEST_UID)
+                        .orElseThrow(() -> new AssertionError("User should exist"));
+                assertThat(updated.getAppReviewStatus()).isEqualTo(status);
             }
-
-            // When: Second update
-            UpdateAppReviewRequestDTO request2 = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
-            authUserService.updateAppReview(TEST_UID, request2);
-            flushAndClear();
-
-            // Then: Timestamp should be updated
-            AuthUserEntity secondUpdate = authUserRepository.findById(TEST_UID)
-                    .orElseThrow(() -> new AssertionError("User should exist"));
-            assertThat(secondUpdate.getLastAppReviewDialogShownAt()).isAfterOrEqualTo(firstTimestamp);
-        }
-
-        @Test
-        @DisplayName("Then should support all app review status values")
-        void thenShouldSupportAllAppReviewStatusValues() {
-            // Given: Requests for all status values
-            UpdateAppReviewRequestDTO pendingRequest = new UpdateAppReviewRequestDTO(AppReviewStatus.PENDING);
-            UpdateAppReviewRequestDTO completedRequest = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
-            UpdateAppReviewRequestDTO declinedRequest = new UpdateAppReviewRequestDTO(AppReviewStatus.PERMANENTLY_DECLINED);
-
-            // When & Then: Should update to PENDING
-            authUserService.updateAppReview(TEST_UID, pendingRequest);
-            flushAndClear();
-            assertThat(authUserRepository.findById(TEST_UID).get().getAppReviewStatus())
-                    .isEqualTo(AppReviewStatus.PENDING);
-
-            // When & Then: Should update to COMPLETED
-            authUserService.updateAppReview(TEST_UID, completedRequest);
-            flushAndClear();
-            assertThat(authUserRepository.findById(TEST_UID).get().getAppReviewStatus())
-                    .isEqualTo(AppReviewStatus.COMPLETED);
-
-            // When & Then: Should update to PERMANENTLY_DECLINED
-            authUserService.updateAppReview(TEST_UID, declinedRequest);
-            flushAndClear();
-            assertThat(authUserRepository.findById(TEST_UID).get().getAppReviewStatus())
-                    .isEqualTo(AppReviewStatus.PERMANENTLY_DECLINED);
         }
     }
 
     @Nested
-    @DisplayName("Given auth user does not exist")
-    class WhenUpdatingAppReviewForNonExistentUser {
+    @DisplayName("作成 — 初期値の永続化")
+    class CreateDefaultsPersistence {
 
         @Test
-        @DisplayName("Then should throw ResponseStatusException with NOT_FOUND status")
-        void thenShouldThrowNotFoundExceptionWhenUserNotFound() {
-            // Given: Non-existent user UID
-            String nonExistentUid = "non-existent-uid";
-            UpdateAppReviewRequestDTO request = new UpdateAppReviewRequestDTO(AppReviewStatus.COMPLETED);
+        @DisplayName("Should persist default values (empty name, loginCount=1, PENDING status)")
+        void shouldPersistDefaults() {
+            String newUid = "defaults-uid-" + System.currentTimeMillis();
+            String email = "defaults" + System.currentTimeMillis() + "@example.com";
+            var request = new CreateAuthUserRequestDTO(email);
 
-            // When & Then: Should throw EntityNotFoundException
-            assertThatThrownBy(() -> authUserService.updateAppReview(nonExistentUid, request))
-                    .isInstanceOf(com.tateca.tatecabackend.exception.domain.EntityNotFoundException.class)
-                    .hasMessageContaining("Auth user not found");
+            authUserService.createAuthUser(newUid, request);
+            flushAndClear();
+
+            AuthUserEntity created = authUserRepository.findById(newUid)
+                    .orElseThrow(() -> new AssertionError("User should exist"));
+            assertThat(created.getName()).isEqualTo("");
+            assertThat(created.getEmail()).isEqualTo(email);
+            assertThat(created.getTotalLoginCount()).isEqualTo(1);
+            assertThat(created.getAppReviewStatus()).isEqualTo(AppReviewStatus.PENDING);
+            assertThat(created.getLastLoginTime()).isNotNull();
+            assertThat(created.getLastAppReviewDialogShownAt()).isNull();
         }
     }
 }
