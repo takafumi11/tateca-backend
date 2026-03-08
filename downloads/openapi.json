@@ -814,6 +814,126 @@
         }
       }
     },
+    "/groups/{groupId}/members/{userUuid}": {
+      "delete": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Remove an unjoined member from a group",
+        "description": "Removes an unjoined member from the specified group. Only unjoined members\n(those not yet linked to an authenticated account) can be removed.\n\n**Authorization:** The requester must be an authenticated member of the group.\nAny authenticated group member can remove unjoined members — no special privileges required.\n\n**Restriction:** Joined members (those linked to an authenticated account) cannot be removed.\nJoined members must leave the group voluntarily via the leave-group endpoint.\n",
+        "operationId": "removeMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/groupIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/userUuidPath"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Member removed successfully"
+          },
+          "400": {
+            "description": "Validation error - Invalid UUID format for groupId or userUuid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing Firebase JWT token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingCredentials": {
+                    "$ref": "#/components/examples/AUTH_MISSING_CREDENTIALS"
+                  },
+                  "invalidFormat": {
+                    "$ref": "#/components/examples/AUTH_INVALID_FORMAT"
+                  },
+                  "invalidToken": {
+                    "$ref": "#/components/examples/AUTH_INVALID_TOKEN"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Requester is not an authenticated member of the group (error_code: USER.NOT_GROUP_MEMBER)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "notGroupMember": {
+                    "$ref": "#/components/examples/USER_NOT_GROUP_MEMBER"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Group or target member does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "groupNotFound": {
+                    "$ref": "#/components/examples/GROUP_NOT_FOUND"
+                  },
+                  "userNotFound": {
+                    "$ref": "#/components/examples/USER_NOT_FOUND"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Member cannot be removed due to business rule violation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "memberAlreadyJoined": {
+                    "$ref": "#/components/examples/MEMBER_ALREADY_JOINED"
+                  },
+                  "memberHasTransactions": {
+                    "$ref": "#/components/examples/MEMBER_HAS_TRANSACTIONS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "internalError": {
+                    "$ref": "#/components/examples/SYSTEM_INTERNAL_ERROR"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/groups/{groupId}/users/{userUuid}": {
       "delete": {
         "tags": [
@@ -1311,6 +1431,7 @@
           "Users"
         ],
         "summary": "Update user name",
+        "description": "Updates the display name of the authenticated user identified by userId.\n\n**Normalization:** Leading and trailing whitespace is trimmed before validation and persistence.\n\n**Idempotency:** Updating with the same normalized value is treated as a success without modifying the resource (updated_at remains unchanged).\n\n**Authorization:** The authenticated user must be the owner of the target resource. Attempting to modify another user's name results in 403 Forbidden.\n",
         "operationId": "updateUserName",
         "parameters": [
           {
@@ -1329,7 +1450,7 @@
         },
         "responses": {
           "200": {
-            "description": "User name updated successfully",
+            "description": "User name updated successfully (also returned for idempotent same-value updates)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1339,11 +1460,19 @@
             }
           },
           "400": {
-            "description": "Validation error - Invalid request parameters",
+            "description": "Validation error - Invalid request parameters or malformed JSON",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "validationFailed": {
+                    "$ref": "#/components/examples/VALIDATION_FAILED"
+                  },
+                  "malformedJson": {
+                    "$ref": "#/components/examples/REQUEST_MALFORMED_JSON"
+                  }
                 }
               }
             }
@@ -1354,16 +1483,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingCredentials": {
+                    "$ref": "#/components/examples/AUTH_MISSING_CREDENTIALS"
+                  },
+                  "invalidFormat": {
+                    "$ref": "#/components/examples/AUTH_INVALID_FORMAT"
+                  },
+                  "invalidToken": {
+                    "$ref": "#/components/examples/AUTH_INVALID_TOKEN"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Authenticated user is not the owner of the target resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "userForbidden": {
+                    "$ref": "#/components/examples/USER_FORBIDDEN"
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "User not found",
+            "description": "User not found (error_code: USER.NOT_FOUND)",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "userNotFound": {
+                    "$ref": "#/components/examples/USER_NOT_FOUND"
+                  }
                 }
               }
             }
@@ -1374,6 +1534,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "unsupportedMediaType": {
+                    "$ref": "#/components/examples/REQUEST_UNSUPPORTED_MEDIA_TYPE"
+                  }
                 }
               }
             }
@@ -1384,6 +1549,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "internalError": {
+                    "$ref": "#/components/examples/SYSTEM_INTERNAL_ERROR"
+                  }
                 }
               }
             }
@@ -1508,6 +1678,14 @@
       "ErrorResponse": {
         "type": "object",
         "description": "Standard error response",
+        "required": [
+          "timestamp",
+          "status",
+          "error",
+          "message",
+          "path",
+          "error_code"
+        ],
         "properties": {
           "timestamp": {
             "type": "string",
@@ -1541,7 +1719,8 @@
           },
           "error_code": {
             "type": "string",
-            "description": "Machine-readable error code for client-side handling",
+            "description": "Machine-readable error code for client-side handling. Operation-specific allowed values are documented in each operation's error responses.",
+            "pattern": "^[A-Z0-9_]+(?:\\\\.[A-Z0-9_]+)+$",
             "example": "AUTH.INVALID_TOKEN"
           },
           "errors": {
@@ -1882,7 +2061,7 @@
         "properties": {
           "user_name": {
             "type": "string",
-            "description": "User's display name",
+            "description": "User display name.\n\n**Normalization:** Leading and trailing whitespace is trimmed before validation and persistence.\n\n**Validation (applied to normalized value):**\n- Must not be blank (null, empty, or whitespace-only are rejected)\n- Must be between 1 and 50 characters after normalization\n",
             "minLength": 1,
             "maxLength": 50,
             "example": "John Doe"
@@ -2270,6 +2449,184 @@
             ],
             "description": "Repayment details (present if transaction_type is REPAYMENT)"
           }
+        }
+      }
+    },
+    "examples": {
+      "AUTH_MISSING_CREDENTIALS": {
+        "summary": "Missing authentication credentials",
+        "description": "Authorization header is missing.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 401,
+          "error": "Unauthorized",
+          "message": "Authentication required",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "AUTH.MISSING_CREDENTIALS"
+        }
+      },
+      "AUTH_INVALID_FORMAT": {
+        "summary": "Invalid authentication header format",
+        "description": "Authorization header format is invalid.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 401,
+          "error": "Unauthorized",
+          "message": "Invalid authentication credentials",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "AUTH.INVALID_FORMAT"
+        }
+      },
+      "AUTH_INVALID_TOKEN": {
+        "summary": "Invalid authentication token",
+        "description": "Firebase token failed verification.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 401,
+          "error": "Unauthorized",
+          "message": "Invalid authentication token",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "AUTH.INVALID_TOKEN"
+        }
+      },
+      "USER_NOT_GROUP_MEMBER": {
+        "summary": "User is not a member of the group",
+        "description": "Requester is not an authenticated member of the target group.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 403,
+          "error": "Forbidden",
+          "message": "Only group members can perform this action",
+          "path": "/groups/550e8400-e29b-41d4-a716-446655440000/members/660e8400-e29b-41d4-a716-446655440000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "USER.NOT_GROUP_MEMBER"
+        }
+      },
+      "GROUP_NOT_FOUND": {
+        "summary": "Group not found",
+        "description": "Target group identified by groupId does not exist.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 404,
+          "error": "Not Found",
+          "message": "Group not found",
+          "path": "/groups/550e8400-e29b-41d4-a716-446655440000/members/660e8400-e29b-41d4-a716-446655440000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "GROUP.NOT_FOUND"
+        }
+      },
+      "USER_NOT_FOUND": {
+        "summary": "User not found",
+        "description": "Target user identified by userId does not exist.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 404,
+          "error": "Not Found",
+          "message": "User not found",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "USER.NOT_FOUND"
+        }
+      },
+      "MEMBER_ALREADY_JOINED": {
+        "summary": "Member has already joined the group",
+        "description": "Target member is linked to an authenticated account and cannot be removed. Joined members must leave voluntarily.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 409,
+          "error": "Conflict",
+          "message": "Cannot remove a joined member",
+          "path": "/groups/550e8400-e29b-41d4-a716-446655440000/members/660e8400-e29b-41d4-a716-446655440000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "MEMBER.ALREADY_JOINED"
+        }
+      },
+      "MEMBER_HAS_TRANSACTIONS": {
+        "summary": "Member has transactions in the group",
+        "description": "Target member is involved in transactions as a payer or obligor and cannot be removed.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 409,
+          "error": "Conflict",
+          "message": "Cannot remove a member who is involved in transactions",
+          "path": "/groups/550e8400-e29b-41d4-a716-446655440000/members/660e8400-e29b-41d4-a716-446655440000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "MEMBER.HAS_TRANSACTIONS"
+        }
+      },
+      "SYSTEM_INTERNAL_ERROR": {
+        "summary": "Internal server error",
+        "description": "Unexpected server-side failure.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 500,
+          "error": "Internal Server Error",
+          "message": "Internal server error",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "SYSTEM.INTERNAL_ERROR"
+        }
+      },
+      "VALIDATION_FAILED": {
+        "summary": "Validation failed",
+        "description": "Request body passed JSON parsing but violated field validation rules.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 400,
+          "error": "Bad Request",
+          "message": "Validation failed",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "VALIDATION.FAILED",
+          "errors": [
+            {
+              "field": "user_name",
+              "message": "User name must be between 1 and 50 characters",
+              "rejected_value": ""
+            }
+          ]
+        }
+      },
+      "REQUEST_MALFORMED_JSON": {
+        "summary": "Malformed JSON",
+        "description": "Request body is not valid JSON format.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 400,
+          "error": "Bad Request",
+          "message": "Invalid request body format. Please check the data types and structure.",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "REQUEST.MALFORMED_JSON"
+        }
+      },
+      "USER_FORBIDDEN": {
+        "summary": "Forbidden - not the resource owner",
+        "description": "Authenticated user attempted to modify another user's resource.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 403,
+          "error": "Forbidden",
+          "message": "You are not allowed to modify this resource",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "USER.FORBIDDEN"
+        }
+      },
+      "REQUEST_UNSUPPORTED_MEDIA_TYPE": {
+        "summary": "Unsupported media type",
+        "description": "Content-Type is not application/json.",
+        "value": {
+          "timestamp": "2026-03-01T05:12:34.567Z",
+          "status": 415,
+          "error": "Unsupported Media Type",
+          "message": "Unsupported Media Type. Content-Type must be application/json",
+          "path": "/users/123e4567-e89b-12d3-a456-426614174000",
+          "request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "error_code": "REQUEST.UNSUPPORTED_MEDIA_TYPE"
         }
       }
     }
