@@ -27,6 +27,8 @@ paths:
     $ref: "./openapi/paths/groups-groupId.yaml"
   /groups/{groupId}/members:
     $ref: "./openapi/paths/groups-groupId-members.yaml"
+  /groups/{groupId}/members/{userUuid}:
+    $ref: "./openapi/paths/groups-groupId-members-userUuid.yaml"
   /groups/{groupId}/users/{userUuid}:
     $ref: "./openapi/paths/groups-groupId-users-userUuid.yaml"
   /groups/{groupId}/transactions:
