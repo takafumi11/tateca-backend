@@ -1,12 +1,14 @@
-package com.tateca.tatecabackend.service.impl;
+package com.tateca.tatecabackend.service;
 
 import com.tateca.tatecabackend.dto.request.UpdateUserNameRequestDTO;
 import com.tateca.tatecabackend.dto.response.UserResponseDTO;
 import com.tateca.tatecabackend.entity.AuthUserEntity;
 import com.tateca.tatecabackend.entity.UserEntity;
+import com.tateca.tatecabackend.exception.ErrorCode;
 import com.tateca.tatecabackend.exception.domain.EntityNotFoundException;
 import com.tateca.tatecabackend.exception.domain.ForbiddenException;
 import com.tateca.tatecabackend.repository.UserRepository;
+import com.tateca.tatecabackend.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,7 +31,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserServiceImpl — updateUserName")
-class UserServiceImplTest {
+class UserServiceUnitTest {
 
     @Mock
     private UserRepository repository;
@@ -74,7 +76,8 @@ class UserServiceImplTest {
             var request = new UpdateUserNameRequestDTO("NewName");
 
             assertThatThrownBy(() -> service.updateUserName(AUTH_UID, USER_ID, request))
-                    .isInstanceOf(EntityNotFoundException.class);
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND.getCode());
         }
     }
 
@@ -90,7 +93,29 @@ class UserServiceImplTest {
             var request = new UpdateUserNameRequestDTO("NewName");
 
             assertThatThrownBy(() -> service.updateUserName(OTHER_AUTH_UID, USER_ID, request))
-                    .isInstanceOf(ForbiddenException.class);
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_FORBIDDEN.getCode());
+
+            verify(repository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw ForbiddenException when user has no auth user")
+        void shouldThrowForbiddenExceptionWhenAuthUserIsNull() {
+            UserEntity userWithoutAuth = UserEntity.builder()
+                    .uuid(USER_ID)
+                    .name("NoAuthUser")
+                    .authUser(null)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+            when(repository.findById(USER_ID)).thenReturn(Optional.of(userWithoutAuth));
+
+            var request = new UpdateUserNameRequestDTO("NewName");
+
+            assertThatThrownBy(() -> service.updateUserName(AUTH_UID, USER_ID, request))
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_FORBIDDEN.getCode());
 
             verify(repository, never()).save(any());
         }
