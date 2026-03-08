@@ -14,6 +14,7 @@ import com.tateca.tatecabackend.repository.TransactionRepository;
 import com.tateca.tatecabackend.repository.UserGroupRepository;
 import com.tateca.tatecabackend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
+@DisplayName("GroupService Integration Tests — Infrastructure behavior")
 class GroupServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -74,6 +76,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("getGroupInfo — エンティティリレーション取得")
     class GetGroupInfo {
 
         @Test
@@ -154,6 +157,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("updateGroupName — 永続化とタイムスタンプ")
     class UpdateGroupName {
 
         @Test
@@ -284,6 +288,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("getGroupList — カスタムクエリとリレーション")
     class GetGroupList {
 
         @Test
@@ -347,6 +352,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("createGroup — エンティティ永続化とリレーション")
     class CreateGroup {
 
         @Test
@@ -575,6 +581,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("joinGroupInvited — 紐付けの永続化")
     class JoinGroupInvited {
 
         @Test
@@ -676,6 +683,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("leaveGroup — 紐付け解除の永続化")
     class LeaveGroup {
 
         @Test
@@ -754,6 +762,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("addMember — メンバー永続化")
     class AddMember {
 
         @Test
@@ -836,6 +845,7 @@ class GroupServiceIntegrationTest extends AbstractIntegrationTest {
     // ========================================
 
     @Nested
+    @DisplayName("removeMember — エンティティ削除の永続化")
     class RemoveMember {
 
         @Test

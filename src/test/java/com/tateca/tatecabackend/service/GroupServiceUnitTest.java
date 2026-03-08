@@ -53,6 +53,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("GroupServiceImpl — Domain Logic")
 class GroupServiceUnitTest {
 
     @Mock
@@ -98,11 +99,11 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("getGroupInfo")
+    @DisplayName("Given グループ情報取得")
     class GetGroupInfoTests {
 
         @Test
-        @DisplayName("Should return group info with users and transaction count")
+        @DisplayName("Then ユーザー一覧とトランザクション件数を含むグループ情報を返す")
         void shouldReturnGroupInfoWithUsersAndTransactionCount() {
             UserEntity user1 = TestFixtures.Users.userWithoutAuthUser("User 1");
             UserEntity user2 = TestFixtures.Users.userWithoutAuthUser("User 2");
@@ -121,7 +122,7 @@ class GroupServiceUnitTest {
         }
 
         @Test
-        @DisplayName("Should throw EntityNotFoundException when group has no users (empty)")
+        @DisplayName("Then グループにユーザーがいない場合 EntityNotFoundException をスローする")
         void shouldThrowWhenGroupHasNoUsers() {
             when(userGroupRepository.findByGroupUuidWithUserDetails(testGroupId))
                     .thenReturn(List.of());
@@ -131,7 +132,7 @@ class GroupServiceUnitTest {
         }
 
         @Test
-        @DisplayName("Should throw EntityNotFoundException for non-existent group")
+        @DisplayName("Then 存在しないグループの場合 EntityNotFoundException をスローする")
         void shouldThrowWhenGroupDoesNotExist() {
             UUID nonExistentId = UUID.randomUUID();
             when(userGroupRepository.findByGroupUuidWithUserDetails(nonExistentId))
@@ -147,7 +148,7 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("updateGroupName")
+    @DisplayName("Given グループ名更新")
     class UpdateGroupNameTests {
 
         @Test
@@ -203,7 +204,7 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("getGroupList")
+    @DisplayName("Given グループ一覧取得")
     class GetGroupListTests {
 
         @Test
@@ -277,7 +278,7 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("createGroup")
+    @DisplayName("Given グループ作成")
     class CreateGroupTests {
 
         @Test
@@ -405,7 +406,7 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("joinGroupInvited")
+    @DisplayName("Given グループ参加")
     class JoinGroupInvitedTests {
 
         @Test
@@ -607,7 +608,7 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("leaveGroup")
+    @DisplayName("Given グループ脱退")
     class LeaveGroupTests {
 
         @Test
@@ -701,7 +702,7 @@ class GroupServiceUnitTest {
     // ========================================
 
     @Nested
-    @DisplayName("addMember")
+    @DisplayName("Given メンバー追加")
     class AddMemberTests {
 
         @Test
