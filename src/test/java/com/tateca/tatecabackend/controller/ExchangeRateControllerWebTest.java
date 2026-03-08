@@ -22,7 +22,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -73,8 +72,7 @@ class ExchangeRateControllerWebTest {
                 .andExpect(jsonPath("$.exchange_rate[2].currency_code").value("GBP"))
                 .andExpect(jsonPath("$.exchange_rate[2].exchange_rate").value(190.75));
 
-        // And: Service should be called once
-        verify(exchangeRateService, times(1)).getExchangeRate(testDate);
+        verify(exchangeRateService).getExchangeRate(testDate);
     }
 
     @Test
@@ -94,7 +92,7 @@ class ExchangeRateControllerWebTest {
                 .andExpect(jsonPath("$.exchange_rate").isArray())
                 .andExpect(jsonPath("$.exchange_rate.length()").value(0));
 
-        verify(exchangeRateService, times(1)).getExchangeRate(testDate);
+        verify(exchangeRateService).getExchangeRate(testDate);
     }
 
     @Test
@@ -140,7 +138,7 @@ class ExchangeRateControllerWebTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.message").exists());
 
-        verify(exchangeRateService, times(1)).getExchangeRate(testDate);
+        verify(exchangeRateService).getExchangeRate(testDate);
     }
 
     @Test
@@ -160,7 +158,7 @@ class ExchangeRateControllerWebTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.exchange_rate[0].currency_code").value("USD"));
 
-        verify(exchangeRateService, times(1)).getExchangeRate(pastDate);
+        verify(exchangeRateService).getExchangeRate(pastDate);
     }
 
     @Test
@@ -180,7 +178,7 @@ class ExchangeRateControllerWebTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.exchange_rate[0].currency_code").value("EUR"));
 
-        verify(exchangeRateService, times(1)).getExchangeRate(futureDate);
+        verify(exchangeRateService).getExchangeRate(futureDate);
     }
 
     private ExchangeRateResponse createExchangeRateResponse(

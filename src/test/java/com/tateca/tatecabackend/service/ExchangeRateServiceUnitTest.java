@@ -7,6 +7,7 @@ import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
 import com.tateca.tatecabackend.service.impl.ExchangeRateServiceImpl;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,18 +23,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit tests for ExchangeRateService.
- *
- * <p>Tests focus on service layer business logic and repository interaction.
- * Database access is mocked to isolate service behavior.
- */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("ExchangeRateService Unit Tests")
+@DisplayName("ExchangeRateServiceImpl — Domain Logic")
 class ExchangeRateServiceUnitTest {
 
     @Mock
@@ -42,63 +36,59 @@ class ExchangeRateServiceUnitTest {
     @InjectMocks
     private ExchangeRateServiceImpl exchangeRateService;
 
-    // ===== Tests for getExchangeRate() =====
+    @Nested
+    @DisplayName("Given 為替レート取得")
+    class GetExchangeRate {
 
-    @Test
-    @DisplayName("Should call repository with correct date and return converted DTO")
-    void shouldCallRepositoryWithCorrectDateAndReturnConvertedDTO() {
-        // Given: Repository returns exchange rate entities
-        LocalDate testDate = LocalDate.now();
-        List<ExchangeRateEntity> entities = List.of(
-                createExchangeRateEntity(TestFixtures.Currencies.usd(), testDate, new BigDecimal("150.25"))
-        );
+        @Test
+        @DisplayName("Then Repository に正しい日付を渡し、変換済み DTO を返却する")
+        void shouldCallRepositoryWithCorrectDateAndReturnConvertedDTO() {
+            // Given
+            LocalDate testDate = LocalDate.now();
+            List<ExchangeRateEntity> entities = List.of(
+                    createExchangeRateEntity(TestFixtures.Currencies.usd(), testDate, new BigDecimal("150.25"))
+            );
+            when(exchangeRateRepository.findAllActiveByDate(testDate)).thenReturn(entities);
 
-        when(exchangeRateRepository.findAllActiveByDate(testDate)).thenReturn(entities);
+            // When
+            ExchangeRateResponseDTO result = exchangeRateService.getExchangeRate(testDate);
 
-        // When: Getting exchange rate
-        ExchangeRateResponseDTO result = exchangeRateService.getExchangeRate(testDate);
+            // Then
+            verify(exchangeRateRepository).findAllActiveByDate(testDate);
+            assertThat(result).isNotNull();
+            assertThat(result.exchangeRateResponseResponseList()).isNotEmpty();
+        }
 
-        // Then: Should call repository with correct date
-        verify(exchangeRateRepository, times(1)).findAllActiveByDate(testDate);
+        @Test
+        @DisplayName("Then レートが存在しない場合は空の DTO を返却する")
+        void shouldReturnEmptyDTOWhenRepositoryReturnsEmptyList() {
+            // Given
+            LocalDate testDate = LocalDate.now();
+            when(exchangeRateRepository.findAllActiveByDate(testDate)).thenReturn(Collections.emptyList());
 
-        // And: Should return non-null DTO
-        assertThat(result).isNotNull();
-        assertThat(result.exchangeRateResponseResponseList()).isNotEmpty();
-    }
+            // When
+            ExchangeRateResponseDTO result = exchangeRateService.getExchangeRate(testDate);
 
-    @Test
-    @DisplayName("Should return empty DTO when repository returns empty list")
-    void shouldReturnEmptyDTOWhenRepositoryReturnsEmptyList() {
-        // Given: Repository returns empty list
-        LocalDate testDate = LocalDate.now();
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.exchangeRateResponseResponseList()).isEmpty();
+            verify(exchangeRateRepository).findAllActiveByDate(testDate);
+        }
 
-        when(exchangeRateRepository.findAllActiveByDate(testDate)).thenReturn(Collections.emptyList());
+        @Test
+        @DisplayName("Then Repository の例外はそのまま伝播する")
+        void shouldPropagateDataAccessExceptionFromRepositoryLayer() {
+            // Given
+            LocalDate testDate = LocalDate.now();
+            when(exchangeRateRepository.findAllActiveByDate(testDate))
+                    .thenThrow(new DataAccessException("Database connection error") {});
 
-        // When: Getting exchange rate
-        ExchangeRateResponseDTO result = exchangeRateService.getExchangeRate(testDate);
-
-        // Then: Should return DTO with empty list
-        assertThat(result).isNotNull();
-        assertThat(result.exchangeRateResponseResponseList()).isEmpty();
-
-        verify(exchangeRateRepository, times(1)).findAllActiveByDate(testDate);
-    }
-
-    @Test
-    @DisplayName("Should propagate DataAccessException from repository layer")
-    void shouldPropagateDataAccessExceptionFromRepositoryLayer() {
-        // Given: Repository throws DataAccessException
-        LocalDate testDate = LocalDate.now();
-
-        when(exchangeRateRepository.findAllActiveByDate(testDate))
-                .thenThrow(new DataAccessException("Database connection error") {});
-
-        // When & Then: Should propagate exception without modification
-        assertThatThrownBy(() -> exchangeRateService.getExchangeRate(testDate))
-                .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("Database connection error");
-
-        verify(exchangeRateRepository, times(1)).findAllActiveByDate(testDate);
+            // When & Then
+            assertThatThrownBy(() -> exchangeRateService.getExchangeRate(testDate))
+                    .isInstanceOf(DataAccessException.class)
+                    .hasMessageContaining("Database connection error");
+            verify(exchangeRateRepository).findAllActiveByDate(testDate);
+        }
     }
 
     private ExchangeRateEntity createExchangeRateEntity(CurrencyEntity currency, LocalDate date, BigDecimal rate) {
