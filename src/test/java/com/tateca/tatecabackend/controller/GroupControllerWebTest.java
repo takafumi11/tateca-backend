@@ -119,7 +119,7 @@ class GroupControllerWebTest {
             );
 
             when(groupService.createGroup(anyString(), any(CreateGroupRequestDTO.class)))
-                    .thenThrow(new BusinessRuleViolationException("can't join more than 10 groups"));
+                    .thenThrow(new BusinessRuleViolationException(ErrorCode.USER_MAX_GROUP_COUNT_EXCEEDED));
 
             // When & Then: Should return 409 with structured error response
             mockMvc.perform(post(BASE_ENDPOINT)
@@ -129,7 +129,7 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(409))
                     .andExpect(jsonPath("$.error").value("Conflict"))
-                    .andExpect(jsonPath("$.message").value("can't join more than 10 groups"))
+                    .andExpect(jsonPath("$.error_code").value("USER.MAX_GROUP_COUNT_EXCEEDED"))
                     .andExpect(jsonPath("$.path").value("/groups"));
 
             verify(groupService, times(1)).createGroup(anyString(), any(CreateGroupRequestDTO.class));
@@ -738,7 +738,7 @@ class GroupControllerWebTest {
             UUID groupId = UUID.randomUUID();
 
             when(groupService.getGroupInfo(eq(groupId)))
-                    .thenThrow(new EntityNotFoundException("Group Not Found"));
+                    .thenThrow(new EntityNotFoundException(ErrorCode.GROUP_NOT_FOUND));
 
             // When & Then: Should return 404 with structured error response
             mockMvc.perform(get(BASE_ENDPOINT + "/{groupId}", groupId))
@@ -746,7 +746,7 @@ class GroupControllerWebTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.status").value(404))
                     .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("Group Not Found"))
+                    .andExpect(jsonPath("$.error_code").value("GROUP.NOT_FOUND"))
                     .andExpect(jsonPath("$.path").value("/groups/" + groupId));
 
             verify(groupService, times(1)).getGroupInfo(eq(groupId));
