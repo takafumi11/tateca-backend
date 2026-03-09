@@ -8,7 +8,6 @@ import com.tateca.tatecabackend.entity.ExchangeRateEntity;
 import com.tateca.tatecabackend.fixtures.TestFixtures;
 import com.tateca.tatecabackend.repository.CurrencyRepository;
 import com.tateca.tatecabackend.repository.ExchangeRateRepository;
-import com.tateca.tatecabackend.support.DatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "dev"})
+@Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DisplayName("Get Transaction Detail — Acceptance Scenario Tests")
 class GetTransactionDetailScenarioTest extends AbstractIntegrationTest {
 
@@ -42,7 +43,6 @@ class GetTransactionDetailScenarioTest extends AbstractIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
-    @Autowired private DatabaseCleaner databaseCleaner;
     @Autowired private CurrencyRepository currencyRepository;
     @Autowired private ExchangeRateRepository exchangeRateRepository;
 
@@ -54,8 +54,6 @@ class GetTransactionDetailScenarioTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        databaseCleaner.clean();
-
         currencyRepository.save(TestFixtures.Currencies.jpy());
         CurrencyEntity reloadedJpy = currencyRepository.findById("JPY").orElseThrow();
         exchangeRateRepository.save(ExchangeRateEntity.builder()

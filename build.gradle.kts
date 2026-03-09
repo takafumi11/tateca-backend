@@ -66,14 +66,14 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 
-    // Parallel execution: classes=concurrent, methods=same_thread
-    // In practice, only @WebMvcTest and Unit Tests benefit from parallelism.
-    // All AbstractIntegrationTest subclasses (Integration + Scenario tests)
-    // are @Isolated, so they run sequentially due to shared Testcontainers MySQL.
+    // Parallel execution: classes run concurrently, methods within a class run sequentially.
+    // DB-dependent tests (AbstractIntegrationTest subclasses) use @ResourceLock("DATABASE")
+    // for mutual exclusion, while Unit/WebMvc tests run fully in parallel.
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
     systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
     systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
+    systemProperty("junit.jupiter.execution.parallel.config.dynamic.factor", "1")
 
     // Only generate coverage reports in CI environment
     if (System.getenv("CI") == "true") {

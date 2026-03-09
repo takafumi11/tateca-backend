@@ -3,7 +3,6 @@ package com.tateca.tatecabackend.scenario;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tateca.tatecabackend.AbstractIntegrationTest;
-import com.tateca.tatecabackend.support.DatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "dev"})
+@Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @DisplayName("Create Auth User — Acceptance Scenario Tests")
 class CreateAuthUserScenarioTest extends AbstractIntegrationTest {
 
@@ -32,13 +33,11 @@ class CreateAuthUserScenarioTest extends AbstractIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
-    @Autowired private DatabaseCleaner databaseCleaner;
 
     private String authUid;
 
     @BeforeEach
     void setUp() throws Exception {
-        databaseCleaner.clean();
         authUid = "scenario-uid-" + System.nanoTime();
     }
 

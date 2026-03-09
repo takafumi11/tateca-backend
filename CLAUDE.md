@@ -356,18 +356,23 @@ class ExchangeRateContractTest extends AbstractContractTest {
 ```
 
 **Test Infrastructure:**
-- `AbstractIntegrationTest` - Base class with MySQL and WireMock containers (Testcontainers)
-- `AbstractControllerIntegrationTest` - Base class with MockMvc for controller tests
-- `AbstractContractTest` - Base class with REST Assured for contract tests
-- `AbstractServiceUnitTest` - Base class with Mockito support
+- `AbstractIntegrationTest` - Base class with MySQL and WireMock containers (Testcontainers), `@ResourceLock("DATABASE")` for parallel safety
 - `TestFixtures` - Object Mother pattern for test data
+- `cleanup.sql` - TRUNCATE script for scenario test cleanup via `@Sql`
+
+**Test Parallel Execution:**
+- JUnit 5 parallel execution enabled: classes run concurrently, methods within a class run sequentially
+- Unit tests + WebMvc tests: fully parallel (no shared state)
+- DB-dependent tests (Integration + Scenario): serialized via `@ResourceLock("DATABASE")` on `AbstractIntegrationTest`
+- Integration tests: `@Transactional` rollback for data isolation
+- Scenario tests: `@Sql("/cleanup.sql")` TRUNCATE for data cleanup before each test method
 
 **Test Execution:**
 ```bash
 ./gradlew test                          # Run all tests
 ./gradlew test --tests "*UnitTest"      # Unit tests only
 ./gradlew test --tests "*IntegrationTest"  # Integration tests only
-./gradlew test --tests "*ContractTest"  # Contract tests only
+./gradlew test --tests "*ScenarioTest"  # Scenario tests only
 ```
 
 ## Development Workflow
