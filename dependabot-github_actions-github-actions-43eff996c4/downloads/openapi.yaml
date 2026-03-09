@@ -617,6 +617,10 @@ paths:
       tags:
         - Transactions
       summary: Create a new transaction
+      description: |
+        Creates a LOAN or REPAYMENT transaction in the specified group.
+        **Transaction types (mutually exclusive):** - LOAN: Requires `loan.obligations` (1-9 items). `repayment` must not be provided. - REPAYMENT: Requires `repayment.recipient_id`. `loan` must not be provided.
+        **Exchange rate resolution:** If no exchange rate exists for the specified currency and date, the latest available rate for that currency is used and saved for the specified date.
       operationId: createTransaction
       parameters:
         - $ref: '#/components/parameters/groupIdPath'
@@ -646,7 +650,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Group not found
+          description: Not Found - Group, payer, obligor, recipient, or exchange rate does not exist
           content:
             application/json:
               schema:
@@ -662,7 +666,8 @@ paths:
       tags:
         - Transactions
       summary: Get transaction history for a group
-      description: Retrieve transaction history with optional count parameter (default 5)
+      description: |
+        Retrieves transaction history ordered by creation date (newest first). Returns up to the specified count (default 5). Does not verify group existence — returns empty list for non-existent groups.
       operationId: getTransactionHistory
       parameters:
         - $ref: '#/components/parameters/groupIdPath'
@@ -686,17 +691,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
   /groups/{groupId}/transactions/settlement:
     get:
       tags:
         - Transactions
       summary: Get settlement information for a group in JPY
+      description: |
+        Calculates optimized settlement transactions for a group. All amounts are converted to JPY using the exchange rate recorded with each transaction. Rounding residuals are adjusted by applying the difference to the largest debtor. Returns an empty list if no transactions exist or all balances are zero. Does not verify group existence — returns empty list for non-existent groups.
       operationId: getTransactionSettlement
       parameters:
         - $ref: '#/components/parameters/groupIdPath'
@@ -719,17 +720,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
   /groups/{groupId}/transactions/{transactionId}:
     get:
       tags:
         - Transactions
       summary: Get transaction details by ID
+      description: |
+        Returns full transaction details including type-specific information. For LOAN transactions: includes payer, obligations list, exchange rate, and date. For REPAYMENT transactions: includes payer, recipient, exchange rate, and date.
       operationId: getTransactionDetail
       parameters:
         - $ref: '#/components/parameters/groupIdPath'
@@ -797,7 +794,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Transaction not found
+          description: Not Found - Transaction, payer, obligor, or exchange rate does not exist
           content:
             application/json:
               schema:
@@ -812,6 +809,8 @@ paths:
       tags:
         - Transactions
       summary: Delete a transaction
+      description: |
+        Deletes a transaction and all associated obligations. Both LOAN and REPAYMENT transactions can be deleted. Deletion is permanent and cannot be undone.
       operationId: deleteTransaction
       parameters:
         - $ref: '#/components/parameters/groupIdPath'
@@ -827,12 +826,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized - Invalid or missing Firebase JWT token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden - User doesn't have permission to delete this transaction
           content:
             application/json:
               schema:
@@ -1121,6 +1114,7 @@ components:
         email:
           type: string
           description: User's email address
+          minLength: 1
           maxLength: 255
           example: john@example.com
     UpdateAppReviewRequest:
@@ -1225,7 +1219,7 @@ components:
           example: Dinner at restaurant
         amount:
           type: integer
-          description: Transaction amount in cents
+          description: Transaction amount in the smallest currency unit (e.g., yen for JPY, cents for USD)
           minimum: 1
           example: 5000
         currency_code:
@@ -1251,9 +1245,9 @@ components:
           properties:
             obligations:
               type: array
-              description: List of loan obligations specifying who owes what amount (max 8)
+              description: List of loan obligations specifying who owes what amount (max 9)
               minItems: 1
-              maxItems: 8
+              maxItems: 9
               items:
                 type: object
                 required:
@@ -1262,7 +1256,7 @@ components:
                 properties:
                   amount:
                     type: integer
-                    description: Amount owed in cents
+                    description: Amount owed in the smallest currency unit
                     minimum: 1
                     example: 2500
                   user_uuid:
@@ -1299,7 +1293,7 @@ components:
           example: Dinner at restaurant
         amount:
           type: integer
-          description: Transaction amount in cents
+          description: Transaction amount in the smallest currency unit (e.g., yen for JPY, cents for USD)
           minimum: 1
           example: 5000
         currency_code:
@@ -1325,9 +1319,9 @@ components:
           properties:
             obligations:
               type: array
-              description: List of loan obligations specifying who owes what amount (max 8)
+              description: List of loan obligations specifying who owes what amount (max 9)
               minItems: 1
-              maxItems: 8
+              maxItems: 9
               items:
                 type: object
                 required:
@@ -1336,7 +1330,7 @@ components:
                 properties:
                   amount:
                     type: integer
-                    description: Amount owed in cents
+                    description: Amount owed in the smallest currency unit
                     minimum: 1
                     example: 2500
                   user_uuid:
@@ -1536,7 +1530,7 @@ components:
         amount:
           type: integer
           format: int64
-          description: Amount owed in cents
+          description: Amount owed in the smallest currency unit
           example: 2500
     LoanResponse:
       type: object
@@ -1570,7 +1564,7 @@ components:
           example: Dinner at restaurant
         amount:
           type: integer
-          description: Transaction amount in cents
+          description: Transaction amount in the smallest currency unit (e.g., yen for JPY, cents for USD)
           example: 5000
         exchange_rate:
           $ref: '#/components/schemas/ExchangeRateItem'
@@ -1605,7 +1599,7 @@ components:
               amount:
                 type: integer
                 format: int64
-                description: Amount to be settled in cents
+                description: Amount to be settled in JPY (rounded to nearest integer)
                 example: 3500
     TransactionResponse:
       type: object
@@ -1625,7 +1619,7 @@ components:
         amount:
           type: integer
           format: int64
-          description: Transaction amount in cents
+          description: Transaction amount in the smallest currency unit (e.g., yen for JPY, cents for USD)
           example: 5000
         payer:
           $ref: '#/components/schemas/UserResponse'
