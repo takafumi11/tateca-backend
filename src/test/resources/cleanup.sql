@@ -1,0 +1,10 @@
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE transaction_obligations;
+TRUNCATE TABLE transaction_history;
+TRUNCATE TABLE user_groups;
+TRUNCATE TABLE users;
+TRUNCATE TABLE exchange_rates;
+TRUNCATE TABLE `groups`;
+TRUNCATE TABLE auth_users;
+TRUNCATE TABLE currencies;
+SET FOREIGN_KEY_CHECKS = 1;

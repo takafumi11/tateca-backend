@@ -2,7 +2,7 @@ package com.tateca.tatecabackend;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,15 +13,15 @@ import org.wiremock.integrations.testcontainers.WireMockContainer;
 
 /**
  * Base class for Integration tests with MySQL and WireMock containers.
- * Provides database and external API mocking infrastructure.
+ * Provides shared Testcontainers infrastructure (MySQL + WireMock).
  * <p>
- * {@code @Isolated} prevents parallel execution with other test classes,
- * because all subclasses share a single Testcontainers MySQL instance.
- * Without it, concurrent DELETE/INSERT from different test classes cause deadlocks.
+ * All subclasses share a single MySQL instance via Testcontainers.
+ * {@code @ResourceLock("DATABASE")} serializes DB-dependent test classes
+ * while allowing Unit/WebMvc tests to run in parallel.
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Isolated
+@ResourceLock("DATABASE")
 public abstract class AbstractIntegrationTest {
 
     @ServiceConnection
