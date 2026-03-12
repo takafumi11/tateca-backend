@@ -1,26 +1,26 @@
 # Tateca Backend
 
-Spring Boot 3.5.4 / Java 21 application for group expense management with Firebase authentication.
+Spring Boot 3.5.8 / Java 25 application for group expense management with Firebase authentication.
 
 ## Tech Stack
 
 | Category | Technology |
 |----------|-----------|
-| Language | Java 21 |
-| Framework | Spring Boot 3.5.4 |
+| Language | Java 25 |
+| Framework | Spring Boot 3.5.8 |
 | Database | MySQL 8 |
 | Authentication | Firebase Authentication |
 | CI/CD | GitHub Actions |
 | Container Registry | GitHub Container Registry (GHCR) |
 | Deployment | Railway (image-based) |
 | Monitoring | Better Stack |
-| API Documentation | GitHub Pages ([Swagger UI](https://tateca.github.io/tateca-backend/swagger.html) / [Redoc](https://tateca.github.io/tateca-backend/)) |
+| API Documentation | [Redoc](https://docs.tateca.net) |
 
 ## Getting Started
 
 ### Prerequisites
 
-- JDK 21
+- JDK 25
 - Docker (for local MySQL)
 
 ### Setup
@@ -59,15 +59,12 @@ Step 5: TDD Implementation (GREEN)
 
 | Pipeline | Trigger | Purpose |
 |----------|---------|---------|
-| CI (`ci.yml`) | PR to main, push to main | Test, build Docker image, validate OpenAPI |
-| CD (`cd.yml`) | After CI on main | Retag image, deploy docs to GitHub Pages, trigger Railway redeploy |
-
-Docker images are built once in CI and reused in CD (Build Once, Deploy Anywhere).
+| CI (`ci.yml`) | PR to main | Test, OpenAPI lint, preview deploy to GitHub Pages |
+| CD (`cd.yml`) | Push to main (= PR merge) | Deploy API docs, Docker build & push to GHCR, Railway redeploy |
 
 ## API Documentation
 
-- **Swagger UI:** https://tateca.github.io/tateca-backend/swagger.html
-- **Redoc:** https://tateca.github.io/tateca-backend/
+- **Redoc:** https://docs.tateca.net
 - **OpenAPI specs:** `openapi/` directory (Doc-First, single source of truth)
 
 ## Project Structure
