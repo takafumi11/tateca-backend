@@ -1,222 +1,198 @@
-# Specification-Driven Development (SDD) Process Guide
+# Spec Driven Development (SDD) Process Guide
 
 ## Overview
 
-本ドキュメントは、仕様駆動開発（Specification-Driven Development）の完全なプロセスを定義する。
-新機能の追加や既存機能の変更において、仕様を起点とし、テスト駆動で実装を進めるためのステップバイステップガイドである。
+This document defines the complete process for Spec Driven Development (SDD).
+It serves as a step-by-step guide for developing new features or modifying existing ones, starting from specifications and progressing through test-driven implementation.
 
-各ステップの実行詳細は対応する Cursor スキルに定義されている。本ドキュメントはプロセス全体の俯瞰、ステップ間の依存関係、レビュー体制、横断的な知見に集中する。
+Execution details for each step are defined in the corresponding Cursor skills. This document focuses on the overall process overview, inter-step dependencies, the review framework, and cross-cutting insights.
 
-## 基本原則
+## Core Principles
 
-- **仕様が先、実装が後:** コードを書く前にドメイン要件と HTTP 契約を確定する
-- **外部契約が先、内部設計が後:** フロントエンドとの合意（OpenAPI）とブラックボックステストを先に確定し、内部の HOW は後で決める
-- **各レイヤーの責務分離:** 要件定義、API 契約、設計、テスト、実装は明確に分離する
-- **ドキュメント間の重複排除:** 同じ情報を複数のドキュメントに書かない。各ドキュメントには Single Source of Truth がある
-- **テスト駆動:** テストを先に書き（RED）、実装で通す（GREEN）
+- **Specification first, implementation second:** Finalize business requirements → design → HTTP contract before writing code
+- **Separation of concerns:** Requirements (WHAT), design (HOW), contract (INTERFACE), and implementation (CODE) are clearly separated
+- **No duplication across documents:** Do not write the same information in multiple documents. Each document serves as a Single Source of Truth
+- **Test-driven:** Write tests first (RED), then make them pass with implementation (GREEN)
 
-## プロセス全体像
+## Process Overview
 
 ```
-Step 1: Requirements + HLD（ドメイン要件 + 技術方向性 + AC）
-    ↓                           ← 仕様フェーズ
-Step 2: OpenAPI（HTTP インターフェース契約）
+Step 1: Requirements (Domain requirements + ACs)
+    ↓                           ← Specification phase
+Step 2: Design — HLD (Processing flows, state transitions, Domain models)
     ↓
-Step 3: Scenario Test — RED（受け入れテスト）
-    ↓                           ← 実装フェーズ
-Step 4: LLD — 任意（不可逆な技術判断がある場合のみ）
+Step 3: OpenAPI (HTTP interface contract)
+    ↓                     ┌──→ QA: E2E Test case preparation begins (in parallel)
+Step 4: Scenario Test — RED (Acceptance tests, ACs within service boundary)
+    ↓                           ← Implementation phase
+Step 5: TDD Implementation (Complete when all tests are GREEN)
     ↓
-Step 5: TDD Implementation（全テスト GREEN で完了）
+    └──→ Staging deployment → QA: E2E Test execution (verifies actual side effects of external services)
 ```
 
 ---
 
-## Step 1: Requirements + HLD（要件定義 + 高レベル設計）
+## Step 1: Requirements
 
-**目的:** ドメインレベルのビジネス要件と受け入れ基準を確定する。技術的な方向性（High-Level Design）も同時に収束させる。
+**Purpose:** Finalize domain-level business requirements and acceptance criteria. No technical concerns are included.
 
-**スキル:** `sdd-requirements`
+**Skill:** `sdd-requirements`
 
-**成果物:** `docs/specs/{feature}/requirements.md`
+**Artifact:** `docs/specs/{feature}/requirements.md`
 
-**レビュアー:**
-- **PDM:** ビジネス要件と AC の妥当性、Out of Scope の判断
-- **QA:** AC の網羅性、テスト可能性、曖昧さの指摘
-- **Tech Lead:** ビジネス要件の技術的なレビュー、HLD の方向性の妥当性
+**Reviewers:**
+- **PDM:** Validity of business requirements and ACs, Out of Scope decisions
+- **QA:** Completeness of ACs, testability, identification of ambiguities
+- **Tech Lead:** Technical feasibility of business requirements
 
-**HLD について:** 削除戦略（物理削除 vs ソフトデリート）、既存機能との関係、データモデルの方向性など、AC の書き方に影響する技術的判断は Requirements と同時に議論・確定する。HLD と Requirements は同時並行で収束するものであり、分離しない。requirements.md の Scope / Out of Scope、Domain Definitions セクションが HLD の記載場所となる。
+**Responsibilities of requirements.md:** Describes only business requirements, domain rules, and acceptance criteria. Technical concerns such as processing flows, state transitions, integration patterns, and HTTP status codes are not included. These are defined from Step 2 (design.md) onward.
 
 ---
 
-## Step 2: OpenAPI（HTTP インターフェース契約）
+## Step 2: Design — HLD (High-Level Design)
 
-**目的:** HTTP インターフェースの Single Source of Truth を定義する。外部契約を内部設計より先に確定する。
+**Purpose:** Design how to realize the business requirements at the architecture level. Before defining the OpenAPI (HTTP contract), finalize processing flows, state transitions, domain models, and error strategies.
 
-**スキル:** `sdd-openapi`
+**Skill:** `sdd-design`
 
-**成果物:**
+**Artifact:** `docs/specs/{feature}/design.md`
+
+**Reviewers:**
+- **Tech Lead:** Validity of processing flows, accuracy of state transitions, appropriateness of integration patterns
+- **Developers:** Feasibility of processing flows, consistency with existing patterns
+
+**Decision Flow:** If any of the following is YES → design.md is recommended. If all are NO → design.md is not needed (proceed to Step 3: OpenAPI).
+
+```
+Q1: Are there multi-step processing flows? (staged processing, Saga, etc.)
+Q2: Are there state transitions? (status management, lifecycle)
+Q3: Is there integration with external systems? (API calls, event processing)
+Q4: Is an error recovery strategy needed? (retry, compensating transactions)
+Q5: Are there DB schema changes? (new tables, column additions, FK constraint changes)
+```
+
+**On LLD (Low-Level Design):** This process does not create LLD as a separate document. Spring Boot's layered architecture (Controller → Service → Repository) and the test code (created through TDD) serve the role of LLD. Irreversible architectural decisions are recorded in `docs/ADR.md`.
+
+---
+
+## Step 3: OpenAPI (HTTP Interface Contract)
+
+**Purpose:** Define the Single Source of Truth for the HTTP interface. Translate the processing flows and error strategies from design.md into an HTTP contract.
+
+**Skill:** `sdd-openapi`
+
+**Artifacts:**
 - `openapi/paths/{feature}.yaml`
 - `openapi/components/schemas/requests/{Request}.yaml`
 - `openapi/components/schemas/responses/{Response}.yaml`
 - `openapi/components/examples/errors/{ERROR_CODE}.yaml`
 
-**レビュアー:**
-- **Tech Lead:** エラーコード体系、ステータスコードの適切さ、既存 API との一貫性
-- **Frontend:** リクエスト/レスポンスの使いやすさ、フィールド命名、エラーハンドリングの実装容易性
+**Reviewers:**
+- **Tech Lead:** Error code taxonomy, appropriateness of status codes, consistency with existing APIs
+- **Frontend:** Usability of request/response, field naming, ease of error handling implementation
 
 ---
 
-## Step 3: Scenario Test — RED
+## Step 4: Scenario Test — RED + E2E Test Preparation
 
-**目的:** requirements.md の AC をテストコードとして表現し、RED 状態で確定する。AC と OpenAPI があれば書ける。内部設計は不要。
+**Purpose:** Express the ACs from requirements.md as test code and finalize them in a RED state. Can be written with just the ACs and OpenAPI — internal design is not needed.
 
-**スキル:** `sdd-scenario-test`
+**Routing ACs by verification boundary:** Each AC in requirements.md is routed to either a Scenario Test or an E2E Test based on whether verification requires actual side effects from external services. See `testing.md` for detailed routing rules.
 
-**成果物:** `src/test/java/.../scenario/{Feature}ScenarioTest.java`
+| AC Characteristic | Test Type | Owner | Execution Environment |
+|-------------------|-----------|-------|-----------------------|
+| Verification can be completed with the service's own response and DB state | Scenario Test | Developer | Local (Testcontainers + WireMock) |
+| Verifying that the correct request is sent to an external service | Scenario Test (WireMock verify) | Developer | Local |
+| Verification requires actual DB state or side effects from external services | E2E Test | QA team | Staging environment |
 
-**レビュアー:**
-- **開発者（コードレビュー）:** AC マッピングの正しさ、テスト隔離、ヘルパーメソッドの設計
+ACs tagged with `[E2E]` in requirements.md are only subject to E2E Test verification.
 
-**この時点でのテスト状態:**
+**Skill:** `sdd-scenario-test`
+
+**Artifacts:**
+- `src/test/java/.../scenario/{Feature}ScenarioTest.java` (Developer)
+- E2E test cases (QA team — preparation can begin after Step 3 OpenAPI is finalized)
+
+**Reviewers:**
+- **Developers (code review):** Correctness of AC mapping in Scenario Tests, test isolation, helper method design
+- **QA:** Completeness of E2E test cases
+
+**Test state at this point:**
 - Scenario Test: **RED**
-
----
-
-## Step 4: LLD（低レベル設計）— 任意
-
-**目的:** 不可逆な技術判断（DB スキーマ、トランザクション境界等）を実装前にレビューする。外部契約とブラックボックステストは既に確定済み。
-
-**スキル:** `sdd-design`
-
-**成果物:** `docs/specs/{feature}/design.md`
-
-**レビュアー:**
-- **Tech Lead:** DB スキーマ変更、FK 制約・CASCADE 設計、トランザクション境界の判断
-- **開発者:** レイヤー責務の配置、処理フローの実現可能性
-
-**HLD との違い:** Step 1 の HLD は「何を作るか」に影響する技術方向性（削除戦略の方針、既存機能との関係）。LLD は「どう作るか」の具体的な技術判断（Flyway マイグレーション、エンティティリレーション、`@Transactional` スコープ）。LLD の必要性の判定フローはスキル `sdd-design` に定義されている。
+- E2E Test: Case preparation in progress (execution happens after staging deployment)
 
 ---
 
 ## Step 5: TDD Implementation
 
-**目的:** テストを先に書き、実装で通す。ボトムアップで積み上げ、全テストを GREEN にする。
+**Purpose:** Write tests first, then make them pass with implementation. Build bottom-up and make all tests GREEN.
 
-**スキル:** `sdd-tdd`（オーケストレーション）、`sdd-controller-web-test`、`sdd-service-unit-test`、`sdd-integration-test`
+**Skills:** `sdd-tdd` (orchestration), `sdd-controller-web-test`, `sdd-service-unit-test`, `sdd-integration-test`
 
-**レビュアー:**
-- **開発者（コードレビュー）:** 実装品質、テスト網羅性、レイヤー責務の遵守
+**Reviewers:**
+- **Developers (code review):** Implementation quality, test coverage, adherence to layer responsibilities
 
-TDD の実行順序、RED→GREEN の遷移ルール、スタブ作成のタイミングはスキル `sdd-tdd` に定義されている。
+TDD execution order, RED→GREEN transition rules, and stub creation timing are defined in the `sdd-tdd` skill.
 
----
-
-## ドキュメント間の責務分離
-
-| ドキュメント | 定義するもの | 定義しないもの |
-|------------|------------|--------------|
-| `requirements.md` | ドメイン要件、ビジネスルール、AC、HLD（技術方向性） | HTTP 詳細、実装用語、JSON フィールド名、具体的な技術実装 |
-| OpenAPI specs | HTTP 契約、JSON スキーマ、エラー例 | ドメイン要件、内部設計 |
-| `design.md`（任意） | LLD: レイヤー責務、処理フロー、DB スキーマ、トランザクション境界 | HTTP スキーマ詳細（→ OpenAPI）、テスト戦略（→ testing.md） |
-| `testing.md` | テスト戦略、各テスト責務、命名規約 | 個別機能のテスト項目 |
-
-### 情報の流れ
-
-```
-requirements.md（WHAT + HLD を定義）
-    │
-    ├──→ OpenAPI（HTTP 契約として INTERFACE を定義）
-    │
-    ├──→ Scenario Test（AC を実行可能な形式に変換）
-    │
-    └──→ design.md（任意: 実装直前に LLD を定義）
-```
+**After Step 5 completion:** Deploy to the staging environment where the QA team executes E2E Tests. This confirms that external integrations verified via WireMock in Scenario Tests work as expected in the real environment.
 
 ---
 
-## 成果物ディレクトリ構成
+## Document Responsibility Separation
+
+| Document | Defines | Does Not Define |
+|----------|---------|-----------------|
+| `domain-glossary.md` | Project-wide business terms | Design terms, technical patterns (→ ADR.md) |
+| `requirements.md` | Domain requirements, business rules, ACs, feature-specific terms | Processing flows, state transitions, HTTP details, implementation terms, internal status names |
+| `design.md` | HLD: processing flows, state transitions, data models, integration patterns, error handling strategies | HTTP details (error codes, mapping tables → OpenAPI), DDL syntax (→ Flyway), layer implementation details / logging policies (→ code) |
+| OpenAPI specs | HTTP contract, JSON schemas, error examples | Domain requirements, processing flows |
+| `testing.md` | Testing strategy, test type responsibilities, naming conventions | Test items for individual features |
+| Code + Tests | LLD: layer implementation, transaction boundaries, DB access | — |
+
+### Information Flow
+
+```
+requirements.md (Defines WHAT)
+    │
+    ├──→ design.md (Defines HOW at the architecture level)
+    │       │
+    │       └──→ OpenAPI (Defines INTERFACE)
+    │               │
+    │               └──→ E2E Test case preparation (QA team, in parallel)
+    │
+    └──→ Scenario Test (Transforms ACs within service boundary into executable form)
+```
+
+---
+
+## Artifact Directory Structure
 
 ```
 docs/
-├── sdd-process.md          ← 本ドキュメント（プロセス全体）
-├── testing.md              ← テスト戦略（全機能共通）
+├── sdd-process.md          ← This document (overall process)
+├── domain-glossary.md      ← Project-wide domain glossary (business terms only)
+├── testing.md              ← Testing strategy (shared across all features)
+├── STEERING.md             ← Project overview
+├── ADR.md                  ← Architecture Decision Records
 └── specs/
     └── {feature}/
-        ├── requirements.md ← ドメイン要件 + AC
-        └── design.md       ← 技術設計 + 責務マッピング（任意）
+        ├── requirements.md ← Domain requirements + ACs (only feature-specific terms defined)
+        └── design.md       ← High-level design (processing flows, state transitions, integration patterns)
 
 openapi/
 ├── paths/
-│   └── {feature}.yaml      ← パス定義
+│   └── {feature}.yaml      ← Path definitions
 └── components/
     ├── schemas/
-    │   ├── requests/        ← リクエストスキーマ
-    │   └── responses/       ← レスポンススキーマ
+    │   ├── requests/        ← Request schemas
+    │   └── responses/       ← Response schemas
     └── examples/
-        └── errors/          ← エラーレスポンス例
+        └── errors/          ← Error response examples
 
 src/test/java/.../
-├── scenario/                ← Scenario Test（Acceptance）
-├── controller/              ← Controller Web Test
+├── scenario/                ← Scenario Tests (Acceptance)
+├── controller/              ← Controller Web Tests
 └── service/
-    ├── impl/                ← Service Unit Test
-    └── {Service}IntegrationTest.java  ← Integration Test
+    ├── impl/                ← Service Unit Tests
+    └── {Service}IntegrationTest.java  ← Integration Tests
 ```
-
----
-
-## 既存コードがある場合の SDD 適用
-
-既存コードの状態と目的に応じて、3 つのフローを使い分ける。
-
-**スキル:** `sdd-reverse`
-
-### フロー選択
-
-| ケース | フロー | 目的 |
-|-------|-------|------|
-| 新規 API を作る（既存コードに影響なし） | **通常 SDD** | 新規開発 |
-| 既存 API に機能を追加する | **部分的 Reverse → 通常 SDD** | リグレッション防止 + 新規開発 |
-| 既存機能をリファクタリングする | **フル Reverse SDD** | 既存コードの保護 |
-
-### 部分的 Reverse（既存 API への機能追加時）
-
-既存 API に新機能を追加する場合、変更対象の API に限定して既存の振る舞いを保護する。
-
-```
-Step 0: 変更対象 API の既存 Scenario Test + requirements.md を作成（部分的 Reverse）
-    → 既存の AC を抽出し、Scenario Test が GREEN であることを確認
-    ↓
-Step 1〜5: 通常 SDD フロー
-    → requirements.md に新規 AC を追加
-    → 新規 AC の Scenario Test を RED で追加
-    → TDD Implementation
-    → 全テスト（既存 + 新規）が GREEN で完了
-```
-
-**フル Reverse SDD との違い:**
-- 変更対象の API のみ（プロジェクト全体ではない）
-- Scenario Test + requirements.md のみ（design.md、Controller Web Test、Unit Test は不要）
-- 目的はリグレッション防止（仕様の完全な文書化ではない）
-
-### フル Reverse SDD（リファクタリング前の仕様保護）
-
-実装が先に存在する既存機能に対して、SDD 仕様群とテストスイートをフルセットで後付け生成する。
-
-| | 通常 SDD | フル Reverse SDD |
-|---|---------|------------|
-| 起点 | 要件（仕様が先） | 実装（コードが先） |
-| Scenario Test | RED → GREEN | **最初から GREEN** |
-| Controller Web Test | RED → GREEN | **最初から GREEN** |
-| ユーザー確認 | 仕様作成時 | **リバース後に確認** |
-| テストが RED | 実装が未完了 | **バグ発見** |
-
-### Reverse SDD の優先順位
-
-| 優先度 | 基準 |
-|--------|------|
-| 高 | リファクタリング対象・変更予定がある機能 |
-| 高 | 金融計算・決済などビジネスクリティカルな機能 |
-| 中 | エンティティ結合が多く複雑な機能 |
-| 低 | 安定しており変更予定のない機能 |
-

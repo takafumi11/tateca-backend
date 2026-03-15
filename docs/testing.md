@@ -1,348 +1,208 @@
 # Testing Strategy
 
-## 概要
+## Overview
 
-テストを **検証対象の仕様** によって分類し、各テスト種別が固有の価値を提供する戦略を定義する。
+A strategy that classifies tests by **the specification they verify**, ensuring each test type provides unique value.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                     外部仕様テスト                                   │
-│         API 利用者と共有する仕様の検証                                │
+│                  External Specification Tests                      │
+│         Verifying specifications shared with API consumers         │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Scenario Test（受け入れテスト）                                │  │
-│  │ 検証対象: requirements.md AC                                  │  │
-│  │ SUT: 全レイヤー結合    技法: ブラックボックス / API 経由のみ    │  │
+│  │ Scenario Test (Acceptance Test)                              │  │
+│  │ Verifies: requirements.md ACs (within service boundary)     │  │
+│  │ SUT: All layers combined    Approach: Black-box / API only  │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Controller Web Test（契約テスト）                              │  │
-│  │ 検証対象: OpenAPI spec                                        │  │
-│  │ SUT: Web 層のみ        技法: Service モック                   │  │
+│  │ E2E Test (Integration Test)                                 │  │
+│  │ Verifies: requirements.md ACs (actual side effects of       │  │
+│  │           external services)                                │  │
+│  │ SUT: All services combined  Approach: Staging / QA team     │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ Controller Web Test (Contract Test)                         │  │
+│  │ Verifies: OpenAPI spec                                      │  │
+│  │ SUT: Web layer only         Approach: Service mocked        │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────────────────────┤
-│                     内部仕様テスト                                   │
-│         開発チーム内部の品質保証                                      │
+│                  Internal Specification Tests                      │
+│         Quality assurance within the development team              │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Service Unit Test（ドメインテスト）                            │  │
-│  │ 検証対象: ドメインロジック                                      │  │
-│  │ SUT: Service 層のみ    技法: 全依存モック                      │  │
+│  │ Service Unit Test (Domain Test)                             │  │
+│  │ Verifies: Domain logic                                      │  │
+│  │ SUT: Service layer only     Approach: All dependencies      │  │
+│  │                              mocked                         │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Integration Test（インフラテスト）                             │  │
-│  │ 検証対象: インフラストラクチャ固有の振る舞い                     │  │
-│  │ SUT: Service + インフラ 技法: 実 DB / WireMock                │  │
+│  │ Integration Test (Infrastructure Test)                      │  │
+│  │ Verifies: Infrastructure-specific behavior                  │  │
+│  │ SUT: Service + Infra        Approach: Real DB / WireMock    │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────────────────────┤
-│  横断的テスト: Security / API Client / Repository / Utility         │
+│  Cross-cutting: Security / API Client / Repository / Utility      │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## テスティングフィロソフィ
+## Testing Philosophy
 
-### 原則 1: テストは仕様を検証する
+### Principle 1: Tests Verify Specifications
 
-SDD においてテストは仕様の検証手段である。全てのフィーチャーテストは対応する SDD 成果物を持つ。
+In SDD, tests are the means of verifying specifications. Every feature test has a corresponding SDD artifact.
 
-| SDD 成果物 | テスト種別 |
-|-----------|----------|
-| requirements.md（AC） | Scenario Test |
+| SDD Artifact | Test Type |
+|-------------|-----------|
+| requirements.md (ACs) — verifiable within service boundary | Scenario Test |
+| requirements.md (ACs) — requires verification of actual side effects from external services | E2E Test |
 | OpenAPI spec | Controller Web Test |
-| ドメインルール（requirements.md から導出） | Service Unit Test |
-| インフラ要件（design.md から導出） | Integration Test |
+| Domain rules (derived from requirements.md) | Service Unit Test |
+| Infrastructure requirements (derived from design.md) | Integration Test |
 
-### 原則 2: 分類は検証対象仕様で決まる
+### Principle 2: Classification Is Determined by the Specification Under Test
 
-テストの分類は **何を検証するか（検証対象仕様）** で決まる。テスト技法（モックの有無、DB 接続の有無）は分類基準ではない。
+Test classification is determined by **what is being verified (the target specification)**. The testing technique (use of mocks, DB connection, etc.) is not a classification criterion.
 
-### 原則 3: 外部/内部は仕様の公開範囲で決まる
+### Principle 3: External vs. Internal Is Determined by Specification Visibility
 
-- **外部仕様テスト** — API 利用者に公開する仕様の検証
-- **内部仕様テスト** — 開発チーム内部の品質保証
+- **External specification tests** — Verify specifications published to API consumers
+- **Internal specification tests** — Quality assurance within the development team
 
-Controller Web Test は Service をモックするが、検証対象は OpenAPI（フロントエンドに公開する外部仕様）であるため外部仕様テストに分類する。モックはテスト対象を分離するための技法であり、検証対象仕様の公開範囲を変えるものではない。
+Controller Web Tests mock the Service layer, but since they verify the OpenAPI spec (an external specification published to the frontend), they are classified as external specification tests.
 
-### 原則 4: 各テストは固有の価値を提供する
+### Principle 4: Each Test Type Provides Unique Value
 
-各テスト種別は「そのレイヤーでしか検証できないこと」に集中する。上位テストで検証済みのビジネス結果を下位テストで再検証せず、下位テストで検証済みのロジック分岐を上位テストで再検証しない。
+Each test type focuses on "things that can only be verified at that layer." Business outcomes already verified by higher-level tests are not re-verified in lower-level tests, and logic branches already verified by lower-level tests are not re-verified in higher-level tests.
 
-### テスト失敗が示すもの
+### What a Test Failure Indicates
 
-| テスト種別 | 失敗が示すもの |
-|-----------|------------|
-| Scenario Test | ビジネス要件が満たされていない |
-| Controller Web Test | HTTP 契約が破られている |
-| Service Unit Test | ドメインロジックにバグがある |
-| Integration Test | インフラの振る舞いが想定と異なる |
-
----
-
-## 外部仕様テスト
-
-### Scenario Test（受け入れテスト）
-
-**検証対象仕様:** requirements.md の Acceptance Criteria
-
-**視点:** API 利用者のブラックボックス視点。クライアントが実際に行う API 呼び出しフローを忠実に再現する。
-
-**テスト設計原則:**
-
-- セットアップと検証は全て HTTP エンドポイント経由（Repository 直接参照禁止）
-- マスタデータの例外: `currencies`, `exchange_rates` テーブルのみ API 未提供のため `@BeforeEach` での直接投入を許可
-- テスト名は requirements.md の Req/AC に 1:1 でマッピングする
-- AC に対応しない技術的エッジケースは `TechnicalEdgeCases` ネストクラスに分離する
-
-**責務:**
-
-- ビジネスフローの正常完了（正常系 AC）
-- ビジネスルール違反時のリジェクト（異常系 AC）
-- 複数 API を跨ぐシナリオの検証
-
-**非責務:**
-
-- レスポンス JSON のスキーマ構造検証 → Controller Web Test
-- Bean Validation の発火確認 → Controller Web Test
-- ドメインロジックの分岐網羅 → Service Unit Test
-- DB エンコーディング、タイムスタンプ精度 → Integration Test
-
-**基盤:** `AbstractIntegrationTest` + `@AutoConfigureMockMvc`（フルスタック起動）
-
-**命名:** `{Feature}ScenarioTest` — `src/test/java/.../scenario/`
+| Test Type | A Failure Indicates |
+|-----------|-------------------|
+| Scenario Test | A business requirement is not met (within service boundary) |
+| E2E Test | Inter-service integration is not working as expected |
+| Controller Web Test | The HTTP contract has been broken |
+| Service Unit Test | There is a bug in the domain logic |
+| Integration Test | Infrastructure behavior differs from expectations |
 
 ---
 
-### Controller Web Test（契約テスト）
+## AC Verification Boundaries
 
-**検証対象仕様:** OpenAPI spec
+Each AC in requirements.md is routed to either a Scenario Test or an E2E Test based on whether verification requires actual side effects from external services.
 
-**視点:** HTTP インターフェースの境界。OpenAPI に定義されたステータスコード、レスポンススキーマ、エラー形式が正しく実装されていることを保証する。
+| AC Characteristic | Test Type | Example |
+|-------------------|-----------|---------|
+| Verification can be completed with the service's own response and DB state | Scenario Test | "Balance is deducted", "Error is returned" |
+| Verifying that the correct request is sent to an external service | Scenario Test (WireMock verify) | "A Sync Invest request is sent to PPG" |
+| Verification requires actual DB state or side effects from external services | E2E Test | "Standard points on the PPG side actually increase" |
 
-**なぜ外部仕様テストか:** Service をモックするが、検証対象は OpenAPI（フロントエンドに公開する外部仕様）である。モックは検証対象を Web 層に分離するための技法であり、検証対象仕様の公開範囲を変えるものではない。
+When writing ACs in requirements.md, explicitly identify which boundary each AC belongs to. ACs that are only subject to E2E Test verification are tagged with `[E2E]` in requirements.md.
 
-**テスト設計原則:**
+### Limits of Shift-Left
 
-- Service は `@MockitoBean` でモックする
-- HTTP リクエスト/レスポンスの形式のみをテストする
-- ビジネスロジックの正しさは検証しない（Service のモックが正しい値を返す前提）
-- DTO 単体テストは設けない（Controller Web Test に統合）
+Scenario Tests verify against external services stubbed with WireMock. If the WireMock stubs diverge from the actual behavior of external services, the divergence cannot be detected locally.
 
-**責務:**
-
-- 各ステータスコードのレスポンス構造（フィールド存在、`error_code`、`errors` 配列）
-- Bean Validation の発火（リクエストボディ、パスパラメータの制約）
-- Service 例外 → HTTP レスポンスへのマッピング
-- Service への正しい委譲（引数、呼び出し回数）
-- Content-Type ネゴシエーション
-
-**非責務:**
-
-- ビジネスロジックの正しさ → Service Unit Test
-- データの永続化確認 → Integration Test
-- 認証フィルターの動作 → Security Tests
-
-**基盤:** `@WebMvcTest` + `@MockitoBean`（Web 層のみ起動）
-
-**命名:** `{Controller}WebTest` — `src/test/java/.../controller/`
+1. **Scenario Tests (WireMock verify)** prevent "request construction errors" and "flow omissions" — the majority of bugs can be detected here
+2. **E2E Tests (staging environment)** detect "divergence from actual behavior"
+3. **Future improvement:** Introduction of Contract Testing will enable local detection of divergence between WireMock stubs and actual APIs
 
 ---
 
-## 内部仕様テスト
+## Test Type Definitions
 
-### Service Unit Test（ドメインテスト）
+### Scenario Test (Acceptance Test)
 
-**検証対象仕様:** requirements.md から導出されるドメインルール
+| Item | Details |
+|------|---------|
+| Specification under test | requirements.md ACs (without `[E2E]` tag) |
+| Perspective | API consumer's black-box perspective |
+| Infrastructure | `AbstractIntegrationTest` + `@AutoConfigureMockMvc` |
+| Naming | `{Feature}ScenarioTest` — `src/test/java/.../scenario/` |
+| Owner | Developer |
 
-**視点:** ドメインロジックのホワイトボックス。Service 層の分岐・例外・状態遷移が正しく機能することを検証する。
+**Responsibilities:** Business flow verification within service boundary, correctness of requests sent to external services (WireMock verify)
 
-**テスト設計原則:**
+**Not responsible for:** Response JSON schema (→ Controller Web Test), domain logic branching (→ Service Unit Test), actual side effects of external services (→ E2E Test)
 
-- 全ての依存を `@Mock` で置換し、Service を完全に分離する
-- ドメインルールの分岐を網羅する（正常分岐、異常分岐、境界値）
-- Repository との相互作用（呼び出し有無、引数、順序）を検証する
+### E2E Test (Integration Test)
 
-**責務:**
+| Item | Details |
+|------|---------|
+| Specification under test | requirements.md ACs (with `[E2E]` tag) |
+| Perspective | Inter-service integration |
+| Infrastructure | Staging environment + real microservice cluster |
+| Start timing | Case preparation can begin from SDD Step 3 (after OpenAPI is finalized). Execution happens after staging deployment |
+| Owner | QA team |
 
-- 認可チェック（メンバーシップ確認、権限検証）
-- 存在確認とエラー送出
-- ビジネスルールの適用（上限チェック、冪等判定、状態遷移）
-- Repository への正しいデータ受け渡し
+**Responsibilities:** Verification of actual DB state and side effects of external services, detection of divergence between WireMock stubs and actual APIs, detection of environment-specific issues
 
-**非責務:**
+**Not responsible for:** Business logic within service boundary (→ Scenario Test), exhaustive HTTP contract verification (→ Controller Web Test)
 
-- HTTP レスポンス形式 → Controller Web Test
-- 認証 → Security Tests
-- DB 永続化の実挙動 → Integration Test
-- DTO の正規化・バリデーション → Controller Web Test
+### Controller Web Test (Contract Test)
 
-**基盤:** `@ExtendWith(MockitoExtension.class)` + `@Mock` / `@InjectMocks`
+| Item | Details |
+|------|---------|
+| Specification under test | OpenAPI spec |
+| Perspective | HTTP interface boundary |
+| Infrastructure | `@WebMvcTest` + `@MockitoBean` |
+| Naming | `{Controller}WebTest` — `src/test/java/.../controller/` |
+| Owner | Developer |
 
-**命名:** `{Service}UnitTest` または `{ServiceImpl}Test` — `src/test/java/.../service/`
+**Responsibilities:** Status codes and response structure, Bean Validation, Service exception → HTTP mapping, correct delegation to Service
 
----
+**Not responsible for:** Correctness of business logic (→ Service Unit Test), data persistence (→ Integration Test)
 
-### Integration Test（インフラテスト）
+### Service Unit Test (Domain Test)
 
-**検証対象仕様:** インフラストラクチャ固有の振る舞い
+| Item | Details |
+|------|---------|
+| Specification under test | Domain rules derived from requirements.md |
+| Perspective | White-box view of domain logic |
+| Infrastructure | `@ExtendWith(MockitoExtension.class)` + `@Mock` / `@InjectMocks` |
+| Naming | `{Service}UnitTest` — `src/test/java/.../service/` |
+| Owner | Developer |
 
-**視点:** インフラストラクチャ結合。Unit Test では検証不可能な、実環境でしか確認できない振る舞いを検証する。
+**Responsibilities:** Exhaustive coverage of domain rule branches, repository interaction verification
 
-**テスト設計原則:**
+**Not responsible for:** HTTP response format (→ Controller Web Test), actual DB persistence behavior (→ Integration Test)
 
-- Unit Test で検証済みのドメインロジック分岐は重複しない
-- 「実 DB でしか確認できないこと」に集中する
-- 外部 API クライアントのリトライ・フォールバックは WireMock で検証する
+### Integration Test (Infrastructure Test)
 
-**責務:**
+| Item | Details |
+|------|---------|
+| Specification under test | Infrastructure-specific behavior |
+| Perspective | Real-environment behavior that cannot be verified with Unit Tests |
+| Infrastructure | `AbstractIntegrationTest` (Testcontainers MySQL + WireMock) |
+| Naming | `{Service}IntegrationTest` — `src/test/java/.../service/` |
+| Owner | Developer |
 
-- `@PreUpdate` / `@PrePersist` によるタイムスタンプ自動更新
-- マルチバイト文字・絵文字の DB エンコーディング
-- エンティティリレーションの保持
-- トランザクション境界の正しさ
-- カスタムクエリの正しさ
-- 外部 API クライアントのリトライ・フォールバック（WireMock）
+**Responsibilities:** JPA lifecycle, DB encoding, transaction boundaries, custom queries, external API client retry and fallback
 
-**非責務:**
-
-- ドメインロジックの正しさ → Service Unit Test
-- HTTP レスポンス形式 → Controller Web Test
-- ビジネスフローの検証 → Scenario Test
-
-**重複排除:** Service Unit Test で検証済みの以下は含めない:
-
-- 例外送出の分岐
-- 入力値のバウンダリ（min/max length など）
-- モック可能なビジネスロジック
-
-**基盤:** `AbstractIntegrationTest`（Testcontainers MySQL + WireMock）
-
-**命名:** `{Service}IntegrationTest` — `src/test/java/.../service/`
-
----
-
-## 横断的テスト
-
-フィーチャーの requirements.md に直接マッピングされない、インフラストラクチャコンポーネントのテスト。SDD の Req/AC 命名規約には従わず、テスト対象コンポーネントの責務に基づいた命名を使用する。
-
-| テスト対象 | テスト技法 | 検証内容 |
-|-----------|----------|---------|
-| 認証フィルター | Unit (Mockito) | JWT 検証、UID 抽出、エラーレスポンス |
-| API キー認証 | Integration (TestRestTemplate) | 認証フロー全体の結合動作 |
-| API クライアント | Unit (Mockito) + Integration (WireMock) | レスポンス変換、リトライ・フォールバック |
-| Repository カスタムクエリ | Integration (Testcontainers) | JPQL/Native クエリの正しさ |
-| ユーティリティ | Unit | ヘルパーメソッドの正しさ |
-| アノテーション | Unit | カスタムアノテーションの解決 |
+**Not responsible for:** Correctness of domain logic (→ Service Unit Test), business flow verification (→ Scenario Test)
 
 ---
 
-## テスト間の責務境界
+## Responsibility Boundaries Between Tests
 
-| 検証項目 | Scenario | Controller Web | Service Unit | Integration |
-|---------|:--------:|:--------------:|:------------:|:-----------:|
-| ビジネス要件 (AC) の充足 | **◎** | | | |
-| HTTP ステータスコード | △ ※ | **◎** | | |
-| レスポンス JSON スキーマ | | **◎** | | |
-| Bean Validation 発火 | | **◎** | | |
-| 例外→レスポンス変換 | | **◎** | | |
-| ドメインロジック分岐 | | | **◎** | |
-| Repository 呼び出し検証 | | | **◎** | |
-| 実 DB 永続化 | | | | **◎** |
-| JPA ライフサイクル | | | | **◎** |
-| 文字エンコーディング | | | | **◎** |
-| リトライ・フォールバック | | | | **◎** |
+| Verification Item | Scenario | E2E | Controller Web | Service Unit | Integration |
+|-------------------|:--------:|:---:|:--------------:|:------------:|:-----------:|
+| Business requirements (ACs) — within service boundary | **◎** | | | | |
+| Business requirements (ACs) — actual side effects of external services | | **◎** | | | |
+| Requests sent to external services | **◎** ※1 | **◎** | | | |
+| HTTP status codes | △ ※2 | | **◎** | | |
+| Response JSON schema | | | **◎** | | |
+| Bean Validation firing | | | **◎** | | |
+| Exception → response mapping | | | **◎** | | |
+| Domain logic branching | | | | **◎** | |
+| Repository call verification | | | | **◎** | |
+| Actual DB persistence | | | | | **◎** |
+| JPA lifecycle | | | | | **◎** |
+| Character encoding | | | | | **◎** |
+| Retry and fallback | | | | | **◎** |
+| WireMock stub vs. actual API divergence | | **◎** | | | |
+| Environment-specific issues | | **◎** | | | |
 
-※ Scenario Test はビジネスフローの結果として正しいステータスコードを期待するが、全ステータスコードの網羅的検証は Controller Web Test の責務。
-
----
-
-## テスト基盤
-
-### AbstractIntegrationTest
-
-Scenario Test と Integration Test の共通基盤。Testcontainers で MySQL と WireMock を起動する。
-
-- `@SpringBootTest` でフルコンテキスト起動
-- `@Isolated` で並列実行防止（共有 Testcontainers MySQL のデッドロック防止）
-- `flushAndClear()` で Hibernate キャッシュを排除し、DB の実状態を検証
-
-**`@Transactional` の使い分け:**
-
-| テスト種別 | データ隔離方式 | 理由 |
-|-----------|-------------|------|
-| Integration Test（Service 直接呼び出し） | `@Transactional` ロールバック | Service がテストと同一トランザクション内で実行される |
-| Scenario Test（MockMvc 経由） | `DatabaseCleaner` | MockMvc は HTTP ごとに独立トランザクションをコミットする |
-
-### DatabaseCleaner
-
-MockMvc ベーステスト（Scenario Test 等）のデータ隔離ユーティリティ。
-
-- `@BeforeEach` で `databaseCleaner.clean()` を呼び出す
-- FK 依存順序で `DELETE FROM` を実行（`TRUNCATE` は MySQL InnoDB でデッドロックの原因となるため不使用）
-- マスタデータも削除されるため、テスト側 `@BeforeEach` で再投入する
-
-```java
-@Autowired private DatabaseCleaner databaseCleaner;
-
-@BeforeEach
-void setUp() throws Exception {
-    databaseCleaner.clean();
-    // API 経由でテストデータをセットアップ
-}
-```
-
-### TestSecurityConfig
-
-`@WebMvcTest` 環境で認証をバイパスするテスト用セキュリティ設定。パスベースで Firebase 認証（一般エンドポイント）と API Key 認証（`/internal/**`）を切り替える。
-
-### TestFixtures
-
-Object Mother パターンによるテストデータ生成。エンティティの一貫したテストデータを提供する。
-
----
-
-## SDD プロセスとの対応
-
-```
-通常 SDD:
-  requirements.md → Scenario Test (RED)
-  OpenAPI spec    → Controller Web Test (RED)
-  domain rules    → Service Unit Test (RED)     ┐
-  infrastructure  → Integration Test (RED)      ┘ TDD Implementation → GREEN
-
-フル Reverse SDD:
-  Implementation → requirements.md → Scenario Test (GREEN = 挙動保護)
-                 → OpenAPI review  → Controller Web Test (GREEN)
-                 → domain rules    → Service Unit Test (GREEN)
-                 → infrastructure  → Integration Test (GREEN)
-                                     (RED = バグ発見)
-```
-
----
-
-## 命名規約
-
-| テスト種別 | クラス名パターン | ディレクトリ |
-|-----------|----------------|-------------|
-| Scenario | `{Feature}ScenarioTest` | `scenario/` |
-| Controller Web | `{Controller}WebTest` | `controller/` |
-| Service Unit | `{Service}UnitTest` / `{ServiceImpl}Test` | `service/` |
-| Integration | `{Service}IntegrationTest` | `service/` |
-| Security | `{Component}Test` / `{Component}UnitTest` | `security/` |
-| Repository | `{Repository}Test` | `repository/` |
-| API Client | `{Client}UnitTest` / `{Client}IntegrationTest` | `api/client/` |
-| Utility | `{Class}Test` | 対応パッケージ |
-
----
-
-## アンチパターン
-
-| アンチパターン | 正しいアプローチ |
-|-------------|--------------|
-| Scenario Test で JSON スキーマの全フィールドを検証する | Controller Web Test でスキーマ検証する |
-| Controller Web Test でビジネスロジックの正しさを検証する | Service Unit Test で検証する |
-| Integration Test で Unit Test 済みのドメイン分岐を重複検証する | Unit Test でカバー済みなら含めない |
-| Service Unit Test で Bean Validation を検証する | Controller Web Test（Web 層）で検証する |
-| Scenario Test で Repository を直接使用してセットアップする | API 経由でセットアップする |
-| テスト名に実装詳細（クラス名、メソッド名）を含める | 仕様用語（ドメイン言語）で命名する |
-| 1 つのテストメソッドで複数の AC を検証する | AC ごとにテストメソッドを分離する |
+※1 Verified via WireMock verify. Confirms the correctness of request content, not actual transmission to the real API.
+※2 Scenario Tests expect the correct status code as a result of a business flow, but exhaustive verification of all status codes is the responsibility of Controller Web Tests.
